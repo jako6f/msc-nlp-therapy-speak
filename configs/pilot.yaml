@@ -1,0 +1,27 @@
+project:
+  seed: 123
+  out_dir: "data/interim"
+
+pilot:
+  # Replace/confirm crawl IDs later; format: CC-MAIN-YYYY-WW
+  crawl_ids:
+    - "CC-MAIN-2016-40"
+    - "CC-MAIN-2024-42"
+
+sampling:
+  wet_files_per_crawl: 2
+
+filters:
+  min_chars: 500
+  domain_cap: 50
+  asd_disambiguation_window_chars: 200
+
+terms:
+  adhd_patterns:
+    - "\\badhd\\b"
+    - "attention[-\\s]?deficit"
+  autism_patterns:
+    - "\\bautism\\b"
+    - "\\bautistic\\b"
+    - "autism[-\\s]?spectrum"
+  asd_pattern: "\\bASD\\b"

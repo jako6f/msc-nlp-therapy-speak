@@ -1,0 +1,117 @@
+\documentclass[a4paper,oneside,12pt]{book}
+
+% =============================================================================
+% Metadata (edit here; used in title page + PDF metadata)
+% =============================================================================
+
+\newcommand{\thesistitle}{Diachronic NLP Analysis of ``Therapy-Speak'' in General Web Discourse: ADHD and Autism in Common Crawl}
+\newcommand{\typeofthesis}{MSc Dissertation}
+\newcommand{\authorname}{Jakob L\"utkemeier}
+
+% Student ID: keep internal only; do NOT print (university guidance)
+\newcommand{\studentid}{25353023}
+
+\newcommand{\degree}{MSc in Applied Social Data Science}
+\newcommand{\school}{\href{https://www.tcd.ie/ssp/}{School of Social Sciences and Philosophy}}
+\newcommand{\department}{\href{https://www.tcd.ie/Political_Science/}{Department of Political Science}}
+\newcommand{\supervisor}{Dr Tom Paskhalis}
+\newcommand{\coursedirectors}{Dr Jeffrey Ziegler; Dr Tom Paskhalis}
+\newcommand{\submissiondate}{10 August 2026}
+
+\newcommand{\keywords}{Common Crawl, diachronic NLP, therapy-speak, concept creep, ADHD, autism}
+
+% PDF metadata
+\usepackage{hyperref}
+\AtBeginDocument{
+  \hypersetup{
+    pdftitle=\thesistitle,
+    pdfauthor=\authorname,
+    pdfkeywords=\keywords,
+    pdfsubject=\degree
+  }
+}
+
+% Load adapted Trinity template preamble
+\input{template/preamble.tex}
+
+% Bibliography file
+\addbibresource{bibs/references.bib}
+
+\begin{document}
+
+% =============================================================================
+% Front matter
+% =============================================================================
+\frontmatter
+\input{title/title.tex}
+\pagenumbering{roman}
+\doublespacing
+
+\section*{Declaration}
+I hereby declare that this \typeofthesis\ is entirely my own work and that it has not been submitted as an exercise for a degree at this or any other university.
+
+I have read and I understand the plagiarism provisions in the General Regulations of the University Calendar for the current year, found at \url{http://www.tcd.ie/calendar}.
+
+I have also completed the Online Tutorial on avoiding plagiarism ``Ready Steady Write'', located at \url{http://tcd-ie.libguides.com/plagiarism/ready-steady-write}.
+
+\vspace{1cm}
+Signed:~\rule{5cm}{0.3pt}\hfill Date:~\rule{5cm}{0.3pt}
+
+\newpage
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\input{sections/00_abstract.tex}
+
+\newpage
+\section*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+% Keep brief; expand later
+I would like to thank my supervisor, Dr Tom Paskhalis, for guidance throughout this dissertation, and the MSc in Applied Social Data Science teaching team for methodological training and support.
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+% =============================================================================
+% Main matter
+% =============================================================================
+\mainmatter
+\onehalfspacing
+
+\chapter{Introduction}
+\input{sections/01_introduction.tex}
+
+\chapter{Literature Review}
+\input{sections/02_literature_review.tex}
+
+\chapter{Method}
+\input{sections/03_method.tex}
+
+\chapter{Results}
+\input{sections/04_results.tex}
+
+\chapter{Discussion}
+\input{sections/05_discussion.tex}
+
+\chapter{Conclusion}
+\input{sections/06_conclusion.tex}
+
+% =============================================================================
+% References
+% =============================================================================
+\backmatter
+\printbibliography
+
+% =============================================================================
+% Appendices (optional)
+% =============================================================================
+\appendix
+\chapter{Appendices}
+\input{sections/90_appendices.tex}
+
+\end{document}

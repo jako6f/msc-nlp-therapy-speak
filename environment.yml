@@ -1,0 +1,6 @@
+name: msc-nlp
+channels:
+  - defaults
+dependencies:
+  - python=3.13.5
+prefix: /opt/anaconda3/envs/msc-nlp

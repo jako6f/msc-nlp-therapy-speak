@@ -1,0 +1,54 @@
+% =============================================================================
+% Trinity dissertation template adaptation (APA7, Social Sciences)
+% This file contains packages + global layout. Content lives in /sections/.
+% =============================================================================
+
+%% Language and font encodings
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+%% Page geometry (matches original template style)
+\usepackage[a4paper,top=2.56cm,bottom=2.56cm,left=2.56cm,right=2.56cm,head=16pt]{geometry}
+
+%% Core packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{setspace}
+\usepackage[parfill]{parskip}  % blank line between paragraphs, no indent
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{ragged2e}
+
+%% Hyperref: keep links black (print-friendly)
+\hypersetup{
+  colorlinks=true,
+  allcolors=black
+}
+
+%% Nice font (as in original template)
+\usepackage{mathpazo}
+
+%% Quotes (recommended with biblatex)
+\usepackage[autostyle=true]{csquotes}
+
+%% APA 7 references (biblatex-apa)
+%% Compilation: pdflatex → biber → pdflatex → pdflatex
+\usepackage[
+  backend=biber,
+  style=apa,
+  sortcites=true,
+  doi=true,
+  isbn=false,
+  url=true
+]{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+
+%% Graphics path: no-copy–paste integration
+%% Your analysis code should export figures to: ../reports/figures/
+\graphicspath{{../reports/figures/}}
+
+%% Load formatting rules (headers/chapters) from separate file
+\input{template/tcd_formatting.tex}

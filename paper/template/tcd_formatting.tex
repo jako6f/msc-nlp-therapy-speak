@@ -1,0 +1,18 @@
+% =============================================================================
+% Formatting: headers/footers + chapter style (adapted from Trinity template)
+% =============================================================================
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\cfoot{\thepage}
+
+%% Chapter heading style (kept from template, mild branding)
+\usepackage{titlesec}
+\definecolor{tcdblue}{cmyk}{0.94, 0.38, 0, 0.27}
+\newcommand{\hsp}{\hspace{20pt}}
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hsp\textcolor{tcdblue}{|}\hsp}{0pt}{\Huge\bfseries}
+
+%% Continuous equation numbering (optional)
+\renewcommand{\theequation}{\arabic{equation}}

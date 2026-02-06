@@ -1,0 +1,20 @@
+# data (never commit raw crawl data)
+data/raw/
+data/interim/
+data/processed/
+
+# logs / run outputs
+reports/logs/
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# OS/editor
+.DS_Store
+.vscode/settings.json
+
+# secrets
+.env
