@@ -5,8 +5,8 @@ project:
 pilot:
   # Replace/confirm crawl IDs later; format: CC-MAIN-YYYY-WW
   crawl_ids:
-    - "CC-MAIN-2016-40"
-    - "CC-MAIN-2024-42"
+    - "CC-MAIN-2016-44"
+    - "CC-MAIN-2026-04"
 
 sampling:
   wet_files_per_crawl: 2
