@@ -1,8 +1,8 @@
 env:
-	@echo "Activate env: conda activate nlp-therapy"
+	@echo "Activate env: conda activate msc-nlp"
 
 sanity:
-	python -m src.cli --config configs/pilot.yaml
+	python -m src.cli --help
 	python -c "import warcio, yaml, pandas, tldextract; print('Imports OK')"
 
 lint:
@@ -16,3 +16,7 @@ test:
 
 paper:
 	cd paper && latexmk -pdf main.tex || true
+
+cc_pilot_acquire:
+	python -m src.cli cc-sample --config configs/pilot.yaml
+	python -m src.cli cc-download --config configs/pilot.yaml
