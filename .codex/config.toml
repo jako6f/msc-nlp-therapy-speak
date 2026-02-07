@@ -1,2 +1,18 @@
-# Project-level Codex configuration (safe defaults)
-# Keep agent behavior conservative for MSc work.
+#:schema https://developers.openai.com/codex/config-schema.json
+
+# Ask before running shell commands that might change your machine state.
+# Values: untrusted | on-failure | on-request | never
+approval_policy = "on-request"
+
+# Allow Codex to edit files inside this repo (prevents patch-only output).
+# Values: read-only | workspace-write | danger-full-access
+sandbox_mode = "workspace-write"
+
+# Keep network access OFF inside the sandbox by default.
+# Turn on per-run only when you explicitly want Codex to fetch/install/run networked commands.
+sandbox_workspace_write.network_access = false
+
+# Keep web search on cached index by default (less churn / more stable).
+# Values: disabled | cached | live
+web_search = "cached"
+
