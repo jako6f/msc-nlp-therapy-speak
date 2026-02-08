@@ -1,6 +1,6 @@
 # msc-nlp-therapy-speak
 
-Research repo for building a pilot NLP pipeline that samples and filters Common Crawl text related to mental‑health terms (e.g., ADHD/autism) for downstream analysis. This repo currently contains a minimal CLI and configuration to validate data access and sampling.
+Research repo for building a pilot NLP pipeline that samples and filters Common Crawl text related to mental‑health terms (e.g., ADHD/autism) for downstream analysis. This repo currently contains a minimal CLI and configuration to validate data access, sampling, and pilot scan exports for the Appendix.
 
 **Status**: early pilot / scaffolding.
 
