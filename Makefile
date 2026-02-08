@@ -12,7 +12,7 @@ format:
 	ruff format .
 
 test:
-	pytest -q
+	PYTHONPATH=. pytest -q
 
 paper:
 	cd paper && latexmk -pdf main.tex || true
@@ -27,3 +27,10 @@ cc_pilot_scan:
 cc_pilot:
 	make cc_pilot_acquire
 	make cc_pilot_scan
+
+cc_pilot_export:
+	python -m src.cli cc-export --config configs/pilot.yaml
+
+cc_stage1:
+	make cc_pilot
+	make cc_pilot_export

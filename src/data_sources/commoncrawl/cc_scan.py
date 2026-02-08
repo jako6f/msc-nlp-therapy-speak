@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
 import pandas as pd
+import tempfile
 import tldextract
 from warcio.archiveiterator import ArchiveIterator
 
@@ -87,7 +88,10 @@ def find_term_matches(
     return hits
 
 
-_EXTRACTOR = tldextract.TLDExtract(suffix_list_urls=None)
+_EXTRACTOR = tldextract.TLDExtract(
+    suffix_list_urls=None,
+    cache_dir=Path(tempfile.gettempdir()) / "tldextract",
+)
 
 
 def extract_registered_domain(url: Optional[str]) -> str:

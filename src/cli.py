@@ -10,6 +10,7 @@ from src.data_sources.commoncrawl import (
     scan_wet_files,
     validate_counts,
 )
+from src.analysis.pilot_exports import export_tables_and_figures
 
 
 def load_config(path: Path) -> dict:
@@ -34,6 +35,9 @@ def main() -> None:
     p_scan = sub.add_parser("cc-scan", help="Scan downloaded WET files")
     p_scan.add_argument("--config", default="configs/pilot.yaml")
 
+    p_export = sub.add_parser("cc-export", help="Export pilot scan tables/figures")
+    p_export.add_argument("--config", default="configs/pilot.yaml")
+
     args = p.parse_args()
     cfg_path = Path(args.config)
     cfg = load_config(cfg_path)
@@ -55,6 +59,12 @@ def main() -> None:
 
     if args.command == "cc-scan":
         scan_wet_files(cfg, cfg_path)
+        return
+
+    if args.command == "cc-export":
+        interim_dir = Path(cfg.get("project", {}).get("out_dir", "data/interim"))
+        reports_dir = Path("reports")
+        export_tables_and_figures(interim_dir, reports_dir)
         return
 
 

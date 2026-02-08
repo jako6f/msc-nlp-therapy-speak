@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  6 FEB 2026 13:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  8 FEB 2026 18:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -949,21 +949,14 @@ Chapter 2.
 
 ]
 Chapter 3.
-(./sections/03_method.tex)
-Overfull \hbox (41.3676pt too wide) in paragraph at lines 6--94
+(./sections/03_method.tex
+Overfull \hbox (41.3676pt too wide) in paragraph at lines 6--7
 \T1/ppl/m/n/12 Figures are gen-er-ated by code into \T1/cmtt/m/n/12 ../reports/
 figures/ \T1/ppl/m/n/12 and in-cluded via \T1/cmtt/m/n/12 \includegraphics\T1/p
 pl/m/n/12 .
  []
 
-
-Overfull \hbox (0.72327pt too wide) in paragraph at lines 6--94
-\T1/ppl/m/n/12 Ta-bles are gen-er-ated by code into \T1/cmtt/m/n/12 ../reports/
-tables/ \T1/ppl/m/n/12 and in-cluded via \T1/cmtt/m/n/12 \input\T1/ppl/m/n/12 .
-  
- []
-
-
+)
 
 [3
 
@@ -989,38 +982,67 @@ Chapter 6.
 
 LaTeX Warning: Empty bibliography on input line 108.
 
-(./sections/90_appendices.tex)
+(./sections/90_appendices.tex (../reports/tables/TAB_stage1_pilot_summary.tex)
+(../reports/tables/TAB_stage1_top_domains.tex)
+<../reports/figures/FIG_stage1_hits_by_term.pdf, id=117, 433.62pt x 216.81pt>
+File: ../reports/figures/FIG_stage1_hits_by_term.pdf Graphic file (type pdf)
+<use ../reports/figures/FIG_stage1_hits_by_term.pdf>
+Package pdftex.def Info: ../reports/figures/FIG_stage1_hits_by_term.pdf  used o
+n input line 12.
+(pdftex.def)             Requested size: 384.05818pt x 192.03728pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+)
 
 [7
 
 
-] (./main.aux)
+]
+
+[8 <../reports/figures/FIG_stage1_hits_by_term.pdf>] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
-Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 731CEA4873AD44EBF7335E6B2EAD7F05;874.
+
+
+Package rerunfilecheck Warning: File `main.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `main.out':
+(rerunfilecheck)             Before: 75E2776B6A5DA3E985F0EE2FF88241D5;874
+(rerunfilecheck)             After:  731CEA4873AD44EBF7335E6B2EAD7F05;874.
 Package logreq Info: Writing requests to 'main.run.xml'.
 \openout1 = `main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 22249 strings out of 473190
- 390410 string characters out of 5715801
- 1341518 words of memory out of 5000000
- 45176 multiletter control sequences out of 15000+600000
- 578462 words of font info for 70 fonts, out of 8000000 for 9000
+ 22287 strings out of 473190
+ 391696 string characters out of 5715801
+ 1344518 words of memory out of 5000000
+ 45202 multiletter control sequences out of 15000+600000
+ 579911 words of font info for 72 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,11n,84p,1193b,5050s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb>
-</usr/local/texlive/2025/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/l
-ocal/texlive/2025/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/local/te
-xlive/2025/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on main.pdf (14 pages, 88241 bytes).
+
+pdfTeX warning (dest): name{figure.caption.5} has been referenced but does not 
+exist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{appendix*.6} has been referenced but does not exist
+, replaced by a fixed one
+
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb></
+usr/local/texlive/2025/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/loc
+al/texlive/2025/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/local/texl
+ive/2025/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
+Output written on main.pdf (15 pages, 98860 bytes).
 PDF statistics:
- 149 PDF objects out of 1000 (max. 8388607)
- 123 compressed objects within 2 object streams
- 27 named destinations out of 1000 (max. 500000)
- 73 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 187 PDF objects out of 1000 (max. 8388607)
+ 136 compressed objects within 2 object streams
+ 31 named destinations out of 1000 (max. 500000)
+ 78 words of extra memory for PDF output out of 10000 (max. 10000000)
 

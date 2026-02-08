@@ -10,7 +10,7 @@ from src.data_sources.commoncrawl.cc_scan import (
 
 def test_regex_matching_basic():
     terms = {
-        "adhd_patterns": [r"\\badhd\\b"],
+        "adhd_patterns": [r"\badhd\b"],
         "autism_patterns": [r"autism"],
     }
     patterns = compile_patterns(terms)
@@ -23,7 +23,7 @@ def test_regex_matching_basic():
 
 def test_asd_disambiguation_window():
     text = "ASD is mentioned here, and autism appears later nearby."
-    asd_pattern = re.compile(r"\\bASD\\b", re.IGNORECASE)
+    asd_pattern = re.compile(r"\bASD\b", re.IGNORECASE)
     match = asd_pattern.search(text)
     assert match is not None
     assert asd_disambiguated(text, match.span(), window=100)
