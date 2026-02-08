@@ -7,6 +7,7 @@ from src.data_sources.commoncrawl import (
     download_from_manifest,
     find_latest_manifest,
     sample_and_write_manifest,
+    scan_wet_files,
     validate_counts,
 )
 
@@ -30,6 +31,9 @@ def main() -> None:
         default=None,
     )
 
+    p_scan = sub.add_parser("cc-scan", help="Scan downloaded WET files")
+    p_scan.add_argument("--config", default="configs/pilot.yaml")
+
     args = p.parse_args()
     cfg_path = Path(args.config)
     cfg = load_config(cfg_path)
@@ -47,6 +51,10 @@ def main() -> None:
             sys.exit(1)
         downloaded = download_from_manifest(manifest_path)
         validate_counts(manifest_path, downloaded)
+        return
+
+    if args.command == "cc-scan":
+        scan_wet_files(cfg, cfg_path)
         return
 
 
