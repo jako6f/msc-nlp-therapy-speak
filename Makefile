@@ -31,6 +31,9 @@ cc_pilot:
 cc_pilot_export:
 	python -m src.cli cc-export --config configs/pilot.yaml
 
+cc_pilot_validate:
+	python -m src.cli cc-validate --config configs/pilot.yaml
+
 cc_stage1:
 	make cc_pilot
 	make cc_pilot_export

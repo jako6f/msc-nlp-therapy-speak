@@ -1,8 +1,11 @@
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import yaml
 
+from src.analysis.cc_validate import validate_corpus_outputs
+from src.analysis.pilot_exports import export_tables_and_figures
 from src.data_sources.commoncrawl import (
     download_from_manifest,
     find_latest_manifest,
@@ -10,7 +13,6 @@ from src.data_sources.commoncrawl import (
     scan_wet_files,
     validate_counts,
 )
-from src.analysis.pilot_exports import export_tables_and_figures
 
 
 def load_config(path: Path) -> dict:
@@ -37,6 +39,9 @@ def main() -> None:
 
     p_export = sub.add_parser("cc-export", help="Export pilot scan tables/figures")
     p_export.add_argument("--config", default="configs/pilot.yaml")
+
+    p_validate = sub.add_parser("cc-validate", help="Validate latest pilot outputs")
+    p_validate.add_argument("--config", default="configs/pilot.yaml")
 
     args = p.parse_args()
     cfg_path = Path(args.config)
@@ -65,6 +70,10 @@ def main() -> None:
         interim_dir = Path(cfg.get("project", {}).get("out_dir", "data/interim"))
         reports_dir = Path("reports")
         export_tables_and_figures(interim_dir, reports_dir)
+        return
+
+    if args.command == "cc-validate":
+        validate_corpus_outputs(cfg)
         return
 
 
