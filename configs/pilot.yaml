@@ -1,6 +1,6 @@
 project:
   seed: 123 # base seed for deterministic sampling and validation sampling
-  out_dir: "data/interim/cc_pilot_stage_01b/iter_03" # Stage 1b Iteration 03 outputs
+  out_dir: "data/interim/cc_pilot_stage_01b/iter_04" # Stage 1b Iteration 04 outputs
 
 pilot:
   crawl_ids:
@@ -22,6 +22,7 @@ filters:
 
 boilerplate:
   enabled: true # master switch for snippet-level boilerplate filtering
+  check_window_chars: 2000 # +/- chars used only for boilerplate checks around a match
   signature_patterns:
     - "skip\\s+to\\s+content"
     - "cookie\\s+consent"
@@ -67,6 +68,27 @@ boilerplate:
     - "a-z"
   topic_hub_min_phrase_hits: 2 # minimum phrase hits before topic-hub removal
   topic_hub_max_sentence_punct: 1 # max sentence punctuation marks for topic-hub snippets
+  nav_lexicon:
+    - "home"
+    - "about"
+    - "contact"
+    - "privacy"
+    - "terms"
+    - "cookie"
+    - "subscribe"
+    - "rss"
+    - "login"
+    - "sign in"
+    - "register"
+    - "sitemap"
+    - "search"
+    - "menu"
+    - "toggle"
+    - "schedule"
+    - "newsletter"
+  nav_lexicon_min_hits: 4 # minimum nav-lexicon hits before navlex removal
+  nav_lexicon_max_sentence_terminators: 1 # prose guard: max likely sentence terminators
+  nav_lexicon_min_short_fragments: 4 # fragmentiness guard for nav-heavy snippet removal
   commerce_enabled: true # enable generic commerce listing rule
   commerce_phrases:
     - "add to cart"

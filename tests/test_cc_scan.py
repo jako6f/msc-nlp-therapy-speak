@@ -10,6 +10,7 @@ from src.data_sources.commoncrawl.cc_scan import (
     is_boilerplate_commerce,
     is_boilerplate_density,
     is_boilerplate_listiness,
+    is_boilerplate_navlex,
     is_boilerplate_signature,
     is_boilerplate_topic_hub,
     normalize_listiness_phrases,
@@ -112,8 +113,11 @@ def test_boilerplate_az_index_detects_index_snippet():
     assert is_boilerplate_az_index(snippet, thresholds)
 
 
-def test_boilerplate_topic_hub_detects_hub_snippet():
-    snippet = "Browse topics | Subscribe | RSS | All conditions | no articles match"
+def test_boilerplate_topic_hub_detects_hub_snippet_with_ellipses():
+    snippet = (
+        "Browse topics ... More topics ... Subscribe ... RSS ... "
+        "All conditions ... no articles match"
+    )
     phrases = normalize_listiness_phrases(
         ["topics", "browse", "subscribe", "rss", "no articles match", "all conditions"]
     )
@@ -128,6 +132,32 @@ def test_boilerplate_commerce_detects_listing_snippet():
         ["add to cart", "quick view", "select options", "free shipping", "in stock"]
     )
     assert is_boilerplate_commerce(snippet, phrases, min_phrase_hits=2)
+
+
+def test_boilerplate_navlex_detects_nav_menu_snippet():
+    snippet = (
+        "Home | About | Contact | Privacy | Terms | Login | Register | Menu | Search"
+    )
+    lexicon = normalize_listiness_phrases(
+        [
+            "home",
+            "about",
+            "contact",
+            "privacy",
+            "terms",
+            "login",
+            "register",
+            "menu",
+            "search",
+        ]
+    )
+    assert is_boilerplate_navlex(
+        snippet,
+        nav_lexicon=lexicon,
+        min_hits=4,
+        max_sentence_terminators=1,
+        min_short_fragments=4,
+    )
 
 
 def test_boilerplate_new_rules_keep_substantive_snippet():
@@ -147,8 +177,36 @@ def test_boilerplate_new_rules_keep_substantive_snippet():
     commerce_phrases = normalize_listiness_phrases(
         ["add to cart", "quick view", "select options", "free shipping", "in stock"]
     )
+    nav_lexicon = normalize_listiness_phrases(
+        [
+            "home",
+            "about",
+            "contact",
+            "privacy",
+            "terms",
+            "cookie",
+            "subscribe",
+            "rss",
+            "login",
+            "sign in",
+            "register",
+            "sitemap",
+            "search",
+            "menu",
+            "toggle",
+            "schedule",
+            "newsletter",
+        ]
+    )
     assert not is_boilerplate_az_index(snippet, az_thresholds)
     assert not is_boilerplate_topic_hub(
         snippet, topic_phrases, min_phrase_hits=2, max_sentence_punct=1
     )
     assert not is_boilerplate_commerce(snippet, commerce_phrases, min_phrase_hits=2)
+    assert not is_boilerplate_navlex(
+        snippet,
+        nav_lexicon=nav_lexicon,
+        min_hits=4,
+        max_sentence_terminators=1,
+        min_short_fragments=4,
+    )

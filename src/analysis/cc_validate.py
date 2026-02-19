@@ -116,6 +116,7 @@ def _print_slice_metrics(
     removed_boilerplate_az_index: int,
     removed_boilerplate_topic_hub: int,
     removed_boilerplate_commerce: int,
+    removed_boilerplate_navlex: int,
     removed_boilerplate_total: int,
     docs_per_sec: float,
     timings: Dict[str, float],
@@ -137,6 +138,7 @@ def _print_slice_metrics(
         f"az_index={removed_boilerplate_az_index}, "
         f"topic_hub={removed_boilerplate_topic_hub}, "
         f"commerce={removed_boilerplate_commerce}, "
+        f"navlex={removed_boilerplate_navlex}, "
         f"total={removed_boilerplate_total}"
     )
     print(
@@ -224,6 +226,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     removed_boilerplate_commerce = _metric_int(
         summary, "removed_boilerplate_commerce", 0
     )
+    removed_boilerplate_navlex = _metric_int(summary, "removed_boilerplate_navlex", 0)
     removed_boilerplate_total = _metric_int(summary, "removed_boilerplate_total", 0)
 
     docs_scanned_by_crawl = {
@@ -263,6 +266,10 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     removed_boilerplate_commerce_by_crawl = {
         str(k): int(v)
         for k, v in _metric_json(summary, "removed_boilerplate_commerce_by_crawl").items()
+    }
+    removed_boilerplate_navlex_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "removed_boilerplate_navlex_by_crawl").items()
     }
     removed_boilerplate_total_by_crawl = {
         str(k): int(v)
@@ -320,6 +327,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         | set(removed_boilerplate_az_index_by_crawl)
         | set(removed_boilerplate_topic_hub_by_crawl)
         | set(removed_boilerplate_commerce_by_crawl)
+        | set(removed_boilerplate_navlex_by_crawl)
         | set(removed_boilerplate_listiness_by_crawl)
         | set(removed_boilerplate_total_by_crawl)
     )
@@ -347,6 +355,9 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
             removed_boilerplate_commerce=removed_boilerplate_commerce_by_crawl.get(
                 slice_id, 0
             ),
+            removed_boilerplate_navlex=removed_boilerplate_navlex_by_crawl.get(
+                slice_id, 0
+            ),
             removed_boilerplate_total=removed_boilerplate_total_by_crawl.get(slice_id, 0),
             docs_per_sec=docs_per_sec_by_crawl.get(slice_id, 0.0),
             timings=timings_sec_by_crawl.get(slice_id, {}),
@@ -363,6 +374,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         removed_boilerplate_az_index=removed_boilerplate_az_index,
         removed_boilerplate_topic_hub=removed_boilerplate_topic_hub,
         removed_boilerplate_commerce=removed_boilerplate_commerce,
+        removed_boilerplate_navlex=removed_boilerplate_navlex,
         removed_boilerplate_total=removed_boilerplate_total,
         docs_per_sec=_metric_float(summary, "docs_per_sec", 0.0),
         timings=timings_combined,

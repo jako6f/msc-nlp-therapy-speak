@@ -142,6 +142,7 @@ def _new_counter_bucket() -> Dict[str, int]:
         "removed_boilerplate_az_index": 0,
         "removed_boilerplate_topic_hub": 0,
         "removed_boilerplate_commerce": 0,
+        "removed_boilerplate_navlex": 0,
         "removed_boilerplate_total": 0,
     }
 
@@ -185,6 +186,12 @@ def normalize_listiness_phrases(phrases: List[str]) -> List[str]:
     return [phrase.strip().lower() for phrase in phrases if phrase.strip()]
 
 
+def likely_sentence_terminator_count(text: str) -> int:
+    # Collapse ellipses/runs so menu fragments with "..." do not inflate counts.
+    collapsed = re.sub(r"\.{2,}", ".", text)
+    return len(re.findall(r"[.!?](?:\s|$)", collapsed))
+
+
 def _count_short_fragments(snippet: str, short_fragment_max_words: int) -> int:
     fragments = [frag.strip() for frag in re.split(r"[|/>•]+", snippet) if frag.strip()]
     return sum(
@@ -207,7 +214,7 @@ def is_boilerplate_listiness(
     words = snippet.split()
     separator_count = sum(snippet.count(ch) for ch in "|/>•")
     separator_density = separator_count / max(1, len(words))
-    sentence_punct_count = sum(snippet.count(ch) for ch in ".!?")
+    sentence_punct_count = likely_sentence_terminator_count(snippet)
     short_fragment_count = _count_short_fragments(
         snippet, int(thresholds["short_fragment_max_words"])
     )
@@ -229,7 +236,7 @@ def is_boilerplate_az_index(snippet: str, thresholds: Dict[str, float]) -> bool:
     short_fragment_count = _count_short_fragments(
         snippet, int(thresholds["short_fragment_max_words"])
     )
-    sentence_punct_count = sum(snippet.count(ch) for ch in ".!?")
+    sentence_punct_count = likely_sentence_terminator_count(snippet)
     return (
         (has_az_marker or letter_token_count >= int(thresholds["min_letter_tokens"]))
         and short_fragment_count >= int(thresholds["min_short_fragments"])
@@ -248,8 +255,14 @@ def is_boilerplate_topic_hub(
     if not snippet:
         return False
     phrase_hits = _phrase_hit_count(snippet, phrases)
-    sentence_punct_count = sum(snippet.count(ch) for ch in ".!?")
-    return phrase_hits >= min_phrase_hits and sentence_punct_count <= max_sentence_punct
+    sentence_punct_count = likely_sentence_terminator_count(snippet)
+    short_fragment_count = _count_short_fragments(snippet, short_fragment_max_words=3)
+    ellipsis_count = snippet.count("...")
+    return phrase_hits >= min_phrase_hits and (
+        sentence_punct_count <= max_sentence_punct
+        or short_fragment_count >= 4
+        or ellipsis_count >= 2
+    )
 
 
 def is_boilerplate_commerce(snippet: str, phrases: List[str], min_phrase_hits: int) -> bool:
@@ -257,6 +270,46 @@ def is_boilerplate_commerce(snippet: str, phrases: List[str], min_phrase_hits: i
         return False
     phrase_hits = _phrase_hit_count(snippet, phrases)
     return phrase_hits >= min_phrase_hits
+
+
+def _tokenize_for_navlex(text: str) -> List[str]:
+    normalized = re.sub(r"[^a-z0-9\s]", " ", text.lower())
+    return [token for token in normalized.split() if token]
+
+
+def nav_lexicon_hit_count(text: str, lexicon: List[str]) -> int:
+    lower_text = text.lower()
+    tokens = _tokenize_for_navlex(text)
+    token_set = set(tokens)
+    hits = 0
+    for entry in lexicon:
+        if " " in entry:
+            if entry in lower_text:
+                hits += 1
+        elif entry in token_set:
+            hits += 1
+    return hits
+
+
+def is_boilerplate_navlex(
+    snippet: str,
+    nav_lexicon: List[str],
+    min_hits: int,
+    max_sentence_terminators: int,
+    min_short_fragments: int,
+) -> bool:
+    if not snippet:
+        return False
+    nav_hits = nav_lexicon_hit_count(snippet, nav_lexicon)
+    if nav_hits < min_hits:
+        return False
+    sentence_terminators = likely_sentence_terminator_count(snippet)
+    short_fragments = _count_short_fragments(snippet, short_fragment_max_words=3)
+    low_prose = (
+        sentence_terminators <= max_sentence_terminators
+        or short_fragments >= min_short_fragments
+    )
+    return low_prose
 
 
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
@@ -270,6 +323,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     context_window_chars = int(config["filters"].get("context_window_chars", 200))
     boilerplate_cfg = config.get("boilerplate", {})
     boilerplate_enabled = bool(boilerplate_cfg.get("enabled", True))
+    boilerplate_check_window_chars = int(boilerplate_cfg.get("check_window_chars", 2000))
     boilerplate_signature_patterns = compile_boilerplate_patterns(
         boilerplate_cfg.get(
             "signature_patterns", DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS
@@ -353,6 +407,39 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     boilerplate_topic_hub_max_sentence_punct = int(
         boilerplate_cfg.get("topic_hub_max_sentence_punct", 1)
     )
+    boilerplate_nav_lexicon = normalize_listiness_phrases(
+        boilerplate_cfg.get(
+            "nav_lexicon",
+            [
+                "home",
+                "about",
+                "contact",
+                "privacy",
+                "terms",
+                "cookie",
+                "subscribe",
+                "rss",
+                "login",
+                "sign in",
+                "register",
+                "sitemap",
+                "search",
+                "menu",
+                "toggle",
+                "schedule",
+                "newsletter",
+            ],
+        )
+    )
+    boilerplate_nav_lexicon_min_hits = int(
+        boilerplate_cfg.get("nav_lexicon_min_hits", 4)
+    )
+    boilerplate_nav_lexicon_max_sentence_terminators = int(
+        boilerplate_cfg.get("nav_lexicon_max_sentence_terminators", 1)
+    )
+    boilerplate_nav_lexicon_min_short_fragments = int(
+        boilerplate_cfg.get("nav_lexicon_min_short_fragments", 4)
+    )
     boilerplate_commerce_enabled = bool(boilerplate_cfg.get("commerce_enabled", True))
     boilerplate_commerce_phrases = normalize_listiness_phrases(
         boilerplate_cfg.get(
@@ -383,6 +470,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("ASD window: %d", asd_window)
     logger.info("Context window: %d", context_window_chars)
     logger.info("Boilerplate enabled: %s", boilerplate_enabled)
+    logger.info("Boilerplate check window: %d", boilerplate_check_window_chars)
     logger.info("Boilerplate listiness enabled: %s", boilerplate_listiness_enabled)
     logger.info("Boilerplate A-Z index enabled: %s", boilerplate_az_index_enabled)
     logger.info("Boilerplate topic hub enabled: %s", boilerplate_topic_hub_enabled)
@@ -470,10 +558,13 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 crawl_counters["candidate_hits"] += len(matches)
 
                 for label, span in matches:
-                    snippet = _context_snippet(text, span, context_window_chars)
+                    stored_snippet = _context_snippet(text, span, context_window_chars)
+                    check_text = _context_snippet(
+                        text, span, boilerplate_check_window_chars
+                    )
                     if boilerplate_enabled:
                         if is_boilerplate_signature(
-                            snippet, boilerplate_signature_patterns
+                            check_text, boilerplate_signature_patterns
                         ):
                             combined["removed_boilerplate_signature"] += 1
                             crawl_counters["removed_boilerplate_signature"] += 1
@@ -481,7 +572,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             crawl_counters["removed_boilerplate_total"] += 1
                             continue
                         if is_boilerplate_density(
-                            snippet,
+                            check_text,
                             boilerplate_min_snippet_words,
                             boilerplate_min_alpha_ratio,
                         ):
@@ -491,7 +582,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             crawl_counters["removed_boilerplate_total"] += 1
                             continue
                         if boilerplate_listiness_enabled and is_boilerplate_listiness(
-                            snippet,
+                            check_text,
                             boilerplate_listiness_phrases,
                             boilerplate_listiness_thresholds,
                         ):
@@ -501,7 +592,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             crawl_counters["removed_boilerplate_total"] += 1
                             continue
                         if boilerplate_az_index_enabled and is_boilerplate_az_index(
-                            snippet, boilerplate_az_index_thresholds
+                            check_text, boilerplate_az_index_thresholds
                         ):
                             combined["removed_boilerplate_az_index"] += 1
                             crawl_counters["removed_boilerplate_az_index"] += 1
@@ -509,7 +600,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             crawl_counters["removed_boilerplate_total"] += 1
                             continue
                         if boilerplate_topic_hub_enabled and is_boilerplate_topic_hub(
-                            snippet,
+                            check_text,
                             boilerplate_topic_hub_phrases,
                             boilerplate_topic_hub_min_phrase_hits,
                             boilerplate_topic_hub_max_sentence_punct,
@@ -519,8 +610,20 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             combined["removed_boilerplate_total"] += 1
                             crawl_counters["removed_boilerplate_total"] += 1
                             continue
+                        if is_boilerplate_navlex(
+                            check_text,
+                            boilerplate_nav_lexicon,
+                            boilerplate_nav_lexicon_min_hits,
+                            boilerplate_nav_lexicon_max_sentence_terminators,
+                            boilerplate_nav_lexicon_min_short_fragments,
+                        ):
+                            combined["removed_boilerplate_navlex"] += 1
+                            crawl_counters["removed_boilerplate_navlex"] += 1
+                            combined["removed_boilerplate_total"] += 1
+                            crawl_counters["removed_boilerplate_total"] += 1
+                            continue
                         if boilerplate_commerce_enabled and is_boilerplate_commerce(
-                            snippet,
+                            check_text,
                             boilerplate_commerce_phrases,
                             boilerplate_commerce_min_phrase_hits,
                         ):
@@ -554,7 +657,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             "registered_domain": domain,
                             "warc_date": warc_date or "",
                             "matched_term": label,
-                            "context_snippet": snippet,
+                            "context_snippet": stored_snippet,
                             "text_len": text_len,
                         }
                     )
@@ -652,6 +755,10 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     }
     removed_boilerplate_commerce_by_crawl = {
         crawl_id: counters["removed_boilerplate_commerce"]
+        for crawl_id, counters in sorted(counters_by_crawl.items())
+    }
+    removed_boilerplate_navlex_by_crawl = {
+        crawl_id: counters["removed_boilerplate_navlex"]
         for crawl_id, counters in sorted(counters_by_crawl.items())
     }
     removed_boilerplate_total_by_crawl = {
@@ -752,6 +859,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Count of hits removed by commerce-listing snippet heuristics.",
         ),
         _summary_row(
+            "removed_boilerplate_navlex",
+            combined["removed_boilerplate_navlex"],
+            "Count of hits removed by nav-lexicon density heuristics.",
+        ),
+        _summary_row(
             "removed_boilerplate_total",
             combined["removed_boilerplate_total"],
             "Total hits removed by boilerplate filtering before final output.",
@@ -840,6 +952,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "JSON map from crawl_id to commerce boilerplate removals.",
             ),
             _summary_row(
+                "removed_boilerplate_navlex_by_crawl",
+                json.dumps(removed_boilerplate_navlex_by_crawl),
+                "JSON map from crawl_id to nav-lexicon boilerplate removals.",
+            ),
+            _summary_row(
                 "removed_boilerplate_total_by_crawl",
                 json.dumps(removed_boilerplate_total_by_crawl),
                 "JSON map from crawl_id to total boilerplate removals.",
@@ -915,6 +1032,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "Combined commerce boilerplate removals across slices.",
             ),
             _summary_row(
+                "combined.removed_boilerplate_navlex",
+                combined["removed_boilerplate_navlex"],
+                "Combined nav-lexicon boilerplate removals across slices.",
+            ),
+            _summary_row(
                 "combined.removed_boilerplate_total",
                 combined["removed_boilerplate_total"],
                 "Combined total boilerplate removals across slices.",
@@ -983,6 +1105,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     f"{prefix}.removed_boilerplate_commerce",
                     counters_by_crawl[crawl_id]["removed_boilerplate_commerce"],
                     "Slice-level commerce boilerplate removals.",
+                ),
+                _summary_row(
+                    f"{prefix}.removed_boilerplate_navlex",
+                    counters_by_crawl[crawl_id]["removed_boilerplate_navlex"],
+                    "Slice-level nav-lexicon boilerplate removals.",
                 ),
                 _summary_row(
                     f"{prefix}.removed_boilerplate_total",
