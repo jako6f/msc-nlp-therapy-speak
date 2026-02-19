@@ -1,4 +1,5 @@
 import hashlib
+import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -65,6 +66,82 @@ def _seed_for_run(project_seed: int, runid: str) -> int:
     return int(digest[:8], 16)
 
 
+def _load_metric_map(path: Path) -> Dict[str, str]:
+    df = pd.read_csv(path)
+    if "metric" not in df.columns or "value" not in df.columns:
+        raise ValueError(f"Missing expected columns in {path}: ['metric', 'value']")
+    return dict(zip(df["metric"], df["value"]))
+
+
+def _metric_int(summary: Dict[str, str], key: str, default: int = 0) -> int:
+    value = summary.get(key, default)
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return default
+
+
+def _metric_float(summary: Dict[str, str], key: str, default: float = 0.0) -> float:
+    value = summary.get(key, default)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _metric_json(summary: Dict[str, str], key: str) -> Dict:
+    raw = summary.get(key, "{}")
+    try:
+        value = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _rate_per(numer: int, denom: int, scale: int) -> float:
+    if denom <= 0:
+        return 0.0
+    return (numer / denom) * scale
+
+
+def _print_slice_metrics(
+    label: str,
+    docs_scanned: int,
+    candidate_hits: int,
+    final_hits: int,
+    docs_per_sec: float,
+    timings: Dict[str, float],
+) -> None:
+    cand_10k = _rate_per(candidate_hits, docs_scanned, 10_000)
+    cand_100k = _rate_per(candidate_hits, docs_scanned, 100_000)
+    final_10k = _rate_per(final_hits, docs_scanned, 10_000)
+    final_100k = _rate_per(final_hits, docs_scanned, 100_000)
+    delta_abs = candidate_hits - final_hits
+    delta_pct = (delta_abs / candidate_hits * 100.0) if candidate_hits > 0 else 0.0
+
+    print(
+        f"{label}: docs_scanned={docs_scanned}, "
+        f"candidate_hits={candidate_hits}, final_hits={final_hits}"
+    )
+    print(
+        f"  rates: candidate_per_10k={cand_10k:.3f}, "
+        f"candidate_per_100k={cand_100k:.3f}, final_per_10k={final_10k:.3f}, "
+        f"final_per_100k={final_100k:.3f}"
+    )
+    print(
+        f"  candidate_to_final_delta: abs={delta_abs}, pct={delta_pct:.2f}%"
+    )
+    print(
+        f"  throughput: docs_per_sec={docs_per_sec:.3f}, "
+        f"input={float(timings.get('time_input_read_sec', 0.0)):.3f}s, "
+        f"parse={float(timings.get('time_parse_sec', 0.0)):.3f}s, "
+        f"match={float(timings.get('time_term_match_sec', 0.0)):.3f}s, "
+        f"domain={float(timings.get('time_domain_extract_sec', 0.0)):.3f}s, "
+        f"write={float(timings.get('time_write_sec', 0.0)):.3f}s, "
+        f"total={float(timings.get('total_elapsed_sec', 0.0)):.3f}s"
+    )
+
+
 def _validate_columns(df: pd.DataFrame, path: Path) -> None:
     missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
     if missing:
@@ -78,13 +155,21 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     corpus_runid, corpus_path = _latest_by_runid(
         interim_dir, "cc_pilot_corpus_", ".parquet"
     )
-    domains_runid, top_domains_path = _latest_by_runid(
-        interim_dir, "cc_scan_top_domains_", ".csv"
-    )
+    top_domains_path = interim_dir / f"cc_scan_top_domains_{corpus_runid}.csv"
+    if not top_domains_path.exists():
+        domains_runid, top_domains_path = _latest_by_runid(
+            interim_dir, "cc_scan_top_domains_", ".csv"
+        )
+    else:
+        domains_runid = corpus_runid
+    summary_path = interim_dir / f"cc_scan_summary_{corpus_runid}.csv"
+    if not summary_path.exists():
+        raise FileNotFoundError(f"No matching scan summary found for runid {corpus_runid}")
 
     logger = _setup_logger(Path("reports/logs"), corpus_runid)
     logger.info("Using corpus: %s", corpus_path)
     logger.info("Using top domains: %s", top_domains_path)
+    logger.info("Using scan summary: %s", summary_path)
     if domains_runid != corpus_runid:
         logger.warning(
             "Run IDs differ: corpus=%s, top_domains=%s; continuing with latest files",
@@ -103,6 +188,47 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         raise ValueError(
             f"Missing expected columns in {top_domains_path}: ['registered_domain', 'hits']"
         )
+
+    summary = _load_metric_map(summary_path)
+    docs_scanned = _metric_int(summary, "docs_scanned", 0)
+    candidate_hits = _metric_int(
+        summary, "candidate_hits", _metric_int(summary, "hits_total", 0)
+    )
+    final_hits = _metric_int(summary, "final_hits", _metric_int(summary, "hits_total", 0))
+
+    docs_scanned_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "docs_scanned_by_crawl").items()
+    }
+    candidate_hits_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "candidate_hits_by_crawl").items()
+    }
+    final_hits_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "final_hits_by_crawl").items()
+    }
+    docs_per_sec_by_crawl = {
+        str(k): float(v)
+        for k, v in _metric_json(summary, "docs_per_sec_by_crawl").items()
+    }
+    timings_sec_by_crawl = {
+        str(k): v
+        for k, v in _metric_json(summary, "timings_sec_by_crawl").items()
+        if isinstance(v, dict)
+    }
+    timings_combined = _metric_json(summary, "timings_sec")
+    if not timings_combined:
+        timings_combined = {
+            "time_input_read_sec": _metric_float(summary, "time_input_read_sec", 0.0),
+            "time_parse_sec": _metric_float(summary, "time_parse_sec", 0.0),
+            "time_term_match_sec": _metric_float(summary, "time_term_match_sec", 0.0),
+            "time_domain_extract_sec": _metric_float(
+                summary, "time_domain_extract_sec", 0.0
+            ),
+            "time_write_sec": _metric_float(summary, "time_write_sec", 0.0),
+            "total_elapsed_sec": _metric_float(summary, "total_elapsed_sec", 0.0),
+        }
 
     sample_seed = _seed_for_run(project_seed, corpus_runid)
     sample_n = min(25, len(corpus_df))
@@ -125,6 +251,31 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     print(f"hits_total: {hits_total}")
     print(f"hits_by_term: {hits_by_term}")
     print(f"unique_domains_hits: {unique_domains_hits}")
+    print("scan_stage1b_instrumentation:")
+
+    slice_ids = sorted(
+        set(docs_scanned_by_crawl)
+        | set(candidate_hits_by_crawl)
+        | set(final_hits_by_crawl)
+    )
+    for slice_id in slice_ids:
+        _print_slice_metrics(
+            label=f"slice[{slice_id}]",
+            docs_scanned=docs_scanned_by_crawl.get(slice_id, 0),
+            candidate_hits=candidate_hits_by_crawl.get(slice_id, 0),
+            final_hits=final_hits_by_crawl.get(slice_id, 0),
+            docs_per_sec=docs_per_sec_by_crawl.get(slice_id, 0.0),
+            timings=timings_sec_by_crawl.get(slice_id, {}),
+        )
+
+    _print_slice_metrics(
+        label="combined",
+        docs_scanned=docs_scanned,
+        candidate_hits=candidate_hits,
+        final_hits=final_hits,
+        docs_per_sec=_metric_float(summary, "docs_per_sec", 0.0),
+        timings=timings_combined,
+    )
     print("top_domains:")
 
     for _, row in top_domains_df.head(10).iterrows():
