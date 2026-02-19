@@ -133,6 +133,16 @@ def _new_timing_bucket() -> Dict[str, float]:
     return {key: 0.0 for key in TIMING_FIELDS}
 
 
+def _rate_per(numer: int, denom: int, scale: int) -> float:
+    if denom <= 0:
+        return 0.0
+    return (numer / denom) * scale
+
+
+def _summary_row(metric: str, value: object, description: str) -> List[object]:
+    return [metric, value, description]
+
+
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
     scan_start = time.perf_counter()
     runid = _utc_runid()
@@ -280,33 +290,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     parquet_path = out_dir / f"cc_pilot_corpus_{runid}.parquet"
 
     write_start = time.perf_counter()
-    with summary_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["metric", "value"])
-        writer.writerow(["docs_scanned", combined["docs_scanned"]])
-        writer.writerow(["docs_minlen", combined["docs_minlen"]])
-        writer.writerow(["candidate_hits", combined["candidate_hits"]])
-        writer.writerow(["final_hits", combined["final_hits"]])
-        writer.writerow(["hits_total", combined["final_hits"]])
-        writer.writerow(["hits_by_term", json.dumps(hits_by_term)])
-        writer.writerow(["unique_domains_total", len(domains_total)])
-        writer.writerow(["unique_domains_hits", len(domains_hits)])
-        writer.writerow(["removed_domaincap", combined["removed_domaincap"]])
-        writer.writerow(["capped_removed", combined["removed_domaincap"]])
-        writer.writerow(
-            ["removed_boilerplate_signature", combined["removed_boilerplate_signature"]]
-        )
-        writer.writerow(
-            ["removed_boilerplate_density", combined["removed_boilerplate_density"]]
-        )
-        writer.writerow(
-            ["removed_boilerplate_total", combined["removed_boilerplate_total"]]
-        )
-        writer.writerow(["top_domains_csv", str(top_domains_path)])
-    write_elapsed = time.perf_counter() - write_start
-    combined_timings["time_write_sec"] += write_elapsed
-
-    write_start = time.perf_counter()
     with top_domains_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["registered_domain", "hits"])
@@ -377,44 +360,126 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         "total_elapsed_sec": round(total_elapsed_sec, 6),
     }
 
-    with summary_path.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["docs_per_sec", round(docs_per_sec, 6)])
-        writer.writerow(["total_elapsed_sec", round(total_elapsed_sec, 6)])
-        for field in TIMING_FIELDS:
-            writer.writerow([field, round(combined_timings[field], 6)])
-        writer.writerow(
-            [
+    summary_rows: List[List[object]] = [
+        _summary_row(
+            "docs_scanned",
+            combined["docs_scanned"],
+            "Total conversion documents scanned across all crawl slices.",
+        ),
+        _summary_row(
+            "docs_minlen",
+            combined["docs_minlen"],
+            "Documents that passed the minimum character-length filter.",
+        ),
+        _summary_row(
+            "candidate_hits",
+            combined["candidate_hits"],
+            "Term matches before downstream filtering and domain caps.",
+        ),
+        _summary_row(
+            "final_hits",
+            combined["final_hits"],
+            "Rows retained after filtering and domain-cap enforcement.",
+        ),
+        _summary_row(
+            "hits_total",
+            combined["final_hits"],
+            "Legacy alias for final_hits to preserve downstream compatibility.",
+        ),
+        _summary_row(
+            "hits_by_term",
+            json.dumps(hits_by_term),
+            "JSON map from matched term label to retained hit count.",
+        ),
+        _summary_row(
+            "unique_domains_total",
+            len(domains_total),
+            "Unique registered domains seen in all scanned documents.",
+        ),
+        _summary_row(
+            "unique_domains_hits",
+            len(domains_hits),
+            "Unique registered domains represented in final retained hits.",
+        ),
+        _summary_row(
+            "removed_domaincap",
+            combined["removed_domaincap"],
+            "Candidate matches removed because the per-domain cap was reached.",
+        ),
+        _summary_row(
+            "capped_removed",
+            combined["removed_domaincap"],
+            "Legacy alias for removed_domaincap to preserve compatibility.",
+        ),
+        _summary_row(
+            "removed_boilerplate_signature",
+            combined["removed_boilerplate_signature"],
+            "Placeholder count for signature-based boilerplate removals.",
+        ),
+        _summary_row(
+            "removed_boilerplate_density",
+            combined["removed_boilerplate_density"],
+            "Placeholder count for density-based boilerplate removals.",
+        ),
+        _summary_row(
+            "removed_boilerplate_total",
+            combined["removed_boilerplate_total"],
+            "Placeholder total count of boilerplate removals.",
+        ),
+        _summary_row(
+            "top_domains_csv",
+            str(top_domains_path),
+            "Path to the CSV containing top retained domains for this run.",
+        ),
+        _summary_row(
+            "docs_per_sec",
+            round(docs_per_sec, 6),
+            "Overall scan throughput in scanned documents per second.",
+        ),
+        _summary_row(
+            "total_elapsed_sec",
+            round(total_elapsed_sec, 6),
+            "Total wall-clock time for the scan stage in seconds.",
+        ),
+    ]
+
+    for field in TIMING_FIELDS:
+        summary_rows.append(
+            _summary_row(
+                field,
+                round(combined_timings[field], 6),
+                "Combined coarse timing for this processing stage in seconds.",
+            )
+        )
+
+    summary_rows.extend(
+        [
+            _summary_row(
                 "docs_scanned_by_crawl",
                 json.dumps(docs_scanned_by_crawl),
-            ]
-        )
-        writer.writerow(
-            [
+                "JSON map from crawl_id to scanned document count.",
+            ),
+            _summary_row(
                 "docs_minlen_by_crawl",
                 json.dumps(docs_minlen_by_crawl),
-            ]
-        )
-        writer.writerow(
-            [
+                "JSON map from crawl_id to documents passing min length.",
+            ),
+            _summary_row(
                 "candidate_hits_by_crawl",
                 json.dumps(candidate_hits_by_crawl),
-            ]
-        )
-        writer.writerow(
-            [
+                "JSON map from crawl_id to candidate term matches.",
+            ),
+            _summary_row(
                 "final_hits_by_crawl",
                 json.dumps(final_hits_by_crawl),
-            ]
-        )
-        writer.writerow(
-            [
+                "JSON map from crawl_id to final retained hits.",
+            ),
+            _summary_row(
                 "removed_domaincap_by_crawl",
                 json.dumps(removed_domaincap_by_crawl),
-            ]
-        )
-        writer.writerow(
-            [
+                "JSON map from crawl_id to matches removed by domain cap.",
+            ),
+            _summary_row(
                 "docs_per_sec_by_crawl",
                 json.dumps(
                     {
@@ -422,10 +487,93 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         for crawl_id, rate in sorted(docs_per_sec_by_crawl.items())
                     }
                 ),
+                "JSON map from crawl_id to scan throughput in docs per second.",
+            ),
+            _summary_row(
+                "timings_sec",
+                json.dumps(combined_timings_with_total),
+                "JSON object of combined timing breakdown in seconds.",
+            ),
+            _summary_row(
+                "timings_sec_by_crawl",
+                json.dumps(timings_by_crawl_json),
+                "JSON map from crawl_id to timing breakdown in seconds.",
+            ),
+        ]
+    )
+
+    summary_rows.extend(
+        [
+            _summary_row(
+                "combined.docs_scanned",
+                combined["docs_scanned"],
+                "Combined scanned documents across all slices.",
+            ),
+            _summary_row(
+                "combined.candidate_hits",
+                combined["candidate_hits"],
+                "Combined candidate term matches across all slices.",
+            ),
+            _summary_row(
+                "combined.final_hits",
+                combined["final_hits"],
+                "Combined retained final hits across all slices.",
+            ),
+            _summary_row(
+                "combined.candidate_per_10k",
+                round(_rate_per(combined["candidate_hits"], combined["docs_scanned"], 10_000), 6),
+                "Combined candidate hit rate per 10,000 scanned documents.",
+            ),
+            _summary_row(
+                "combined.final_per_10k",
+                round(_rate_per(combined["final_hits"], combined["docs_scanned"], 10_000), 6),
+                "Combined final hit rate per 10,000 scanned documents.",
+            ),
+        ]
+    )
+
+    for crawl_id in sorted(counters_by_crawl):
+        slice_docs_scanned = docs_scanned_by_crawl.get(crawl_id, 0)
+        slice_candidate_hits = candidate_hits_by_crawl.get(crawl_id, 0)
+        slice_final_hits = final_hits_by_crawl.get(crawl_id, 0)
+        prefix = f"slice.{crawl_id}"
+        summary_rows.extend(
+            [
+                _summary_row(
+                    f"{prefix}.docs_scanned",
+                    slice_docs_scanned,
+                    "Slice-level scanned documents for this crawl_id.",
+                ),
+                _summary_row(
+                    f"{prefix}.candidate_hits",
+                    slice_candidate_hits,
+                    "Slice-level candidate matches before final filtering.",
+                ),
+                _summary_row(
+                    f"{prefix}.final_hits",
+                    slice_final_hits,
+                    "Slice-level final retained hits after filtering.",
+                ),
+                _summary_row(
+                    f"{prefix}.candidate_per_10k",
+                    round(_rate_per(slice_candidate_hits, slice_docs_scanned, 10_000), 6),
+                    "Slice-level candidate hit rate per 10,000 scanned documents.",
+                ),
+                _summary_row(
+                    f"{prefix}.final_per_10k",
+                    round(_rate_per(slice_final_hits, slice_docs_scanned, 10_000), 6),
+                    "Slice-level final hit rate per 10,000 scanned documents.",
+                ),
             ]
         )
-        writer.writerow(["timings_sec", json.dumps(combined_timings_with_total)])
-        writer.writerow(["timings_sec_by_crawl", json.dumps(timings_by_crawl_json)])
+
+    write_start = time.perf_counter()
+    with summary_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["metric", "value", "description"])
+        writer.writerows(summary_rows)
+    write_elapsed = time.perf_counter() - write_start
+    combined_timings["time_write_sec"] += write_elapsed
 
     logger.info("Wrote summary %s", summary_path)
     logger.info("Wrote top domains %s", top_domains_path)

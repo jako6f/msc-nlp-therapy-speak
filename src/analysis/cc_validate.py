@@ -70,6 +70,7 @@ def _load_metric_map(path: Path) -> Dict[str, str]:
     df = pd.read_csv(path)
     if "metric" not in df.columns or "value" not in df.columns:
         raise ValueError(f"Missing expected columns in {path}: ['metric', 'value']")
+    # Supports both legacy (metric,value) and current (metric,value,description).
     return dict(zip(df["metric"], df["value"]))
 
 
@@ -113,9 +114,7 @@ def _print_slice_metrics(
     timings: Dict[str, float],
 ) -> None:
     cand_10k = _rate_per(candidate_hits, docs_scanned, 10_000)
-    cand_100k = _rate_per(candidate_hits, docs_scanned, 100_000)
     final_10k = _rate_per(final_hits, docs_scanned, 10_000)
-    final_100k = _rate_per(final_hits, docs_scanned, 100_000)
     delta_abs = candidate_hits - final_hits
     delta_pct = (delta_abs / candidate_hits * 100.0) if candidate_hits > 0 else 0.0
 
@@ -125,8 +124,7 @@ def _print_slice_metrics(
     )
     print(
         f"  rates: candidate_per_10k={cand_10k:.3f}, "
-        f"candidate_per_100k={cand_100k:.3f}, final_per_10k={final_10k:.3f}, "
-        f"final_per_100k={final_100k:.3f}"
+        f"final_per_10k={final_10k:.3f}"
     )
     print(
         f"  candidate_to_final_delta: abs={delta_abs}, pct={delta_pct:.2f}%"
