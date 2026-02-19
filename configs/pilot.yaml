@@ -20,6 +20,22 @@ filters:
   asd_disambiguation_window_chars: 200
   context_window_chars: 200
 
+boilerplate:
+  enabled: true
+  signature_patterns:
+    - "skip\\s+to\\s+content"
+    - "cookie\\s+consent"
+    - "accept\\s+cookies?"
+    - "manage\\s+cookies?"
+    - "toggle\\s+navigation"
+    - "accessibility\\s+widget"
+    - "open\\s+accessibility\\s+menu"
+    - "add\\s+to\\s+cart"
+    - "\\bcheckout\\b"
+    - "privacy\\s+policy.{0,80}cookies?"
+  min_snippet_words: 8
+  min_alpha_ratio: 0.45
+
 terms:
   adhd_patterns:
     - "\\badhd\\b"

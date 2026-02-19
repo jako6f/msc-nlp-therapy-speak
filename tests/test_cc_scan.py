@@ -2,9 +2,12 @@ import re
 
 from src.data_sources.commoncrawl.cc_scan import (
     asd_disambiguated,
+    compile_boilerplate_patterns,
     compile_patterns,
     extract_registered_domain,
     find_term_matches,
+    is_boilerplate_density,
+    is_boilerplate_signature,
 )
 
 
@@ -42,3 +45,19 @@ def test_registered_domain_extraction():
     assert extract_registered_domain(url2) == "example.com"
 
     assert extract_registered_domain(None) == ""
+
+
+def test_boilerplate_signature_removes_snippet():
+    patterns = compile_boilerplate_patterns([r"skip\s+to\s+content"])
+    snippet = "Skip to content Toggle navigation Home"
+    assert is_boilerplate_signature(snippet, patterns)
+
+
+def test_boilerplate_checks_keep_normal_prose():
+    patterns = compile_boilerplate_patterns([r"skip\s+to\s+content"])
+    snippet = (
+        "Autism research continues to improve screening and support options "
+        "for children, families, and clinicians in routine care."
+    )
+    assert not is_boilerplate_signature(snippet, patterns)
+    assert not is_boilerplate_density(snippet, min_snippet_words=8, min_alpha_ratio=0.45)

@@ -21,6 +21,19 @@ TIMING_FIELDS = [
     "time_write_sec",
 ]
 
+DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS = [
+    r"skip\s+to\s+content",
+    r"cookie\s+consent",
+    r"accept\s+cookies?",
+    r"manage\s+cookies?",
+    r"toggle\s+navigation",
+    r"accessibility\s+widget",
+    r"open\s+accessibility\s+menu",
+    r"add\s+to\s+cart",
+    r"\bcheckout\b",
+    r"privacy\s+policy.{0,80}cookies?",
+]
+
 
 def _utc_runid() -> str:
     return time.strftime("%Y%m%d_%H%M%S", time.gmtime())
@@ -143,6 +156,27 @@ def _summary_row(metric: str, value: object, description: str) -> List[object]:
     return [metric, value, description]
 
 
+def compile_boilerplate_patterns(patterns: List[str]) -> List[re.Pattern]:
+    return [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+
+
+def is_boilerplate_signature(snippet: str, patterns: List[re.Pattern]) -> bool:
+    return any(pattern.search(snippet) for pattern in patterns)
+
+
+def is_boilerplate_density(
+    snippet: str, min_snippet_words: int, min_alpha_ratio: float
+) -> bool:
+    words = snippet.split()
+    if len(words) < min_snippet_words:
+        return True
+    if not snippet:
+        return True
+    alpha_count = sum(ch.isalpha() for ch in snippet)
+    alpha_ratio = alpha_count / len(snippet)
+    return alpha_ratio < min_alpha_ratio
+
+
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
     scan_start = time.perf_counter()
     runid = _utc_runid()
@@ -152,6 +186,15 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     domain_cap = int(config["filters"]["domain_cap"])
     asd_window = int(config["filters"]["asd_disambiguation_window_chars"])
     context_window_chars = int(config["filters"].get("context_window_chars", 200))
+    boilerplate_cfg = config.get("boilerplate", {})
+    boilerplate_enabled = bool(boilerplate_cfg.get("enabled", True))
+    boilerplate_signature_patterns = compile_boilerplate_patterns(
+        boilerplate_cfg.get(
+            "signature_patterns", DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS
+        )
+    )
+    boilerplate_min_snippet_words = int(boilerplate_cfg.get("min_snippet_words", 8))
+    boilerplate_min_alpha_ratio = float(boilerplate_cfg.get("min_alpha_ratio", 0.45))
 
     terms = config["terms"]
     patterns = compile_patterns(terms)
@@ -165,6 +208,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Domain cap: %d", domain_cap)
     logger.info("ASD window: %d", asd_window)
     logger.info("Context window: %d", context_window_chars)
+    logger.info("Boilerplate enabled: %s", boilerplate_enabled)
 
     wet_dir = Path("data/raw/wet")
     wet_files = sorted(wet_dir.glob("*.wet.gz"))
@@ -248,6 +292,27 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 crawl_counters["candidate_hits"] += len(matches)
 
                 for label, span in matches:
+                    snippet = _context_snippet(text, span, context_window_chars)
+                    if boilerplate_enabled:
+                        if is_boilerplate_signature(
+                            snippet, boilerplate_signature_patterns
+                        ):
+                            combined["removed_boilerplate_signature"] += 1
+                            crawl_counters["removed_boilerplate_signature"] += 1
+                            combined["removed_boilerplate_total"] += 1
+                            crawl_counters["removed_boilerplate_total"] += 1
+                            continue
+                        if is_boilerplate_density(
+                            snippet,
+                            boilerplate_min_snippet_words,
+                            boilerplate_min_alpha_ratio,
+                        ):
+                            combined["removed_boilerplate_density"] += 1
+                            crawl_counters["removed_boilerplate_density"] += 1
+                            combined["removed_boilerplate_total"] += 1
+                            crawl_counters["removed_boilerplate_total"] += 1
+                            continue
+
                     if domain:
                         key = (crawl_id, domain)
                         if domain_hit_counts[key] >= domain_cap:
@@ -272,9 +337,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             "registered_domain": domain,
                             "warc_date": warc_date or "",
                             "matched_term": label,
-                            "context_snippet": _context_snippet(
-                                text, span, context_window_chars
-                            ),
+                            "context_snippet": snippet,
                             "text_len": text_len,
                         }
                     )
@@ -350,6 +413,18 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         crawl_id: counters["removed_domaincap"]
         for crawl_id, counters in sorted(counters_by_crawl.items())
     }
+    removed_boilerplate_signature_by_crawl = {
+        crawl_id: counters["removed_boilerplate_signature"]
+        for crawl_id, counters in sorted(counters_by_crawl.items())
+    }
+    removed_boilerplate_density_by_crawl = {
+        crawl_id: counters["removed_boilerplate_density"]
+        for crawl_id, counters in sorted(counters_by_crawl.items())
+    }
+    removed_boilerplate_total_by_crawl = {
+        crawl_id: counters["removed_boilerplate_total"]
+        for crawl_id, counters in sorted(counters_by_crawl.items())
+    }
     timings_by_crawl_json = {
         crawl_id: {
             **{field: round(crawl_timings[field], 6) for field in TIMING_FIELDS},
@@ -416,17 +491,17 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         _summary_row(
             "removed_boilerplate_signature",
             combined["removed_boilerplate_signature"],
-            "Placeholder count for signature-based boilerplate removals.",
+            "Count of hits removed by boilerplate signature patterns.",
         ),
         _summary_row(
             "removed_boilerplate_density",
             combined["removed_boilerplate_density"],
-            "Placeholder count for density-based boilerplate removals.",
+            "Count of hits removed by boilerplate density thresholds.",
         ),
         _summary_row(
             "removed_boilerplate_total",
             combined["removed_boilerplate_total"],
-            "Placeholder total count of boilerplate removals.",
+            "Total hits removed by boilerplate filtering before final output.",
         ),
         _summary_row(
             "top_domains_csv",
@@ -482,6 +557,21 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "JSON map from crawl_id to matches removed by domain cap.",
             ),
             _summary_row(
+                "removed_boilerplate_signature_by_crawl",
+                json.dumps(removed_boilerplate_signature_by_crawl),
+                "JSON map from crawl_id to signature-based boilerplate removals.",
+            ),
+            _summary_row(
+                "removed_boilerplate_density_by_crawl",
+                json.dumps(removed_boilerplate_density_by_crawl),
+                "JSON map from crawl_id to density-based boilerplate removals.",
+            ),
+            _summary_row(
+                "removed_boilerplate_total_by_crawl",
+                json.dumps(removed_boilerplate_total_by_crawl),
+                "JSON map from crawl_id to total boilerplate removals.",
+            ),
+            _summary_row(
                 "docs_per_sec_by_crawl",
                 json.dumps(
                     {
@@ -522,6 +612,21 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "Combined retained final hits across all slices.",
             ),
             _summary_row(
+                "combined.removed_boilerplate_signature",
+                combined["removed_boilerplate_signature"],
+                "Combined signature-based boilerplate removals across slices.",
+            ),
+            _summary_row(
+                "combined.removed_boilerplate_density",
+                combined["removed_boilerplate_density"],
+                "Combined density-based boilerplate removals across slices.",
+            ),
+            _summary_row(
+                "combined.removed_boilerplate_total",
+                combined["removed_boilerplate_total"],
+                "Combined total boilerplate removals across slices.",
+            ),
+            _summary_row(
                 "combined.candidate_per_10k",
                 round(_rate_per(combined["candidate_hits"], combined["docs_scanned"], 10_000), 6),
                 "Combined candidate hit rate per 10,000 scanned documents.",
@@ -555,6 +660,21 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     f"{prefix}.final_hits",
                     slice_final_hits,
                     "Slice-level final retained hits after filtering.",
+                ),
+                _summary_row(
+                    f"{prefix}.removed_boilerplate_signature",
+                    counters_by_crawl[crawl_id]["removed_boilerplate_signature"],
+                    "Slice-level signature-based boilerplate removals.",
+                ),
+                _summary_row(
+                    f"{prefix}.removed_boilerplate_density",
+                    counters_by_crawl[crawl_id]["removed_boilerplate_density"],
+                    "Slice-level density-based boilerplate removals.",
+                ),
+                _summary_row(
+                    f"{prefix}.removed_boilerplate_total",
+                    counters_by_crawl[crawl_id]["removed_boilerplate_total"],
+                    "Slice-level total boilerplate removals.",
                 ),
                 _summary_row(
                     f"{prefix}.candidate_per_10k",

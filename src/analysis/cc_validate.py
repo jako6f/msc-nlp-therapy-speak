@@ -110,6 +110,9 @@ def _print_slice_metrics(
     docs_scanned: int,
     candidate_hits: int,
     final_hits: int,
+    removed_boilerplate_signature: int,
+    removed_boilerplate_density: int,
+    removed_boilerplate_total: int,
     docs_per_sec: float,
     timings: Dict[str, float],
 ) -> None:
@@ -121,6 +124,12 @@ def _print_slice_metrics(
     print(
         f"{label}: docs_scanned={docs_scanned}, "
         f"candidate_hits={candidate_hits}, final_hits={final_hits}"
+    )
+    print(
+        "  boilerplate_removed: "
+        f"signature={removed_boilerplate_signature}, "
+        f"density={removed_boilerplate_density}, "
+        f"total={removed_boilerplate_total}"
     )
     print(
         f"  rates: candidate_per_10k={cand_10k:.3f}, "
@@ -193,6 +202,11 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         summary, "candidate_hits", _metric_int(summary, "hits_total", 0)
     )
     final_hits = _metric_int(summary, "final_hits", _metric_int(summary, "hits_total", 0))
+    removed_boilerplate_signature = _metric_int(
+        summary, "removed_boilerplate_signature", 0
+    )
+    removed_boilerplate_density = _metric_int(summary, "removed_boilerplate_density", 0)
+    removed_boilerplate_total = _metric_int(summary, "removed_boilerplate_total", 0)
 
     docs_scanned_by_crawl = {
         str(k): int(v)
@@ -205,6 +219,20 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     final_hits_by_crawl = {
         str(k): int(v)
         for k, v in _metric_json(summary, "final_hits_by_crawl").items()
+    }
+    removed_boilerplate_signature_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(
+            summary, "removed_boilerplate_signature_by_crawl"
+        ).items()
+    }
+    removed_boilerplate_density_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "removed_boilerplate_density_by_crawl").items()
+    }
+    removed_boilerplate_total_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "removed_boilerplate_total_by_crawl").items()
     }
     docs_per_sec_by_crawl = {
         str(k): float(v)
@@ -255,6 +283,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         set(docs_scanned_by_crawl)
         | set(candidate_hits_by_crawl)
         | set(final_hits_by_crawl)
+        | set(removed_boilerplate_total_by_crawl)
     )
     for slice_id in slice_ids:
         _print_slice_metrics(
@@ -262,6 +291,13 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
             docs_scanned=docs_scanned_by_crawl.get(slice_id, 0),
             candidate_hits=candidate_hits_by_crawl.get(slice_id, 0),
             final_hits=final_hits_by_crawl.get(slice_id, 0),
+            removed_boilerplate_signature=removed_boilerplate_signature_by_crawl.get(
+                slice_id, 0
+            ),
+            removed_boilerplate_density=removed_boilerplate_density_by_crawl.get(
+                slice_id, 0
+            ),
+            removed_boilerplate_total=removed_boilerplate_total_by_crawl.get(slice_id, 0),
             docs_per_sec=docs_per_sec_by_crawl.get(slice_id, 0.0),
             timings=timings_sec_by_crawl.get(slice_id, {}),
         )
@@ -271,6 +307,9 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         docs_scanned=docs_scanned,
         candidate_hits=candidate_hits,
         final_hits=final_hits,
+        removed_boilerplate_signature=removed_boilerplate_signature,
+        removed_boilerplate_density=removed_boilerplate_density,
+        removed_boilerplate_total=removed_boilerplate_total,
         docs_per_sec=_metric_float(summary, "docs_per_sec", 0.0),
         timings=timings_combined,
     )
