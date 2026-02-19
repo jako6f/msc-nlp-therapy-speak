@@ -6,9 +6,12 @@ from src.data_sources.commoncrawl.cc_scan import (
     compile_patterns,
     extract_registered_domain,
     find_term_matches,
+    is_boilerplate_az_index,
+    is_boilerplate_commerce,
     is_boilerplate_density,
     is_boilerplate_listiness,
     is_boilerplate_signature,
+    is_boilerplate_topic_hub,
     normalize_listiness_phrases,
 )
 
@@ -96,3 +99,56 @@ def test_boilerplate_listiness_keeps_substantive_snippet():
         "short_fragment_max_words": 3,
     }
     assert not is_boilerplate_listiness(snippet, phrases, thresholds)
+
+
+def test_boilerplate_az_index_detects_index_snippet():
+    snippet = "A | B | C | D | E | F | G | H | I | J | A-Z index"
+    thresholds = {
+        "min_letter_tokens": 8,
+        "min_short_fragments": 5,
+        "short_fragment_max_words": 2,
+        "max_sentence_punct": 1,
+    }
+    assert is_boilerplate_az_index(snippet, thresholds)
+
+
+def test_boilerplate_topic_hub_detects_hub_snippet():
+    snippet = "Browse topics | Subscribe | RSS | All conditions | no articles match"
+    phrases = normalize_listiness_phrases(
+        ["topics", "browse", "subscribe", "rss", "no articles match", "all conditions"]
+    )
+    assert is_boilerplate_topic_hub(
+        snippet, phrases, min_phrase_hits=2, max_sentence_punct=1
+    )
+
+
+def test_boilerplate_commerce_detects_listing_snippet():
+    snippet = "Quick view | Add to cart | Select options | In stock"
+    phrases = normalize_listiness_phrases(
+        ["add to cart", "quick view", "select options", "free shipping", "in stock"]
+    )
+    assert is_boilerplate_commerce(snippet, phrases, min_phrase_hits=2)
+
+
+def test_boilerplate_new_rules_keep_substantive_snippet():
+    snippet = (
+        "This article explains autism support planning, discusses clinical context, "
+        "and provides complete sentences with recommendations for families."
+    )
+    az_thresholds = {
+        "min_letter_tokens": 8,
+        "min_short_fragments": 5,
+        "short_fragment_max_words": 2,
+        "max_sentence_punct": 1,
+    }
+    topic_phrases = normalize_listiness_phrases(
+        ["topics", "browse", "subscribe", "rss", "no articles match", "all conditions"]
+    )
+    commerce_phrases = normalize_listiness_phrases(
+        ["add to cart", "quick view", "select options", "free shipping", "in stock"]
+    )
+    assert not is_boilerplate_az_index(snippet, az_thresholds)
+    assert not is_boilerplate_topic_hub(
+        snippet, topic_phrases, min_phrase_hits=2, max_sentence_punct=1
+    )
+    assert not is_boilerplate_commerce(snippet, commerce_phrases, min_phrase_hits=2)

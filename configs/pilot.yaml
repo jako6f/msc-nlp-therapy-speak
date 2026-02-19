@@ -1,6 +1,6 @@
 project:
-  seed: 123
-  out_dir: "data/interim/cc_pilot_stage_01b/iter_02"
+  seed: 123 # base seed for deterministic sampling and validation sampling
+  out_dir: "data/interim/cc_pilot_stage_01b/iter_03" # Stage 1b Iteration 03 outputs
 
 pilot:
   crawl_ids:
@@ -12,16 +12,16 @@ pilot:
 # WAT files: just metadata
 # WET files: raw text data
 sampling:
-  wet_files_per_crawl: 2
+  wet_files_per_crawl: 2 # sampled WET files per crawl_id for pilot scans
 
 filters:
-  min_chars: 500
-  domain_cap: 50
-  asd_disambiguation_window_chars: 200
-  context_window_chars: 200
+  min_chars: 500 # ignore very short WET docs before matching
+  domain_cap: 50 # max retained hits per (crawl_id, registered_domain)
+  asd_disambiguation_window_chars: 200 # window used only for ASD disambiguation
+  context_window_chars: 200 # +/- chars captured around each match in context_snippet
 
 boilerplate:
-  enabled: true
+  enabled: true # master switch for snippet-level boilerplate filtering
   signature_patterns:
     - "skip\\s+to\\s+content"
     - "cookie\\s+consent"
@@ -33,9 +33,9 @@ boilerplate:
     - "add\\s+to\\s+cart"
     - "\\bcheckout\\b"
     - "privacy\\s+policy.{0,80}cookies?"
-  min_snippet_words: 8
-  min_alpha_ratio: 0.45
-  listiness_enabled: true
+  min_snippet_words: 8 # minimum words required before a snippet is treated as prose
+  min_alpha_ratio: 0.45 # minimum alphabetic-character ratio for prose-like snippets
+  listiness_enabled: true # enable generic listiness/taxonomy rule
   listiness_phrases:
     - "more topics"
     - "browse all listings"
@@ -46,10 +46,35 @@ boilerplate:
     - "a-z"
     - "all conditions"
   listiness_thresholds:
-    min_separator_density: 0.12
-    max_sentence_punct: 1
-    min_short_fragments: 4
-    short_fragment_max_words: 3
+    min_separator_density: 0.12 # separators per word threshold for list-like snippets
+    max_sentence_punct: 1 # max sentence punctuation marks allowed for list-like snippets
+    min_short_fragments: 4 # minimum short fragments split by separators
+    short_fragment_max_words: 3 # max words defining a short fragment
+  az_index_enabled: true # enable A-Z / index-list boilerplate rule
+  az_index_thresholds:
+    min_letter_tokens: 8 # minimum unique single-letter tokens for index detection
+    min_short_fragments: 5 # minimum short fragments for index-like snippets
+    short_fragment_max_words: 2 # max words defining a short index fragment
+    max_sentence_punct: 1 # max sentence punctuation marks for index-like snippets
+  topic_hub_enabled: true # enable generic topic-hub / browse page rule
+  topic_hub_phrases:
+    - "topics"
+    - "browse"
+    - "subscribe"
+    - "rss"
+    - "no articles match"
+    - "all conditions"
+    - "a-z"
+  topic_hub_min_phrase_hits: 2 # minimum phrase hits before topic-hub removal
+  topic_hub_max_sentence_punct: 1 # max sentence punctuation marks for topic-hub snippets
+  commerce_enabled: true # enable generic commerce listing rule
+  commerce_phrases:
+    - "add to cart"
+    - "quick view"
+    - "select options"
+    - "free shipping"
+    - "in stock"
+  commerce_min_phrase_hits: 2 # minimum phrase hits before commerce removal
 
 terms:
   adhd_patterns:
