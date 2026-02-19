@@ -151,6 +151,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     min_chars = int(config["filters"]["min_chars"])
     domain_cap = int(config["filters"]["domain_cap"])
     asd_window = int(config["filters"]["asd_disambiguation_window_chars"])
+    context_window_chars = int(config["filters"].get("context_window_chars", 200))
 
     terms = config["terms"]
     patterns = compile_patterns(terms)
@@ -163,6 +164,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Min chars: %d", min_chars)
     logger.info("Domain cap: %d", domain_cap)
     logger.info("ASD window: %d", asd_window)
+    logger.info("Context window: %d", context_window_chars)
 
     wet_dir = Path("data/raw/wet")
     wet_files = sorted(wet_dir.glob("*.wet.gz"))
@@ -271,7 +273,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             "warc_date": warc_date or "",
                             "matched_term": label,
                             "context_snippet": _context_snippet(
-                                text, span, asd_window
+                                text, span, context_window_chars
                             ),
                             "text_len": text_len,
                         }

@@ -18,6 +18,7 @@ filters:
   min_chars: 500
   domain_cap: 50
   asd_disambiguation_window_chars: 200
+  context_window_chars: 200
 
 terms:
   adhd_patterns:
