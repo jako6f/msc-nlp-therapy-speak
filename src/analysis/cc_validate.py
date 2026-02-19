@@ -112,6 +112,7 @@ def _print_slice_metrics(
     final_hits: int,
     removed_boilerplate_signature: int,
     removed_boilerplate_density: int,
+    removed_boilerplate_listiness: int,
     removed_boilerplate_total: int,
     docs_per_sec: float,
     timings: Dict[str, float],
@@ -129,6 +130,7 @@ def _print_slice_metrics(
         "  boilerplate_removed: "
         f"signature={removed_boilerplate_signature}, "
         f"density={removed_boilerplate_density}, "
+        f"listiness={removed_boilerplate_listiness}, "
         f"total={removed_boilerplate_total}"
     )
     print(
@@ -206,6 +208,9 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         summary, "removed_boilerplate_signature", 0
     )
     removed_boilerplate_density = _metric_int(summary, "removed_boilerplate_density", 0)
+    removed_boilerplate_listiness = _metric_int(
+        summary, "removed_boilerplate_listiness", 0
+    )
     removed_boilerplate_total = _metric_int(summary, "removed_boilerplate_total", 0)
 
     docs_scanned_by_crawl = {
@@ -229,6 +234,10 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     removed_boilerplate_density_by_crawl = {
         str(k): int(v)
         for k, v in _metric_json(summary, "removed_boilerplate_density_by_crawl").items()
+    }
+    removed_boilerplate_listiness_by_crawl = {
+        str(k): int(v)
+        for k, v in _metric_json(summary, "removed_boilerplate_listiness_by_crawl").items()
     }
     removed_boilerplate_total_by_crawl = {
         str(k): int(v)
@@ -257,13 +266,13 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         }
 
     sample_seed = _seed_for_run(project_seed, corpus_runid)
-    sample_n = min(25, len(corpus_df))
+    sample_n = min(50, len(corpus_df))
     sample_df = corpus_df[REQUIRED_COLUMNS].sample(n=sample_n, random_state=sample_seed)
 
     asd_mask = corpus_df["matched_term"].fillna("").str.lower().str.contains("asd")
     asd_df = corpus_df.loc[asd_mask, REQUIRED_COLUMNS]
 
-    sample_path = interim_dir / f"cc_val_sample25_{corpus_runid}.csv"
+    sample_path = interim_dir / f"cc_val_sample50_{corpus_runid}.csv"
     asd_path = interim_dir / f"cc_val_asd_{corpus_runid}.csv"
     sample_df.to_csv(sample_path, index=False)
     asd_df.to_csv(asd_path, index=False)
@@ -283,6 +292,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         set(docs_scanned_by_crawl)
         | set(candidate_hits_by_crawl)
         | set(final_hits_by_crawl)
+        | set(removed_boilerplate_listiness_by_crawl)
         | set(removed_boilerplate_total_by_crawl)
     )
     for slice_id in slice_ids:
@@ -297,6 +307,9 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
             removed_boilerplate_density=removed_boilerplate_density_by_crawl.get(
                 slice_id, 0
             ),
+            removed_boilerplate_listiness=removed_boilerplate_listiness_by_crawl.get(
+                slice_id, 0
+            ),
             removed_boilerplate_total=removed_boilerplate_total_by_crawl.get(slice_id, 0),
             docs_per_sec=docs_per_sec_by_crawl.get(slice_id, 0.0),
             timings=timings_sec_by_crawl.get(slice_id, {}),
@@ -309,6 +322,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         final_hits=final_hits,
         removed_boilerplate_signature=removed_boilerplate_signature,
         removed_boilerplate_density=removed_boilerplate_density,
+        removed_boilerplate_listiness=removed_boilerplate_listiness,
         removed_boilerplate_total=removed_boilerplate_total,
         docs_per_sec=_metric_float(summary, "docs_per_sec", 0.0),
         timings=timings_combined,

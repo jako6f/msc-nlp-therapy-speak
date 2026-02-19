@@ -1,6 +1,6 @@
 project:
   seed: 123
-  out_dir: "data/interim"
+  out_dir: "data/interim/cc_pilot_stage_01b/iter_02"
 
 pilot:
   crawl_ids:
@@ -35,6 +35,21 @@ boilerplate:
     - "privacy\\s+policy.{0,80}cookies?"
   min_snippet_words: 8
   min_alpha_ratio: 0.45
+  listiness_enabled: true
+  listiness_phrases:
+    - "more topics"
+    - "browse all listings"
+    - "resource center"
+    - "categories"
+    - "tags"
+    - "topics"
+    - "a-z"
+    - "all conditions"
+  listiness_thresholds:
+    min_separator_density: 0.12
+    max_sentence_punct: 1
+    min_short_fragments: 4
+    short_fragment_max_words: 3
 
 terms:
   adhd_patterns:

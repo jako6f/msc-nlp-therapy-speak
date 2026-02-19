@@ -7,7 +7,9 @@ from src.data_sources.commoncrawl.cc_scan import (
     extract_registered_domain,
     find_term_matches,
     is_boilerplate_density,
+    is_boilerplate_listiness,
     is_boilerplate_signature,
+    normalize_listiness_phrases,
 )
 
 
@@ -61,3 +63,36 @@ def test_boilerplate_checks_keep_normal_prose():
     )
     assert not is_boilerplate_signature(snippet, patterns)
     assert not is_boilerplate_density(snippet, min_snippet_words=8, min_alpha_ratio=0.45)
+
+
+def test_boilerplate_listiness_detects_taxonomy_snippet():
+    snippet = (
+        "Resource center | Categories | Tags | Topics | A-Z | All conditions | More topics"
+    )
+    phrases = normalize_listiness_phrases(
+        ["resource center", "categories", "tags", "topics", "a-z", "all conditions"]
+    )
+    thresholds = {
+        "min_separator_density": 0.12,
+        "max_sentence_punct": 1,
+        "min_short_fragments": 4,
+        "short_fragment_max_words": 3,
+    }
+    assert is_boilerplate_listiness(snippet, phrases, thresholds)
+
+
+def test_boilerplate_listiness_keeps_substantive_snippet():
+    snippet = (
+        "The care team discusses autism screening methods and treatment planning "
+        "in complete sentences with clear context and recommendations."
+    )
+    phrases = normalize_listiness_phrases(
+        ["resource center", "categories", "tags", "topics", "a-z", "all conditions"]
+    )
+    thresholds = {
+        "min_separator_density": 0.12,
+        "max_sentence_punct": 1,
+        "min_short_fragments": 4,
+        "short_fragment_max_words": 3,
+    }
+    assert not is_boilerplate_listiness(snippet, phrases, thresholds)

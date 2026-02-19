@@ -138,6 +138,7 @@ def _new_counter_bucket() -> Dict[str, int]:
         "removed_domaincap": 0,
         "removed_boilerplate_signature": 0,
         "removed_boilerplate_density": 0,
+        "removed_boilerplate_listiness": 0,
         "removed_boilerplate_total": 0,
     }
 
@@ -177,6 +178,38 @@ def is_boilerplate_density(
     return alpha_ratio < min_alpha_ratio
 
 
+def normalize_listiness_phrases(phrases: List[str]) -> List[str]:
+    return [phrase.strip().lower() for phrase in phrases if phrase.strip()]
+
+
+def is_boilerplate_listiness(
+    snippet: str, phrases: List[str], thresholds: Dict[str, float]
+) -> bool:
+    if not snippet:
+        return False
+
+    lower_snippet = snippet.lower()
+    if not any(phrase in lower_snippet for phrase in phrases):
+        return False
+
+    words = snippet.split()
+    separator_count = sum(snippet.count(ch) for ch in "|/>•")
+    separator_density = separator_count / max(1, len(words))
+    sentence_punct_count = sum(snippet.count(ch) for ch in ".!?")
+    fragments = [frag.strip() for frag in re.split(r"[|/>•]+", snippet) if frag.strip()]
+    short_fragment_count = sum(
+        1
+        for fragment in fragments
+        if len(fragment.split()) <= int(thresholds["short_fragment_max_words"])
+    )
+
+    return (
+        separator_density >= float(thresholds["min_separator_density"])
+        or sentence_punct_count <= int(thresholds["max_sentence_punct"])
+        or short_fragment_count >= int(thresholds["min_short_fragments"])
+    )
+
+
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
     scan_start = time.perf_counter()
     runid = _utc_runid()
@@ -195,6 +228,44 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     )
     boilerplate_min_snippet_words = int(boilerplate_cfg.get("min_snippet_words", 8))
     boilerplate_min_alpha_ratio = float(boilerplate_cfg.get("min_alpha_ratio", 0.45))
+    boilerplate_listiness_enabled = bool(boilerplate_cfg.get("listiness_enabled", True))
+    boilerplate_listiness_phrases = normalize_listiness_phrases(
+        boilerplate_cfg.get(
+            "listiness_phrases",
+            [
+                "more topics",
+                "browse all listings",
+                "resource center",
+                "categories",
+                "tags",
+                "topics",
+                "a-z",
+                "all conditions",
+            ],
+        )
+    )
+    boilerplate_listiness_thresholds = {
+        "min_separator_density": float(
+            boilerplate_cfg.get("listiness_thresholds", {}).get(
+                "min_separator_density", 0.12
+            )
+        ),
+        "max_sentence_punct": int(
+            boilerplate_cfg.get("listiness_thresholds", {}).get(
+                "max_sentence_punct", 1
+            )
+        ),
+        "min_short_fragments": int(
+            boilerplate_cfg.get("listiness_thresholds", {}).get(
+                "min_short_fragments", 4
+            )
+        ),
+        "short_fragment_max_words": int(
+            boilerplate_cfg.get("listiness_thresholds", {}).get(
+                "short_fragment_max_words", 3
+            )
+        ),
+    }
 
     terms = config["terms"]
     patterns = compile_patterns(terms)
@@ -209,6 +280,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("ASD window: %d", asd_window)
     logger.info("Context window: %d", context_window_chars)
     logger.info("Boilerplate enabled: %s", boilerplate_enabled)
+    logger.info("Boilerplate listiness enabled: %s", boilerplate_listiness_enabled)
 
     wet_dir = Path("data/raw/wet")
     wet_files = sorted(wet_dir.glob("*.wet.gz"))
@@ -309,6 +381,16 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         ):
                             combined["removed_boilerplate_density"] += 1
                             crawl_counters["removed_boilerplate_density"] += 1
+                            combined["removed_boilerplate_total"] += 1
+                            crawl_counters["removed_boilerplate_total"] += 1
+                            continue
+                        if boilerplate_listiness_enabled and is_boilerplate_listiness(
+                            snippet,
+                            boilerplate_listiness_phrases,
+                            boilerplate_listiness_thresholds,
+                        ):
+                            combined["removed_boilerplate_listiness"] += 1
+                            crawl_counters["removed_boilerplate_listiness"] += 1
                             combined["removed_boilerplate_total"] += 1
                             crawl_counters["removed_boilerplate_total"] += 1
                             continue
@@ -421,6 +503,10 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         crawl_id: counters["removed_boilerplate_density"]
         for crawl_id, counters in sorted(counters_by_crawl.items())
     }
+    removed_boilerplate_listiness_by_crawl = {
+        crawl_id: counters["removed_boilerplate_listiness"]
+        for crawl_id, counters in sorted(counters_by_crawl.items())
+    }
     removed_boilerplate_total_by_crawl = {
         crawl_id: counters["removed_boilerplate_total"]
         for crawl_id, counters in sorted(counters_by_crawl.items())
@@ -499,6 +585,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Count of hits removed by boilerplate density thresholds.",
         ),
         _summary_row(
+            "removed_boilerplate_listiness",
+            combined["removed_boilerplate_listiness"],
+            "Count of hits removed by boilerplate listiness/taxonomy heuristics.",
+        ),
+        _summary_row(
             "removed_boilerplate_total",
             combined["removed_boilerplate_total"],
             "Total hits removed by boilerplate filtering before final output.",
@@ -567,6 +658,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "JSON map from crawl_id to density-based boilerplate removals.",
             ),
             _summary_row(
+                "removed_boilerplate_listiness_by_crawl",
+                json.dumps(removed_boilerplate_listiness_by_crawl),
+                "JSON map from crawl_id to listiness/taxonomy boilerplate removals.",
+            ),
+            _summary_row(
                 "removed_boilerplate_total_by_crawl",
                 json.dumps(removed_boilerplate_total_by_crawl),
                 "JSON map from crawl_id to total boilerplate removals.",
@@ -622,6 +718,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "Combined density-based boilerplate removals across slices.",
             ),
             _summary_row(
+                "combined.removed_boilerplate_listiness",
+                combined["removed_boilerplate_listiness"],
+                "Combined listiness/taxonomy boilerplate removals across slices.",
+            ),
+            _summary_row(
                 "combined.removed_boilerplate_total",
                 combined["removed_boilerplate_total"],
                 "Combined total boilerplate removals across slices.",
@@ -670,6 +771,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     f"{prefix}.removed_boilerplate_density",
                     counters_by_crawl[crawl_id]["removed_boilerplate_density"],
                     "Slice-level density-based boilerplate removals.",
+                ),
+                _summary_row(
+                    f"{prefix}.removed_boilerplate_listiness",
+                    counters_by_crawl[crawl_id]["removed_boilerplate_listiness"],
+                    "Slice-level listiness/taxonomy boilerplate removals.",
                 ),
                 _summary_row(
                     f"{prefix}.removed_boilerplate_total",
