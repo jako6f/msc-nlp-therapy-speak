@@ -1,6 +1,6 @@
 project:
   seed: 123 # base seed for deterministic sampling and validation sampling
-  out_dir: "data/interim/cc_pilot_stage_01b/iter_05" # Stage 1b Iteration 05 outputs
+  out_dir: "data/interim/cc_pilot_stage_01b/iter_07" # Stage 1b Iteration 07 outputs
 
 pilot:
   crawl_ids:
@@ -22,18 +22,48 @@ filters:
 
 boilerplate:
   enabled: true # master switch for snippet-level boilerplate filtering
-  check_window_chars: 2000 # +/- chars used only for boilerplate checks around a match
-  signature_patterns: # regex cues for obvious nav/cookie/cart boilerplate
+  check_window_chars: 5000 # +/- chars used only for boilerplate checks around a match
+  signature_hard_patterns: # single-hit hard signatures that immediately remove boilerplate
     - "skip\\s+to\\s+content"
+    - "skip\\s+navigation"
+    - "privacy\\s+policy.{0,80}cookies?"
     - "cookie\\s+consent"
+    - "cookie\\s+settings"
     - "accept\\s+cookies?"
     - "manage\\s+cookies?"
-    - "toggle\\s+navigation"
-    - "accessibility\\s+widget"
-    - "open\\s+accessibility\\s+menu"
     - "add\\s+to\\s+cart"
     - "\\bcheckout\\b"
-    - "privacy\\s+policy.{0,80}cookies?"
+    - "toggle\\s+navigation"
+    - "open\\s+accessibility\\s+menu"
+    - "accessibility\\s+widget"
+    - "accessibility\\s+profile"
+    - "choose\\s+accessibility\\s+menu"
+    - "cognitive\\s+disability"
+    - "seizure\\s+safe"
+    - "reading\\s+mask"
+    - "line\\s+height"
+    - "cursor\\s+size"
+    - "adhd[-\\s]?friendly\\s+(mode|profile)"
+    - "accessibility\\s+tools?"
+    - "high\\s+contrast"
+    - "\\bcontrast\\b"
+    - "screen\\s+reader"
+    - "font\\s+size"
+    - "text\\s+size"
+    - "increase\\s+text"
+    - "decrease\\s+text"
+    - "enable\\s+.*"
+    - "disable\\s+.*"
+    - "barrierefreiheit"
+    - "tillganglighet"
+  signature_soft_patterns: # generic UI terms requiring multiple distinct matches
+    - "\\blogin\\b"
+    - "sign\\s+in"
+    - "register"
+    - "search"
+    - "menu"
+    - "terms\\s+of\\s+service"
+  signature_soft_min_hits: 2 # distinct soft signature cues required before removal
   min_snippet_words: 8 # minimum words required before a snippet is treated as prose
   min_alpha_ratio: 0.45 # minimum alphabetic-character ratio for prose-like snippets
   listiness_enabled: true # enable generic listiness/taxonomy rule
@@ -51,7 +81,7 @@ boilerplate:
     max_sentence_punct: 1 # max sentence punctuation marks allowed for list-like snippets
     min_short_fragments: 4 # minimum short fragments split by separators
     short_fragment_max_words: 3 # max words defining a short fragment
-  az_index_enabled: false # disabled in iter_05 while directory-index rule replaces it
+  az_index_enabled: true # keep A-Z index heuristic enabled for residual index pages
   az_index_thresholds:
     min_letter_tokens: 8 # minimum unique single-letter tokens for index detection
     min_short_fragments: 5 # minimum short fragments for index-like snippets
@@ -64,26 +94,64 @@ boilerplate:
     - "subscribe"
     - "rss"
     - "no articles match"
+    - "more articles"
+    - "see all articles"
+    - "all articles"
+    - "latest news"
+    - "archives"
+    - "categories"
+    - "tagged"
+    - "related articles"
+    - "popular posts"
+    - "site map"
+    - "e-edition"
+    - "edition"
+    - "newsletter"
     - "all conditions"
     - "a-z"
   topic_hub_min_phrase_hits: 2 # minimum phrase hits before topic-hub removal
   topic_hub_max_sentence_punct: 1 # max sentence punctuation marks for topic-hub snippets
-  directory_index_enabled: true # enable directory / conditions-index boilerplate rule
-  directory_index_phrases: # generic conditions-directory cues (non-domain-specific)
+  condition_index_enabled: true # enable structural condition-index/directory detection
+  condition_index_markers: # generic markers used by condition-index rule
     - "all conditions"
-    - "conditions a-z"
-    - "health a-z"
-    - "browse conditions"
+    - "conditions"
     - "symptoms"
-    - "diagnosis"
-    - "treatment"
     - "diseases"
-    - "disorders"
+    - "a-z"
     - "a to z"
-    - "a-z index"
-  directory_index_min_phrase_hits: 2 # minimum directory-phrase hits before considering removal
-  directory_index_min_short_fragments: 4 # minimum short fragments indicating list-like layout
-  directory_index_max_sentence_terminators: 2 # prose guard for directory-style text
+    - "index"
+  condition_index_thresholds:
+    min_marker_hits: 2 # minimum marker hits required in check window
+    min_separator_per_1k: 8.0 # minimum separator density per 1k chars
+    min_short_fragments: 8 # minimum short fragments indicating list/directory structure
+    min_short_fragment_ratio: 0.35 # minimum proportion of short fragments among all fragments
+    short_fragment_min_chars: 3 # lower bound for a short fragment label
+    short_fragment_max_chars: 40 # upper bound for a short fragment label
+    max_sentence_terminators_per_1k: 5.0 # maximum sentence punctuation density for low-prose pages
+  directory_index:
+    enabled: true # enable structural directory / conditions-index boilerplate rule
+    lexicon: # generic index-like medical/category cues used as one score feature
+      - "all conditions"
+      - "conditions a-z"
+      - "health a-z"
+      - "browse conditions"
+      - "symptoms"
+      - "diagnosis"
+      - "treatment"
+      - "diseases"
+      - "disorders"
+      - "a to z"
+      - "a-z index"
+    score_threshold: 3 # minimum structure score to remove as directory-index
+    min_separator_per_1k: 8.0 # minimum separator chars per 1k chars for list-like layout
+    min_short_fragment_ratio: 0.35 # minimum ratio of short label-like fragments
+    min_short_fragments: 8 # minimum count of short fragments to trust ratio signal
+    short_fragment_min_chars: 3 # minimum chars for a short label fragment
+    short_fragment_max_chars: 40 # maximum chars for a short label fragment
+    max_sentence_terminators_per_1k: 2.5 # low narrative signal threshold (terminators per 1k chars)
+    low_narrative_min_separator_per_1k: 6.0 # min separator density required to apply low-narrative boost
+    min_lexicon_hits: 2 # minimum lexicon hits to score lexical directory signal
+    min_capitalized_token_ratio: 0.22 # minimum title-case token ratio for noun-list signal
   nav_lexicon: # generic UI/navigation lexicon used by nav-density rule
     - "home"
     - "about"
@@ -102,6 +170,18 @@ boilerplate:
     - "toggle"
     - "schedule"
     - "newsletter"
+    - "more articles"
+    - "see all articles"
+    - "all articles"
+    - "latest news"
+    - "archives"
+    - "categories"
+    - "tagged"
+    - "related articles"
+    - "popular posts"
+    - "site map"
+    - "e-edition"
+    - "edition"
   nav_lexicon_min_hits: 4 # minimum nav-lexicon hits before navlex removal
   nav_lexicon_max_sentence_terminators: 1 # prose guard: max likely sentence terminators
   nav_lexicon_min_short_fragments: 4 # fragmentiness guard for nav-heavy snippet removal

@@ -8,14 +8,43 @@ from src.data_sources.commoncrawl.cc_scan import (
     find_term_matches,
     is_boilerplate_az_index,
     is_boilerplate_commerce,
+    is_boilerplate_condition_index,
     is_boilerplate_directory_index,
     is_boilerplate_density,
     is_boilerplate_listiness,
     is_boilerplate_navlex,
     is_boilerplate_signature,
+    is_boilerplate_signature_soft,
     is_boilerplate_topic_hub,
     normalize_listiness_phrases,
 )
+
+
+def _directory_index_thresholds():
+    return {
+        "score_threshold": 3,
+        "min_separator_per_1k": 8.0,
+        "min_short_fragment_ratio": 0.35,
+        "min_short_fragments": 8,
+        "short_fragment_min_chars": 3,
+        "short_fragment_max_chars": 40,
+        "max_sentence_terminators_per_1k": 2.5,
+        "low_narrative_min_separator_per_1k": 6.0,
+        "min_lexicon_hits": 2,
+        "min_capitalized_token_ratio": 0.22,
+    }
+
+
+def _condition_index_thresholds():
+    return {
+        "min_marker_hits": 2,
+        "min_separator_per_1k": 8.0,
+        "min_short_fragments": 8,
+        "min_short_fragment_ratio": 0.35,
+        "short_fragment_min_chars": 3,
+        "short_fragment_max_chars": 40,
+        "max_sentence_terminators_per_1k": 5.0,
+    }
 
 
 def test_regex_matching_basic():
@@ -58,6 +87,16 @@ def test_boilerplate_signature_removes_snippet():
     patterns = compile_boilerplate_patterns([r"skip\s+to\s+content"])
     snippet = "Skip to content Toggle navigation Home"
     assert is_boilerplate_signature(snippet, patterns)
+
+
+def test_boilerplate_signature_soft_requires_multiple_distinct_hits():
+    patterns = compile_boilerplate_patterns(
+        [r"\blogin\b", r"register", r"search", r"\bmenu\b"]
+    )
+    single_cue = "Please login to continue reading."
+    multi_cue = "Login | Register | Search the site menu"
+    assert not is_boilerplate_signature_soft(single_cue, patterns, min_hits=2)
+    assert is_boilerplate_signature_soft(multi_cue, patterns, min_hits=2)
 
 
 def test_boilerplate_checks_keep_normal_prose():
@@ -166,7 +205,7 @@ def test_boilerplate_directory_index_detects_directory_like_snippet():
         "All conditions | Conditions A-Z | Browse conditions | Symptoms | Diagnosis | "
         "Treatment | Diseases | Disorders | A to Z"
     )
-    phrases = normalize_listiness_phrases(
+    lexicon = normalize_listiness_phrases(
         [
             "all conditions",
             "conditions a-z",
@@ -183,10 +222,25 @@ def test_boilerplate_directory_index_detects_directory_like_snippet():
     )
     assert is_boilerplate_directory_index(
         snippet,
-        phrases=phrases,
-        min_phrase_hits=2,
-        min_short_fragments=4,
-        max_sentence_terminators=2,
+        lexicon=lexicon,
+        thresholds=_directory_index_thresholds(),
+    )
+
+
+def test_boilerplate_directory_index_detects_condition_list_without_explicit_phrase():
+    snippet = (
+        "Acne, ADHD, Allergy, Anxiety, Arthritis, Asthma, Autism, Back Pain, Bipolar, "
+        "Bronchitis, Depression, Diabetes, Dyslexia, Eczema, Epilepsy, Fibromyalgia, "
+        "Flu, GERD, Headache, Insomnia, Migraine, OCD, PTSD, Schizophrenia, "
+        "Symptoms, Diagnosis, Treatment"
+    )
+    lexicon = normalize_listiness_phrases(
+        ["conditions", "symptoms", "diagnosis", "treatment", "diseases", "disorders"]
+    )
+    assert is_boilerplate_directory_index(
+        snippet,
+        lexicon=lexicon,
+        thresholds=_directory_index_thresholds(),
     )
 
 
@@ -196,7 +250,7 @@ def test_boilerplate_directory_index_keeps_substantive_adhd_autism_paragraph():
         "criteria in full narrative sentences, and outlines treatment planning with "
         "clear recommendations for families and clinicians."
     )
-    phrases = normalize_listiness_phrases(
+    lexicon = normalize_listiness_phrases(
         [
             "all conditions",
             "conditions a-z",
@@ -213,10 +267,35 @@ def test_boilerplate_directory_index_keeps_substantive_adhd_autism_paragraph():
     )
     assert not is_boilerplate_directory_index(
         snippet,
-        phrases=phrases,
-        min_phrase_hits=2,
-        min_short_fragments=4,
-        max_sentence_terminators=2,
+        lexicon=lexicon,
+        thresholds=_directory_index_thresholds(),
+    )
+
+
+def test_boilerplate_condition_index_detects_structural_conditions_list():
+    snippet = (
+        "All conditions: Acne, ADHD, Allergy, ALS, Anxiety, Arthritis, Asthma, Autism, "
+        "Back Pain, Bipolar, Bronchitis, Depression, Diabetes, Dyslexia, Eczema, "
+        "Epilepsy, Fibromyalgia, Flu, GERD, Headache, Insomnia, Migraine, OCD, PTSD."
+    )
+    markers = normalize_listiness_phrases(
+        ["all conditions", "conditions", "symptoms", "diseases", "a-z", "index"]
+    )
+    assert is_boilerplate_condition_index(
+        snippet, markers=markers, thresholds=_condition_index_thresholds()
+    )
+
+
+def test_boilerplate_condition_index_keeps_normal_prose():
+    snippet = (
+        "Clinicians discuss conditions like ADHD and autism in full prose, with "
+        "careful sentence-level reasoning about diagnosis and treatment choices."
+    )
+    markers = normalize_listiness_phrases(
+        ["all conditions", "conditions", "symptoms", "diseases", "a-z", "index"]
+    )
+    assert not is_boilerplate_condition_index(
+        snippet, markers=markers, thresholds=_condition_index_thresholds()
     )
 
 
