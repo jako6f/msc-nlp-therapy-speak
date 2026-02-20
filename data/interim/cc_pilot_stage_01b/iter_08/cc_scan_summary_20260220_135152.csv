@@ -1,0 +1,33 @@
+metric,value,description
+docs_scanned,157461,Total conversion documents scanned across all crawl slices.
+docs_minlen,146995,Documents that passed the minimum character-length filter.
+candidate_hits,728,Term matches before downstream filtering and domain caps.
+final_hits,596,Rows retained after filtering and domain-cap enforcement.
+candidate_per_10k,46.233671,"Combined candidate hit rate per 10,000 scanned documents."
+final_per_10k,37.850642,"Combined final hit rate per 10,000 scanned documents."
+removed_domaincap,0,Candidate matches removed because the per-domain cap was reached.
+removed_total,132,Total removed candidates (domain-cap plus all boilerplate rules).
+docs_per_sec,2314.034727,Overall scan throughput in scanned documents per second.
+total_elapsed_sec,68.046083,Total wall-clock time for the scan stage in seconds.
+time_input_read_sec,8.316257,Combined coarse timing for this processing stage in seconds.
+time_parse_sec,3.703954,Combined coarse timing for this processing stage in seconds.
+time_term_match_sec,54.64843,Combined coarse timing for this processing stage in seconds.
+time_domain_extract_sec,0.707137,Combined coarse timing for this processing stage in seconds.
+time_write_sec,0.017701,Combined coarse timing for this processing stage in seconds.
+removed_boilerplate_directory_index,29,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_signature_hard,103,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_total,132,Combined total removals from all boilerplate rules.
+slice.CC-MAIN-2016-44.docs_scanned,112200,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2016-44.candidate_hits,489,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2016-44.final_hits,417,Slice-level final retained hits after filtering.
+slice.CC-MAIN-2016-44.candidate_per_10k,43.582888,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2016-44.final_per_10k,37.165775,"Slice-level final hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2016-44.total_elapsed_sec,49.030994,Slice-level wall-clock elapsed time in seconds.
+slice.CC-MAIN-2016-44.docs_per_sec,2288.348458,Slice-level throughput in scanned documents per second.
+slice.CC-MAIN-2026-04.docs_scanned,45261,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2026-04.candidate_hits,239,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2026-04.final_hits,179,Slice-level final retained hits after filtering.
+slice.CC-MAIN-2026-04.candidate_per_10k,52.804843,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2026-04.final_per_10k,39.548397,"Slice-level final hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2026-04.total_elapsed_sec,18.986193,Slice-level wall-clock elapsed time in seconds.
+slice.CC-MAIN-2026-04.docs_per_sec,2383.890225,Slice-level throughput in scanned documents per second.

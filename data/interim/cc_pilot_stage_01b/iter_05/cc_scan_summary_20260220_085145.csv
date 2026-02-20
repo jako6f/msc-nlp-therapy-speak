@@ -1,0 +1,39 @@
+metric,value,description
+docs_scanned,157461,Total conversion documents scanned across all crawl slices.
+docs_minlen,146995,Documents that passed the minimum character-length filter.
+candidate_hits,728,Term matches before downstream filtering and domain caps.
+final_hits,555,Rows retained after filtering and domain-cap enforcement.
+candidate_per_10k,46.233671,"Combined candidate hit rate per 10,000 scanned documents."
+final_per_10k,35.246823,"Combined final hit rate per 10,000 scanned documents."
+removed_domaincap,0,Candidate matches removed because the per-domain cap was reached.
+removed_total,173,Total removed candidates (domain-cap plus all boilerplate rules).
+docs_per_sec,2398.083174,Overall scan throughput in scanned documents per second.
+total_elapsed_sec,65.661192,Total wall-clock time for the scan stage in seconds.
+time_input_read_sec,7.428252,Combined coarse timing for this processing stage in seconds.
+time_parse_sec,3.347595,Combined coarse timing for this processing stage in seconds.
+time_term_match_sec,53.658736,Combined coarse timing for this processing stage in seconds.
+time_domain_extract_sec,0.589627,Combined coarse timing for this processing stage in seconds.
+time_write_sec,0.017435,Combined coarse timing for this processing stage in seconds.
+removed_boilerplate_az_index,0,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_commerce,1,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_density,1,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_directory_index,8,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_listiness,40,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_navlex,17,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_signature,89,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_topic_hub,17,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_total,173,Combined total removals from all boilerplate rules.
+slice.CC-MAIN-2016-44.docs_scanned,112200,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2016-44.candidate_hits,489,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2016-44.final_hits,386,Slice-level final retained hits after filtering.
+slice.CC-MAIN-2016-44.candidate_per_10k,43.582888,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2016-44.final_per_10k,34.402852,"Slice-level final hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2016-44.total_elapsed_sec,46.987445,Slice-level wall-clock elapsed time in seconds.
+slice.CC-MAIN-2016-44.docs_per_sec,2387.871933,Slice-level throughput in scanned documents per second.
+slice.CC-MAIN-2026-04.docs_scanned,45261,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2026-04.candidate_hits,239,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2026-04.final_hits,169,Slice-level final retained hits after filtering.
+slice.CC-MAIN-2026-04.candidate_per_10k,52.804843,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2026-04.final_per_10k,37.338989,"Slice-level final hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2026-04.total_elapsed_sec,18.646569,Slice-level wall-clock elapsed time in seconds.
+slice.CC-MAIN-2026-04.docs_per_sec,2427.309791,Slice-level throughput in scanned documents per second.

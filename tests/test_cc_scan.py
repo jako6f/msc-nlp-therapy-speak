@@ -8,23 +8,23 @@ from src.data_sources.commoncrawl.cc_scan import (
     find_term_matches,
     is_boilerplate_directory_index,
     is_boilerplate_signature,
-    is_boilerplate_topic_hub,
     normalize_listiness_phrases,
 )
 
 
 def _directory_index_thresholds():
     return {
-        "score_threshold": 3,
-        "min_separator_per_1k": 8.0,
-        "min_short_fragment_ratio": 0.35,
-        "min_short_fragments": 8,
+        "score_threshold": 4,
+        "min_separator_per_1k": 10.0,
+        "min_short_fragment_ratio": 0.45,
+        "min_short_fragments": 10,
         "short_fragment_min_chars": 3,
-        "short_fragment_max_chars": 40,
+        "short_fragment_max_chars": 35,
         "max_sentence_terminators_per_1k": 2.5,
-        "low_narrative_min_separator_per_1k": 6.0,
-        "min_lexicon_hits": 2,
-        "min_capitalized_token_ratio": 0.22,
+        "low_narrative_min_separator_per_1k": 8.0,
+        "min_lexicon_hits": 3,
+        "min_capitalized_token_ratio": 0.3,
+        "min_single_letter_tokens": 6,
     }
 
 
@@ -66,32 +66,11 @@ def test_boilerplate_signature_removes_snippet():
     assert is_boilerplate_signature(snippet, patterns)
 
 
-def test_boilerplate_topic_hub_detects_hub_snippet():
-    snippet = (
-        "Browse topics ... More articles ... Subscribe ... RSS ... "
-        "All conditions ... no articles match"
-    )
-    phrases = normalize_listiness_phrases(
-        [
-            "topics",
-            "browse",
-            "subscribe",
-            "rss",
-            "no articles match",
-            "all conditions",
-            "more articles",
-        ]
-    )
-    assert is_boilerplate_topic_hub(
-        snippet, phrases, min_phrase_hits=2, max_sentence_punct=1
-    )
-
-
 def test_boilerplate_directory_index_detects_conditions_list():
     snippet = (
-        "All conditions: Acne, ADHD, Allergy, ALS, Anxiety, Arthritis, Asthma, Autism, "
-        "Back Pain, Bipolar, Bronchitis, Depression, Diabetes, Dyslexia, Eczema, "
-        "Epilepsy, Fibromyalgia, Flu, GERD, Headache, Insomnia, Migraine, OCD, PTSD"
+        "All conditions A-Z index: Symptoms, Diagnosis, Treatment, Diseases, Disorders, "
+        "A to Z A, B, C, D, E, F, G, H, I, J, Acne, ADHD, Allergy, ALS, Anxiety, "
+        "Arthritis, Asthma, Autism, Back Pain, Bipolar, Bronchitis, Depression, Diabetes"
     )
     lexicon = normalize_listiness_phrases(
         ["all conditions", "conditions a-z", "symptoms", "diagnosis", "treatment"]

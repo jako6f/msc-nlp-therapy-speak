@@ -1,0 +1,57 @@
+metric,value,description
+docs_scanned,157461,Total conversion documents scanned across all crawl slices.
+docs_minlen,146995,Documents that passed the minimum character-length filter.
+candidate_hits,728,Term matches before downstream filtering and domain caps.
+final_hits,721,Rows retained after filtering and domain-cap enforcement.
+hits_total,721,Legacy alias for final_hits to preserve downstream compatibility.
+hits_by_term,"{""autism_patterns[1]"": 57, ""autism_patterns[0]"": 304, ""adhd_patterns[0]"": 228, ""autism_patterns[2]"": 54, ""adhd_patterns[1]"": 60, ""asd_pattern"": 18}",JSON map from matched term label to retained hit count.
+unique_domains_total,73793,Unique registered domains seen in all scanned documents.
+unique_domains_hits,380,Unique registered domains represented in final retained hits.
+removed_domaincap,0,Candidate matches removed because the per-domain cap was reached.
+capped_removed,0,Legacy alias for removed_domaincap to preserve compatibility.
+removed_boilerplate_signature,5,Count of hits removed by boilerplate signature patterns.
+removed_boilerplate_density,2,Count of hits removed by boilerplate density thresholds.
+removed_boilerplate_total,7,Total hits removed by boilerplate filtering before final output.
+top_domains_csv,data/interim/cc_scan_top_domains_20260219_170918.csv,Path to the CSV containing top retained domains for this run.
+docs_per_sec,2428.41032,Overall scan throughput in scanned documents per second.
+total_elapsed_sec,64.841184,Total wall-clock time for the scan stage in seconds.
+time_input_read_sec,7.150398,Combined coarse timing for this processing stage in seconds.
+time_parse_sec,3.283831,Combined coarse timing for this processing stage in seconds.
+time_term_match_sec,53.60462,Combined coarse timing for this processing stage in seconds.
+time_domain_extract_sec,0.575806,Combined coarse timing for this processing stage in seconds.
+time_write_sec,0.016518,Combined coarse timing for this processing stage in seconds.
+docs_scanned_by_crawl,"{""CC-MAIN-2016-44"": 112200, ""CC-MAIN-2026-04"": 45261}",JSON map from crawl_id to scanned document count.
+docs_minlen_by_crawl,"{""CC-MAIN-2016-44"": 105991, ""CC-MAIN-2026-04"": 41004}",JSON map from crawl_id to documents passing min length.
+candidate_hits_by_crawl,"{""CC-MAIN-2016-44"": 489, ""CC-MAIN-2026-04"": 239}",JSON map from crawl_id to candidate term matches.
+final_hits_by_crawl,"{""CC-MAIN-2016-44"": 487, ""CC-MAIN-2026-04"": 234}",JSON map from crawl_id to final retained hits.
+removed_domaincap_by_crawl,"{""CC-MAIN-2016-44"": 0, ""CC-MAIN-2026-04"": 0}",JSON map from crawl_id to matches removed by domain cap.
+removed_boilerplate_signature_by_crawl,"{""CC-MAIN-2016-44"": 0, ""CC-MAIN-2026-04"": 5}",JSON map from crawl_id to signature-based boilerplate removals.
+removed_boilerplate_density_by_crawl,"{""CC-MAIN-2016-44"": 2, ""CC-MAIN-2026-04"": 0}",JSON map from crawl_id to density-based boilerplate removals.
+removed_boilerplate_total_by_crawl,"{""CC-MAIN-2016-44"": 2, ""CC-MAIN-2026-04"": 5}",JSON map from crawl_id to total boilerplate removals.
+docs_per_sec_by_crawl,"{""CC-MAIN-2016-44"": 2409.680115, ""CC-MAIN-2026-04"": 2479.423702}",JSON map from crawl_id to scan throughput in docs per second.
+timings_sec,"{""time_input_read_sec"": 7.150398, ""time_parse_sec"": 3.283831, ""time_term_match_sec"": 53.60462, ""time_domain_extract_sec"": 0.575806, ""time_write_sec"": 0.016518, ""total_elapsed_sec"": 64.841184}",JSON object of combined timing breakdown in seconds.
+timings_sec_by_crawl,"{""CC-MAIN-2016-44"": {""time_input_read_sec"": 5.085101, ""time_parse_sec"": 2.265402, ""time_term_match_sec"": 38.656451, ""time_domain_extract_sec"": 0.413676, ""time_write_sec"": 0.000248, ""total_elapsed_sec"": 46.562197}, ""CC-MAIN-2026-04"": {""time_input_read_sec"": 2.065297, ""time_parse_sec"": 1.018429, ""time_term_match_sec"": 14.948169, ""time_domain_extract_sec"": 0.16213, ""time_write_sec"": 0.000122, ""total_elapsed_sec"": 18.254645}}",JSON map from crawl_id to timing breakdown in seconds.
+combined.docs_scanned,157461,Combined scanned documents across all slices.
+combined.candidate_hits,728,Combined candidate term matches across all slices.
+combined.final_hits,721,Combined retained final hits across all slices.
+combined.removed_boilerplate_signature,5,Combined signature-based boilerplate removals across slices.
+combined.removed_boilerplate_density,2,Combined density-based boilerplate removals across slices.
+combined.removed_boilerplate_total,7,Combined total boilerplate removals across slices.
+combined.candidate_per_10k,46.233671,"Combined candidate hit rate per 10,000 scanned documents."
+combined.final_per_10k,45.789116,"Combined final hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2016-44.docs_scanned,112200,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2016-44.candidate_hits,489,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2016-44.final_hits,487,Slice-level final retained hits after filtering.
+slice.CC-MAIN-2016-44.removed_boilerplate_signature,0,Slice-level signature-based boilerplate removals.
+slice.CC-MAIN-2016-44.removed_boilerplate_density,2,Slice-level density-based boilerplate removals.
+slice.CC-MAIN-2016-44.removed_boilerplate_total,2,Slice-level total boilerplate removals.
+slice.CC-MAIN-2016-44.candidate_per_10k,43.582888,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2016-44.final_per_10k,43.404635,"Slice-level final hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2026-04.docs_scanned,45261,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2026-04.candidate_hits,239,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2026-04.final_hits,234,Slice-level final retained hits after filtering.
+slice.CC-MAIN-2026-04.removed_boilerplate_signature,5,Slice-level signature-based boilerplate removals.
+slice.CC-MAIN-2026-04.removed_boilerplate_density,0,Slice-level density-based boilerplate removals.
+slice.CC-MAIN-2026-04.removed_boilerplate_total,5,Slice-level total boilerplate removals.
+slice.CC-MAIN-2026-04.candidate_per_10k,52.804843,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2026-04.final_per_10k,51.700139,"Slice-level final hit rate per 10,000 scanned documents."

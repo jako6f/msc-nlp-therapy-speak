@@ -1,6 +1,6 @@
 project:
   seed: 123 # base seed for deterministic sampling and validation sampling
-  out_dir: "data/interim/cc_pilot_stage_01b/iter_07" # Stage 1b Iteration 07 outputs
+  out_dir: "data/interim/cc_pilot_stage_01b/iter_08b" # Stage 1b Iteration 08b outputs
 
 pilot:
   crawl_ids:
@@ -22,7 +22,7 @@ filters:
 
 boilerplate:
   enabled: true # master switch for snippet-level boilerplate filtering
-  check_window_chars: 5000 # +/- chars used only for boilerplate checks around a match
+  check_window_chars: 2000 # +/- chars used only for boilerplate checks around a match
   signature_hard_patterns: # single-hit hard signatures that immediately remove boilerplate
     - "skip\\s+to\\s+content"
     - "skip\\s+navigation"
@@ -44,42 +44,6 @@ boilerplate:
     - "line\\s+height"
     - "cursor\\s+size"
     - "adhd[-\\s]?friendly\\s+(mode|profile)"
-    - "accessibility\\s+tools?"
-    - "high\\s+contrast"
-    - "\\bcontrast\\b"
-    - "screen\\s+reader"
-    - "font\\s+size"
-    - "text\\s+size"
-    - "increase\\s+text"
-    - "decrease\\s+text"
-    - "enable\\s+.*"
-    - "disable\\s+.*"
-    - "barrierefreiheit"
-    - "tillganglighet"
-  topic_hub_enabled: true # enable generic topic-hub / browse page rule
-  topic_hub_phrases: # generic topic-hub cues to avoid article-index fragments
-    - "topics"
-    - "browse"
-    - "subscribe"
-    - "rss"
-    - "no articles match"
-    - "more articles"
-    - "see all articles"
-    - "all articles"
-    - "latest news"
-    - "archives"
-    - "categories"
-    - "tagged"
-    - "related articles"
-    - "popular posts"
-    - "site map"
-    - "e-edition"
-    - "edition"
-    - "newsletter"
-    - "all conditions"
-    - "a-z"
-  topic_hub_min_phrase_hits: 2 # minimum phrase hits before topic-hub removal
-  topic_hub_max_sentence_punct: 1 # max sentence punctuation marks for topic-hub snippets
   directory_index:
     enabled: true # enable structural directory / conditions-index boilerplate rule
     lexicon: # generic index-like medical/category cues used as one score feature
@@ -94,16 +58,17 @@ boilerplate:
       - "disorders"
       - "a to z"
       - "a-z index"
-    score_threshold: 3 # minimum structure score to remove as directory-index
-    min_separator_per_1k: 8.0 # minimum separator chars per 1k chars for list-like layout
-    min_short_fragment_ratio: 0.35 # minimum ratio of short label-like fragments
-    min_short_fragments: 8 # minimum count of short fragments to trust ratio signal
+    score_threshold: 4 # minimum structure score to remove as directory-index
+    min_separator_per_1k: 10.0 # minimum separator chars per 1k chars for list-like layout
+    min_short_fragment_ratio: 0.45 # minimum ratio of short label-like fragments
+    min_short_fragments: 10 # minimum count of short fragments to trust ratio signal
     short_fragment_min_chars: 3 # minimum chars for a short label fragment
-    short_fragment_max_chars: 40 # maximum chars for a short label fragment
+    short_fragment_max_chars: 35 # maximum chars for a short label fragment
     max_sentence_terminators_per_1k: 2.5 # low narrative signal threshold (terminators per 1k chars)
-    low_narrative_min_separator_per_1k: 6.0 # min separator density required to apply low-narrative boost
-    min_lexicon_hits: 2 # minimum lexicon hits to score lexical directory signal
-    min_capitalized_token_ratio: 0.22 # minimum title-case token ratio for noun-list signal
+    low_narrative_min_separator_per_1k: 8.0 # min separator density required to apply low-narrative boost
+    min_lexicon_hits: 3 # minimum lexicon hits to score lexical directory signal
+    min_capitalized_token_ratio: 0.3 # minimum title-case token ratio for noun-list signal
+    min_single_letter_tokens: 6 # minimum unique A-Z style single-letter tokens for index blocks
 
 terms:
   adhd_patterns:

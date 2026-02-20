@@ -1,6 +1,9 @@
 # data (never commit raw crawl data)
 data/raw/
-data/interim/
+data/interim/*
+!data/interim/cc_pilot_stage_01b/
+!data/interim/cc_pilot_stage_01b/**
+data/interim/**/*.parquet
 data/processed/
 
 # logs / run outputs

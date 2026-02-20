@@ -43,18 +43,6 @@ DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS = [
     r"line\s+height",
     r"cursor\s+size",
     r"adhd[-\s]?friendly\s+(mode|profile)",
-    r"accessibility\s+tools?",
-    r"high\s+contrast",
-    r"\bcontrast\b",
-    r"font\s+size",
-    r"text\s+size",
-    r"screen\s+reader",
-    r"increase\s+text",
-    r"decrease\s+text",
-    r"enable\s+.*",
-    r"disable\s+.*",
-    r"barrierefreiheit",
-    r"tillganglighet",
 ]
 
 
@@ -160,7 +148,6 @@ def _new_counter_bucket() -> Dict[str, int]:
         "final_hits": 0,
         "removed_domaincap": 0,
         "removed_boilerplate_signature_hard": 0,
-        "removed_boilerplate_topic_hub": 0,
         "removed_boilerplate_directory_index": 0,
         "removed_boilerplate_total": 0,
     }
@@ -207,27 +194,6 @@ def _count_short_fragments(snippet: str, short_fragment_max_words: int) -> int:
     )
 
 
-def _phrase_hit_count(snippet: str, phrases: List[str]) -> int:
-    lower_snippet = snippet.lower()
-    return sum(1 for phrase in phrases if phrase in lower_snippet)
-
-
-def is_boilerplate_topic_hub(
-    snippet: str, phrases: List[str], min_phrase_hits: int, max_sentence_punct: int
-) -> bool:
-    if not snippet:
-        return False
-    phrase_hits = _phrase_hit_count(snippet, phrases)
-    sentence_punct_count = likely_sentence_terminator_count(snippet)
-    short_fragment_count = _count_short_fragments(snippet, short_fragment_max_words=3)
-    ellipsis_count = snippet.count("...")
-    return phrase_hits >= min_phrase_hits and (
-        sentence_punct_count <= max_sentence_punct
-        or short_fragment_count >= 4
-        or ellipsis_count >= 2
-    )
-
-
 def is_boilerplate_directory_index(
     snippet: str,
     lexicon: List[str],
@@ -262,6 +228,7 @@ def is_boilerplate_directory_index(
     capitalized_ratio = (
         sum(1 for word in words if word[0].isupper()) / max(1, len(words))
     )
+    single_letter_tokens = set(re.findall(r"\b[a-z]\b", lower_snippet))
 
     score = 0
     if separator_per_1k >= float(thresholds["min_separator_per_1k"]):
@@ -282,6 +249,8 @@ def is_boilerplate_directory_index(
         capitalized_ratio >= float(thresholds["min_capitalized_token_ratio"])
         and short_fragment_ratio >= float(thresholds["min_short_fragment_ratio"])
     ):
+        score += 1
+    if len(single_letter_tokens) >= int(thresholds["min_single_letter_tokens"]):
         score += 1
 
     return score >= int(thresholds["score_threshold"])
@@ -329,18 +298,32 @@ def _write_removed_audit_csv(
 
     for reason in sorted(reasons):
         candidates = removed_rows_by_reason.get(reason, [])
-        if len(candidates) < sample_size:
-            logger.warning(
-                "Audit rows for %s: requested=%d available=%d",
-                reason,
-                sample_size,
-                len(candidates),
-            )
         reason_rng = random.Random(
             run_seed
             ^ int(hashlib.sha256(reason.encode("utf-8")).hexdigest()[:8], 16)
         )
-        if len(candidates) <= sample_size:
+        if not candidates:
+            logger.warning("Audit rows for %s: requested=%d available=0", reason, sample_size)
+            sampled = [
+                {
+                    "crawl_id": "",
+                    "url": "",
+                    "registered_domain": "",
+                    "matched_term": "",
+                    "context_snippet": "",
+                    "removal_reason": reason,
+                }
+                for _ in range(sample_size)
+            ]
+        elif len(candidates) < sample_size:
+            logger.warning(
+                "Audit rows for %s: requested=%d available=%d (sampling with replacement)",
+                reason,
+                sample_size,
+                len(candidates),
+            )
+            sampled = [reason_rng.choice(candidates) for _ in range(sample_size)]
+        elif len(candidates) == sample_size:
             sampled = list(candidates)
         else:
             sampled = reason_rng.sample(candidates, sample_size)
@@ -394,40 +377,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             ),
         )
     )
-    boilerplate_topic_hub_enabled = bool(boilerplate_cfg.get("topic_hub_enabled", True))
-    boilerplate_topic_hub_phrases = normalize_listiness_phrases(
-        boilerplate_cfg.get(
-            "topic_hub_phrases",
-            [
-                "topics",
-                "browse",
-                "subscribe",
-                "rss",
-                "no articles match",
-                "more articles",
-                "see all articles",
-                "all articles",
-                "latest news",
-                "archives",
-                "categories",
-                "tagged",
-                "related articles",
-                "popular posts",
-                "site map",
-                "e-edition",
-                "edition",
-                "newsletter",
-                "all conditions",
-                "a-z",
-            ],
-        )
-    )
-    boilerplate_topic_hub_min_phrase_hits = int(
-        boilerplate_cfg.get("topic_hub_min_phrase_hits", 2)
-    )
-    boilerplate_topic_hub_max_sentence_punct = int(
-        boilerplate_cfg.get("topic_hub_max_sentence_punct", 1)
-    )
     directory_index_cfg = boilerplate_cfg.get("directory_index", {})
     boilerplate_directory_index_enabled = bool(
         directory_index_cfg.get(
@@ -456,29 +405,32 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         )
     )
     boilerplate_directory_index_thresholds = {
-        "score_threshold": int(directory_index_cfg.get("score_threshold", 3)),
+        "score_threshold": int(directory_index_cfg.get("score_threshold", 4)),
         "min_separator_per_1k": float(
-            directory_index_cfg.get("min_separator_per_1k", 8.0)
+            directory_index_cfg.get("min_separator_per_1k", 10.0)
         ),
         "min_short_fragment_ratio": float(
-            directory_index_cfg.get("min_short_fragment_ratio", 0.35)
+            directory_index_cfg.get("min_short_fragment_ratio", 0.45)
         ),
-        "min_short_fragments": int(directory_index_cfg.get("min_short_fragments", 8)),
+        "min_short_fragments": int(directory_index_cfg.get("min_short_fragments", 10)),
         "short_fragment_min_chars": int(
             directory_index_cfg.get("short_fragment_min_chars", 3)
         ),
         "short_fragment_max_chars": int(
-            directory_index_cfg.get("short_fragment_max_chars", 40)
+            directory_index_cfg.get("short_fragment_max_chars", 35)
         ),
         "max_sentence_terminators_per_1k": float(
             directory_index_cfg.get("max_sentence_terminators_per_1k", 2.5)
         ),
         "low_narrative_min_separator_per_1k": float(
-            directory_index_cfg.get("low_narrative_min_separator_per_1k", 6.0)
+            directory_index_cfg.get("low_narrative_min_separator_per_1k", 8.0)
         ),
-        "min_lexicon_hits": int(directory_index_cfg.get("min_lexicon_hits", 2)),
+        "min_lexicon_hits": int(directory_index_cfg.get("min_lexicon_hits", 3)),
         "min_capitalized_token_ratio": float(
-            directory_index_cfg.get("min_capitalized_token_ratio", 0.22)
+            directory_index_cfg.get("min_capitalized_token_ratio", 0.3)
+        ),
+        "min_single_letter_tokens": int(
+            directory_index_cfg.get("min_single_letter_tokens", 6)
         ),
     }
 
@@ -497,10 +449,9 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Boilerplate enabled: %s", boilerplate_enabled)
     logger.info("Boilerplate check window: %d", boilerplate_check_window_chars)
     logger.info(
-        "Stage 1b consolidation recommendation (iter_07 evidence): keep signature_hard (159 removals, high precision on UI/widget boilerplate), directory_index (70 removals, strong coarse triage of condition lists), and topic_hub (32 removals, archive/category cleanup with acceptable audit risk)."
+        "Stage 1b consolidation (iter_08b): keeping only signature_hard and directory_index."
     )
     logger.info("Boilerplate signature hard patterns: %d", len(boilerplate_signature_hard_patterns))
-    logger.info("Boilerplate topic hub enabled: %s", boilerplate_topic_hub_enabled)
     logger.info(
         "Boilerplate directory index enabled: %s", boilerplate_directory_index_enabled
     )
@@ -613,27 +564,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 label,
                                 stored_snippet,
                                 removal_reason="boilerplate_signature_hard",
-                            )
-                            continue
-                        if boilerplate_topic_hub_enabled and is_boilerplate_topic_hub(
-                            check_text,
-                            boilerplate_topic_hub_phrases,
-                            boilerplate_topic_hub_min_phrase_hits,
-                            boilerplate_topic_hub_max_sentence_punct,
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_topic_hub",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_topic_hub",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
                             )
                             continue
                         if (
