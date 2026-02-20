@@ -1,7 +1,8 @@
 import csv
 import gzip
-import json
+import hashlib
 import logging
+import random
 import re
 import tempfile
 import time
@@ -143,6 +144,7 @@ def _new_counter_bucket() -> Dict[str, int]:
         "removed_boilerplate_topic_hub": 0,
         "removed_boilerplate_commerce": 0,
         "removed_boilerplate_navlex": 0,
+        "removed_boilerplate_directory_index": 0,
         "removed_boilerplate_total": 0,
     }
 
@@ -312,10 +314,123 @@ def is_boilerplate_navlex(
     return low_prose
 
 
+def is_boilerplate_directory_index(
+    snippet: str,
+    phrases: List[str],
+    min_phrase_hits: int,
+    min_short_fragments: int,
+    max_sentence_terminators: int,
+) -> bool:
+    if not snippet:
+        return False
+    phrase_hits = _phrase_hit_count(snippet, phrases)
+    if phrase_hits < min_phrase_hits:
+        return False
+    sentence_terminators = likely_sentence_terminator_count(snippet)
+    short_fragments = _count_short_fragments(snippet, short_fragment_max_words=4)
+    condition_like_tokens = re.findall(r"\b[a-z][a-z\-]{3,}\b", snippet.lower())
+    separator_count = sum(snippet.count(ch) for ch in "|/>•")
+    separator_density = separator_count / max(1, len(snippet.split()))
+    return (
+        short_fragments >= min_short_fragments
+        or (
+            len(condition_like_tokens) >= 18
+            and separator_density >= 0.08
+            and sentence_terminators <= max_sentence_terminators
+        )
+    )
+
+
+def _seed_for_run(project_seed: int, runid: str) -> int:
+    digest = hashlib.sha256(f"{project_seed}:{runid}".encode("utf-8")).hexdigest()
+    return int(digest[:8], 16)
+
+
+def _add_removed_audit_row(
+    removed_rows_by_reason: Dict[str, List[Dict[str, str]]],
+    reason: str,
+    crawl_id: str,
+    url: str,
+    registered_domain: str,
+    matched_term: str,
+    context_snippet: str,
+) -> None:
+    removed_rows_by_reason[reason].append(
+        {
+            "crawl_id": crawl_id,
+            "url": url,
+            "registered_domain": registered_domain,
+            "matched_term": matched_term,
+            "context_snippet": context_snippet,
+            "removal_reason": reason,
+        }
+    )
+
+
+def _write_removed_audit_csv(
+    out_dir: Path,
+    runid: str,
+    project_seed: int,
+    removed_rows_by_reason: Dict[str, List[Dict[str, str]]],
+    reasons: List[str],
+    logger: logging.Logger,
+) -> Path:
+    audit_path = out_dir / f"cc_removed_audit_{runid}.csv"
+    sample_size = 7
+    run_seed = _seed_for_run(project_seed, runid)
+    sampled_rows: List[Dict[str, str]] = []
+
+    for reason in sorted(reasons):
+        candidates = removed_rows_by_reason.get(reason, [])
+        if len(candidates) < sample_size:
+            logger.warning(
+                "Audit rows for %s: requested=%d available=%d",
+                reason,
+                sample_size,
+                len(candidates),
+            )
+        reason_rng = random.Random(
+            run_seed
+            ^ int(hashlib.sha256(reason.encode("utf-8")).hexdigest()[:8], 16)
+        )
+        if len(candidates) <= sample_size:
+            sampled = list(candidates)
+        else:
+            sampled = reason_rng.sample(candidates, sample_size)
+        sampled_rows.extend(sampled)
+
+    with audit_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "crawl_id",
+                "url",
+                "registered_domain",
+                "matched_term",
+                "context_snippet",
+                "removal_reason",
+            ],
+        )
+        writer.writeheader()
+        writer.writerows(sampled_rows)
+
+    return audit_path
+
+
+def _record_boilerplate_removal(
+    combined: Dict[str, int], crawl_counters: Dict[str, int], reason: str
+) -> None:
+    combined[reason] += 1
+    crawl_counters[reason] += 1
+    combined["removed_boilerplate_total"] += 1
+    crawl_counters["removed_boilerplate_total"] += 1
+
+
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
     scan_start = time.perf_counter()
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), runid)
+    project_seed = int(config.get("project", {}).get("seed", 0))
 
     min_chars = int(config["filters"]["min_chars"])
     domain_cap = int(config["filters"]["domain_cap"])
@@ -407,6 +522,36 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     boilerplate_topic_hub_max_sentence_punct = int(
         boilerplate_cfg.get("topic_hub_max_sentence_punct", 1)
     )
+    boilerplate_directory_index_enabled = bool(
+        boilerplate_cfg.get("directory_index_enabled", True)
+    )
+    boilerplate_directory_index_phrases = normalize_listiness_phrases(
+        boilerplate_cfg.get(
+            "directory_index_phrases",
+            [
+                "all conditions",
+                "conditions a-z",
+                "health a-z",
+                "browse conditions",
+                "symptoms",
+                "diagnosis",
+                "treatment",
+                "diseases",
+                "disorders",
+                "a to z",
+                "a-z index",
+            ],
+        )
+    )
+    boilerplate_directory_index_min_phrase_hits = int(
+        boilerplate_cfg.get("directory_index_min_phrase_hits", 2)
+    )
+    boilerplate_directory_index_min_short_fragments = int(
+        boilerplate_cfg.get("directory_index_min_short_fragments", 4)
+    )
+    boilerplate_directory_index_max_sentence_terminators = int(
+        boilerplate_cfg.get("directory_index_max_sentence_terminators", 2)
+    )
     boilerplate_nav_lexicon = normalize_listiness_phrases(
         boilerplate_cfg.get(
             "nav_lexicon",
@@ -474,6 +619,9 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Boilerplate listiness enabled: %s", boilerplate_listiness_enabled)
     logger.info("Boilerplate A-Z index enabled: %s", boilerplate_az_index_enabled)
     logger.info("Boilerplate topic hub enabled: %s", boilerplate_topic_hub_enabled)
+    logger.info(
+        "Boilerplate directory index enabled: %s", boilerplate_directory_index_enabled
+    )
     logger.info("Boilerplate commerce enabled: %s", boilerplate_commerce_enabled)
 
     wet_dir = Path("data/raw/wet")
@@ -483,11 +631,18 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
     combined = _new_counter_bucket()
     counters_by_crawl: Dict[str, Dict[str, int]] = defaultdict(_new_counter_bucket)
+    boilerplate_reasons = sorted(
+        [
+            key
+            for key in combined
+            if key.startswith("removed_boilerplate_")
+            and key != "removed_boilerplate_total"
+        ]
+    )
+    removed_rows_by_reason: Dict[str, List[Dict[str, str]]] = defaultdict(list)
     combined_timings = _new_timing_bucket()
     timings_by_crawl: Dict[str, Dict[str, float]] = defaultdict(_new_timing_bucket)
     elapsed_by_crawl: Dict[str, float] = defaultdict(float)
-    hits_by_term: Counter = Counter()
-    domains_total: set[str] = set()
     domains_hits: set[str] = set()
     domain_hit_counts: Dict[Tuple[str, str], int] = defaultdict(int)
     top_domains_counter: Counter = Counter()
@@ -544,9 +699,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 domain_elapsed = time.perf_counter() - domain_start
                 combined_timings["time_domain_extract_sec"] += domain_elapsed
                 crawl_timings["time_domain_extract_sec"] += domain_elapsed
-                if domain:
-                    domains_total.add(domain)
-
                 match_start = time.perf_counter()
                 matches = find_term_matches(text, patterns, asd_pattern, asd_window)
                 match_elapsed = time.perf_counter() - match_start
@@ -566,38 +718,78 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         if is_boilerplate_signature(
                             check_text, boilerplate_signature_patterns
                         ):
-                            combined["removed_boilerplate_signature"] += 1
-                            crawl_counters["removed_boilerplate_signature"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_signature",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_signature",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
                         if is_boilerplate_density(
                             check_text,
                             boilerplate_min_snippet_words,
                             boilerplate_min_alpha_ratio,
                         ):
-                            combined["removed_boilerplate_density"] += 1
-                            crawl_counters["removed_boilerplate_density"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_density",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_density",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
                         if boilerplate_listiness_enabled and is_boilerplate_listiness(
                             check_text,
                             boilerplate_listiness_phrases,
                             boilerplate_listiness_thresholds,
                         ):
-                            combined["removed_boilerplate_listiness"] += 1
-                            crawl_counters["removed_boilerplate_listiness"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_listiness",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_listiness",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
                         if boilerplate_az_index_enabled and is_boilerplate_az_index(
                             check_text, boilerplate_az_index_thresholds
                         ):
-                            combined["removed_boilerplate_az_index"] += 1
-                            crawl_counters["removed_boilerplate_az_index"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_az_index",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_az_index",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
                         if boilerplate_topic_hub_enabled and is_boilerplate_topic_hub(
                             check_text,
@@ -605,10 +797,20 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             boilerplate_topic_hub_min_phrase_hits,
                             boilerplate_topic_hub_max_sentence_punct,
                         ):
-                            combined["removed_boilerplate_topic_hub"] += 1
-                            crawl_counters["removed_boilerplate_topic_hub"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_topic_hub",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_topic_hub",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
                         if is_boilerplate_navlex(
                             check_text,
@@ -617,20 +819,65 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             boilerplate_nav_lexicon_max_sentence_terminators,
                             boilerplate_nav_lexicon_min_short_fragments,
                         ):
-                            combined["removed_boilerplate_navlex"] += 1
-                            crawl_counters["removed_boilerplate_navlex"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_navlex",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_navlex",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
+                            continue
+                        if (
+                            boilerplate_directory_index_enabled
+                            and is_boilerplate_directory_index(
+                                check_text,
+                                boilerplate_directory_index_phrases,
+                                boilerplate_directory_index_min_phrase_hits,
+                                boilerplate_directory_index_min_short_fragments,
+                                boilerplate_directory_index_max_sentence_terminators,
+                            )
+                        ):
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_directory_index",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_directory_index",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
                         if boilerplate_commerce_enabled and is_boilerplate_commerce(
                             check_text,
                             boilerplate_commerce_phrases,
                             boilerplate_commerce_min_phrase_hits,
                         ):
-                            combined["removed_boilerplate_commerce"] += 1
-                            crawl_counters["removed_boilerplate_commerce"] += 1
-                            combined["removed_boilerplate_total"] += 1
-                            crawl_counters["removed_boilerplate_total"] += 1
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_commerce",
+                            )
+                            _add_removed_audit_row(
+                                removed_rows_by_reason,
+                                "removed_boilerplate_commerce",
+                                crawl_id,
+                                url or "",
+                                domain,
+                                label,
+                                stored_snippet,
+                            )
                             continue
 
                     if domain:
@@ -643,7 +890,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
                     combined["final_hits"] += 1
                     crawl_counters["final_hits"] += 1
-                    hits_by_term[label] += 1
                     if domain:
                         domains_hits.add(domain)
                         top_domains_counter[domain] += 1
@@ -678,7 +924,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     with top_domains_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["registered_domain", "hits"])
-        for domain, count in top_domains_counter.most_common(25):
+        for domain, count in top_domains_counter.most_common(10):
             writer.writerow([domain, count])
     write_elapsed = time.perf_counter() - write_start
     combined_timings["time_write_sec"] += write_elapsed
@@ -713,69 +959,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         )
         for crawl_id, counters in counters_by_crawl.items()
     }
-    docs_scanned_by_crawl = {
-        crawl_id: counters["docs_scanned"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    docs_minlen_by_crawl = {
-        crawl_id: counters["docs_minlen"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    candidate_hits_by_crawl = {
-        crawl_id: counters["candidate_hits"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    final_hits_by_crawl = {
-        crawl_id: counters["final_hits"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_domaincap_by_crawl = {
-        crawl_id: counters["removed_domaincap"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_signature_by_crawl = {
-        crawl_id: counters["removed_boilerplate_signature"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_density_by_crawl = {
-        crawl_id: counters["removed_boilerplate_density"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_listiness_by_crawl = {
-        crawl_id: counters["removed_boilerplate_listiness"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_az_index_by_crawl = {
-        crawl_id: counters["removed_boilerplate_az_index"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_topic_hub_by_crawl = {
-        crawl_id: counters["removed_boilerplate_topic_hub"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_commerce_by_crawl = {
-        crawl_id: counters["removed_boilerplate_commerce"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_navlex_by_crawl = {
-        crawl_id: counters["removed_boilerplate_navlex"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    removed_boilerplate_total_by_crawl = {
-        crawl_id: counters["removed_boilerplate_total"]
-        for crawl_id, counters in sorted(counters_by_crawl.items())
-    }
-    timings_by_crawl_json = {
-        crawl_id: {
-            **{field: round(crawl_timings[field], 6) for field in TIMING_FIELDS},
-            "total_elapsed_sec": round(elapsed_by_crawl.get(crawl_id, 0.0), 6),
-        }
-        for crawl_id, crawl_timings in timings_by_crawl.items()
-    }
-    combined_timings_with_total = {
-        **{field: round(combined_timings[field], 6) for field in TIMING_FIELDS},
-        "total_elapsed_sec": round(total_elapsed_sec, 6),
-    }
+    removed_total = combined["removed_boilerplate_total"] + combined["removed_domaincap"]
 
     summary_rows: List[List[object]] = [
         _summary_row(
@@ -799,24 +983,14 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Rows retained after filtering and domain-cap enforcement.",
         ),
         _summary_row(
-            "hits_total",
-            combined["final_hits"],
-            "Legacy alias for final_hits to preserve downstream compatibility.",
+            "candidate_per_10k",
+            round(_rate_per(combined["candidate_hits"], combined["docs_scanned"], 10_000), 6),
+            "Combined candidate hit rate per 10,000 scanned documents.",
         ),
         _summary_row(
-            "hits_by_term",
-            json.dumps(hits_by_term),
-            "JSON map from matched term label to retained hit count.",
-        ),
-        _summary_row(
-            "unique_domains_total",
-            len(domains_total),
-            "Unique registered domains seen in all scanned documents.",
-        ),
-        _summary_row(
-            "unique_domains_hits",
-            len(domains_hits),
-            "Unique registered domains represented in final retained hits.",
+            "final_per_10k",
+            round(_rate_per(combined["final_hits"], combined["docs_scanned"], 10_000), 6),
+            "Combined final hit rate per 10,000 scanned documents.",
         ),
         _summary_row(
             "removed_domaincap",
@@ -824,54 +998,9 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Candidate matches removed because the per-domain cap was reached.",
         ),
         _summary_row(
-            "capped_removed",
-            combined["removed_domaincap"],
-            "Legacy alias for removed_domaincap to preserve compatibility.",
-        ),
-        _summary_row(
-            "removed_boilerplate_signature",
-            combined["removed_boilerplate_signature"],
-            "Count of hits removed by boilerplate signature patterns.",
-        ),
-        _summary_row(
-            "removed_boilerplate_density",
-            combined["removed_boilerplate_density"],
-            "Count of hits removed by boilerplate density thresholds.",
-        ),
-        _summary_row(
-            "removed_boilerplate_listiness",
-            combined["removed_boilerplate_listiness"],
-            "Count of hits removed by boilerplate listiness/taxonomy heuristics.",
-        ),
-        _summary_row(
-            "removed_boilerplate_az_index",
-            combined["removed_boilerplate_az_index"],
-            "Count of hits removed by A-Z/index-style snippet heuristics.",
-        ),
-        _summary_row(
-            "removed_boilerplate_topic_hub",
-            combined["removed_boilerplate_topic_hub"],
-            "Count of hits removed by topic-hub snippet heuristics.",
-        ),
-        _summary_row(
-            "removed_boilerplate_commerce",
-            combined["removed_boilerplate_commerce"],
-            "Count of hits removed by commerce-listing snippet heuristics.",
-        ),
-        _summary_row(
-            "removed_boilerplate_navlex",
-            combined["removed_boilerplate_navlex"],
-            "Count of hits removed by nav-lexicon density heuristics.",
-        ),
-        _summary_row(
-            "removed_boilerplate_total",
-            combined["removed_boilerplate_total"],
-            "Total hits removed by boilerplate filtering before final output.",
-        ),
-        _summary_row(
-            "top_domains_csv",
-            str(top_domains_path),
-            "Path to the CSV containing top retained domains for this run.",
+            "removed_total",
+            removed_total,
+            "Total removed candidates (domain-cap plus all boilerplate rules).",
         ),
         _summary_row(
             "docs_per_sec",
@@ -894,170 +1023,27 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             )
         )
 
-    summary_rows.extend(
-        [
+    for reason in boilerplate_reasons:
+        summary_rows.append(
             _summary_row(
-                "docs_scanned_by_crawl",
-                json.dumps(docs_scanned_by_crawl),
-                "JSON map from crawl_id to scanned document count.",
-            ),
-            _summary_row(
-                "docs_minlen_by_crawl",
-                json.dumps(docs_minlen_by_crawl),
-                "JSON map from crawl_id to documents passing min length.",
-            ),
-            _summary_row(
-                "candidate_hits_by_crawl",
-                json.dumps(candidate_hits_by_crawl),
-                "JSON map from crawl_id to candidate term matches.",
-            ),
-            _summary_row(
-                "final_hits_by_crawl",
-                json.dumps(final_hits_by_crawl),
-                "JSON map from crawl_id to final retained hits.",
-            ),
-            _summary_row(
-                "removed_domaincap_by_crawl",
-                json.dumps(removed_domaincap_by_crawl),
-                "JSON map from crawl_id to matches removed by domain cap.",
-            ),
-            _summary_row(
-                "removed_boilerplate_signature_by_crawl",
-                json.dumps(removed_boilerplate_signature_by_crawl),
-                "JSON map from crawl_id to signature-based boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_density_by_crawl",
-                json.dumps(removed_boilerplate_density_by_crawl),
-                "JSON map from crawl_id to density-based boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_listiness_by_crawl",
-                json.dumps(removed_boilerplate_listiness_by_crawl),
-                "JSON map from crawl_id to listiness/taxonomy boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_az_index_by_crawl",
-                json.dumps(removed_boilerplate_az_index_by_crawl),
-                "JSON map from crawl_id to A-Z/index boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_topic_hub_by_crawl",
-                json.dumps(removed_boilerplate_topic_hub_by_crawl),
-                "JSON map from crawl_id to topic-hub boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_commerce_by_crawl",
-                json.dumps(removed_boilerplate_commerce_by_crawl),
-                "JSON map from crawl_id to commerce boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_navlex_by_crawl",
-                json.dumps(removed_boilerplate_navlex_by_crawl),
-                "JSON map from crawl_id to nav-lexicon boilerplate removals.",
-            ),
-            _summary_row(
-                "removed_boilerplate_total_by_crawl",
-                json.dumps(removed_boilerplate_total_by_crawl),
-                "JSON map from crawl_id to total boilerplate removals.",
-            ),
-            _summary_row(
-                "docs_per_sec_by_crawl",
-                json.dumps(
-                    {
-                        crawl_id: round(rate, 6)
-                        for crawl_id, rate in sorted(docs_per_sec_by_crawl.items())
-                    }
-                ),
-                "JSON map from crawl_id to scan throughput in docs per second.",
-            ),
-            _summary_row(
-                "timings_sec",
-                json.dumps(combined_timings_with_total),
-                "JSON object of combined timing breakdown in seconds.",
-            ),
-            _summary_row(
-                "timings_sec_by_crawl",
-                json.dumps(timings_by_crawl_json),
-                "JSON map from crawl_id to timing breakdown in seconds.",
-            ),
-        ]
-    )
+                reason,
+                combined[reason],
+                "Combined removals triggered by this specific boilerplate rule.",
+            )
+        )
 
-    summary_rows.extend(
-        [
-            _summary_row(
-                "combined.docs_scanned",
-                combined["docs_scanned"],
-                "Combined scanned documents across all slices.",
-            ),
-            _summary_row(
-                "combined.candidate_hits",
-                combined["candidate_hits"],
-                "Combined candidate term matches across all slices.",
-            ),
-            _summary_row(
-                "combined.final_hits",
-                combined["final_hits"],
-                "Combined retained final hits across all slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_signature",
-                combined["removed_boilerplate_signature"],
-                "Combined signature-based boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_density",
-                combined["removed_boilerplate_density"],
-                "Combined density-based boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_listiness",
-                combined["removed_boilerplate_listiness"],
-                "Combined listiness/taxonomy boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_az_index",
-                combined["removed_boilerplate_az_index"],
-                "Combined A-Z/index boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_topic_hub",
-                combined["removed_boilerplate_topic_hub"],
-                "Combined topic-hub boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_commerce",
-                combined["removed_boilerplate_commerce"],
-                "Combined commerce boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_navlex",
-                combined["removed_boilerplate_navlex"],
-                "Combined nav-lexicon boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.removed_boilerplate_total",
-                combined["removed_boilerplate_total"],
-                "Combined total boilerplate removals across slices.",
-            ),
-            _summary_row(
-                "combined.candidate_per_10k",
-                round(_rate_per(combined["candidate_hits"], combined["docs_scanned"], 10_000), 6),
-                "Combined candidate hit rate per 10,000 scanned documents.",
-            ),
-            _summary_row(
-                "combined.final_per_10k",
-                round(_rate_per(combined["final_hits"], combined["docs_scanned"], 10_000), 6),
-                "Combined final hit rate per 10,000 scanned documents.",
-            ),
-        ]
+    summary_rows.append(
+        _summary_row(
+            "removed_boilerplate_total",
+            combined["removed_boilerplate_total"],
+            "Combined total removals from all boilerplate rules.",
+        )
     )
 
     for crawl_id in sorted(counters_by_crawl):
-        slice_docs_scanned = docs_scanned_by_crawl.get(crawl_id, 0)
-        slice_candidate_hits = candidate_hits_by_crawl.get(crawl_id, 0)
-        slice_final_hits = final_hits_by_crawl.get(crawl_id, 0)
+        slice_docs_scanned = counters_by_crawl[crawl_id]["docs_scanned"]
+        slice_candidate_hits = counters_by_crawl[crawl_id]["candidate_hits"]
+        slice_final_hits = counters_by_crawl[crawl_id]["final_hits"]
         prefix = f"slice.{crawl_id}"
         summary_rows.extend(
             [
@@ -1077,46 +1063,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     "Slice-level final retained hits after filtering.",
                 ),
                 _summary_row(
-                    f"{prefix}.removed_boilerplate_signature",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_signature"],
-                    "Slice-level signature-based boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_density",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_density"],
-                    "Slice-level density-based boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_listiness",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_listiness"],
-                    "Slice-level listiness/taxonomy boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_az_index",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_az_index"],
-                    "Slice-level A-Z/index boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_topic_hub",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_topic_hub"],
-                    "Slice-level topic-hub boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_commerce",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_commerce"],
-                    "Slice-level commerce boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_navlex",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_navlex"],
-                    "Slice-level nav-lexicon boilerplate removals.",
-                ),
-                _summary_row(
-                    f"{prefix}.removed_boilerplate_total",
-                    counters_by_crawl[crawl_id]["removed_boilerplate_total"],
-                    "Slice-level total boilerplate removals.",
-                ),
-                _summary_row(
                     f"{prefix}.candidate_per_10k",
                     round(_rate_per(slice_candidate_hits, slice_docs_scanned, 10_000), 6),
                     "Slice-level candidate hit rate per 10,000 scanned documents.",
@@ -1125,6 +1071,16 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     f"{prefix}.final_per_10k",
                     round(_rate_per(slice_final_hits, slice_docs_scanned, 10_000), 6),
                     "Slice-level final hit rate per 10,000 scanned documents.",
+                ),
+                _summary_row(
+                    f"{prefix}.total_elapsed_sec",
+                    round(elapsed_by_crawl.get(crawl_id, 0.0), 6),
+                    "Slice-level wall-clock elapsed time in seconds.",
+                ),
+                _summary_row(
+                    f"{prefix}.docs_per_sec",
+                    round(docs_per_sec_by_crawl.get(crawl_id, 0.0), 6),
+                    "Slice-level throughput in scanned documents per second.",
                 ),
             ]
         )
@@ -1137,9 +1093,19 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     write_elapsed = time.perf_counter() - write_start
     combined_timings["time_write_sec"] += write_elapsed
 
+    removed_audit_path = _write_removed_audit_csv(
+        out_dir=out_dir,
+        runid=runid,
+        project_seed=project_seed,
+        removed_rows_by_reason=removed_rows_by_reason,
+        reasons=boilerplate_reasons,
+        logger=logger,
+    )
+
     logger.info("Wrote summary %s", summary_path)
     logger.info("Wrote top domains %s", top_domains_path)
     logger.info("Wrote corpus %s", parquet_path)
+    logger.info("Wrote removed-audit sample %s", removed_audit_path)
 
     print(
         "Scan complete: "

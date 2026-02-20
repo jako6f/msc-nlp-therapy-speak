@@ -1,5 +1,4 @@
 import hashlib
-import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -90,15 +89,6 @@ def _metric_float(summary: Dict[str, str], key: str, default: float = 0.0) -> fl
         return default
 
 
-def _metric_json(summary: Dict[str, str], key: str) -> Dict:
-    raw = summary.get(key, "{}")
-    try:
-        value = json.loads(raw)
-    except (TypeError, json.JSONDecodeError):
-        return {}
-    return value if isinstance(value, dict) else {}
-
-
 def _rate_per(numer: int, denom: int, scale: int) -> float:
     if denom <= 0:
         return 0.0
@@ -110,14 +100,6 @@ def _print_slice_metrics(
     docs_scanned: int,
     candidate_hits: int,
     final_hits: int,
-    removed_boilerplate_signature: int,
-    removed_boilerplate_density: int,
-    removed_boilerplate_listiness: int,
-    removed_boilerplate_az_index: int,
-    removed_boilerplate_topic_hub: int,
-    removed_boilerplate_commerce: int,
-    removed_boilerplate_navlex: int,
-    removed_boilerplate_total: int,
     docs_per_sec: float,
     timings: Dict[str, float],
 ) -> None:
@@ -129,17 +111,6 @@ def _print_slice_metrics(
     print(
         f"{label}: docs_scanned={docs_scanned}, "
         f"candidate_hits={candidate_hits}, final_hits={final_hits}"
-    )
-    print(
-        "  boilerplate_removed: "
-        f"signature={removed_boilerplate_signature}, "
-        f"density={removed_boilerplate_density}, "
-        f"listiness={removed_boilerplate_listiness}, "
-        f"az_index={removed_boilerplate_az_index}, "
-        f"topic_hub={removed_boilerplate_topic_hub}, "
-        f"commerce={removed_boilerplate_commerce}, "
-        f"navlex={removed_boilerplate_navlex}, "
-        f"total={removed_boilerplate_total}"
     )
     print(
         f"  rates: candidate_per_10k={cand_10k:.3f}, "
@@ -163,6 +134,27 @@ def _validate_columns(df: pd.DataFrame, path: Path) -> None:
     missing = [col for col in REQUIRED_COLUMNS if col not in df.columns]
     if missing:
         raise ValueError(f"Missing expected columns in {path}: {missing}")
+
+
+def _slice_ids(summary: Dict[str, str]) -> list[str]:
+    prefix = "slice."
+    slice_ids = set()
+    for key in summary:
+        if not key.startswith(prefix):
+            continue
+        remainder = key[len(prefix) :]
+        if "." not in remainder:
+            continue
+        slice_ids.add(remainder.split(".", 1)[0])
+    return sorted(slice_ids)
+
+
+def _slice_metric_int(summary: Dict[str, str], slice_id: str, metric: str) -> int:
+    return _metric_int(summary, f"slice.{slice_id}.{metric}", 0)
+
+
+def _slice_metric_float(summary: Dict[str, str], slice_id: str, metric: str) -> float:
+    return _metric_float(summary, f"slice.{slice_id}.{metric}", 0.0)
 
 
 def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
@@ -212,90 +204,14 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         summary, "candidate_hits", _metric_int(summary, "hits_total", 0)
     )
     final_hits = _metric_int(summary, "final_hits", _metric_int(summary, "hits_total", 0))
-    removed_boilerplate_signature = _metric_int(
-        summary, "removed_boilerplate_signature", 0
-    )
-    removed_boilerplate_density = _metric_int(summary, "removed_boilerplate_density", 0)
-    removed_boilerplate_listiness = _metric_int(
-        summary, "removed_boilerplate_listiness", 0
-    )
-    removed_boilerplate_az_index = _metric_int(summary, "removed_boilerplate_az_index", 0)
-    removed_boilerplate_topic_hub = _metric_int(
-        summary, "removed_boilerplate_topic_hub", 0
-    )
-    removed_boilerplate_commerce = _metric_int(
-        summary, "removed_boilerplate_commerce", 0
-    )
-    removed_boilerplate_navlex = _metric_int(summary, "removed_boilerplate_navlex", 0)
-    removed_boilerplate_total = _metric_int(summary, "removed_boilerplate_total", 0)
-
-    docs_scanned_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "docs_scanned_by_crawl").items()
+    timings_combined = {
+        "time_input_read_sec": _metric_float(summary, "time_input_read_sec", 0.0),
+        "time_parse_sec": _metric_float(summary, "time_parse_sec", 0.0),
+        "time_term_match_sec": _metric_float(summary, "time_term_match_sec", 0.0),
+        "time_domain_extract_sec": _metric_float(summary, "time_domain_extract_sec", 0.0),
+        "time_write_sec": _metric_float(summary, "time_write_sec", 0.0),
+        "total_elapsed_sec": _metric_float(summary, "total_elapsed_sec", 0.0),
     }
-    candidate_hits_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "candidate_hits_by_crawl").items()
-    }
-    final_hits_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "final_hits_by_crawl").items()
-    }
-    removed_boilerplate_signature_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(
-            summary, "removed_boilerplate_signature_by_crawl"
-        ).items()
-    }
-    removed_boilerplate_density_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_density_by_crawl").items()
-    }
-    removed_boilerplate_listiness_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_listiness_by_crawl").items()
-    }
-    removed_boilerplate_az_index_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_az_index_by_crawl").items()
-    }
-    removed_boilerplate_topic_hub_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_topic_hub_by_crawl").items()
-    }
-    removed_boilerplate_commerce_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_commerce_by_crawl").items()
-    }
-    removed_boilerplate_navlex_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_navlex_by_crawl").items()
-    }
-    removed_boilerplate_total_by_crawl = {
-        str(k): int(v)
-        for k, v in _metric_json(summary, "removed_boilerplate_total_by_crawl").items()
-    }
-    docs_per_sec_by_crawl = {
-        str(k): float(v)
-        for k, v in _metric_json(summary, "docs_per_sec_by_crawl").items()
-    }
-    timings_sec_by_crawl = {
-        str(k): v
-        for k, v in _metric_json(summary, "timings_sec_by_crawl").items()
-        if isinstance(v, dict)
-    }
-    timings_combined = _metric_json(summary, "timings_sec")
-    if not timings_combined:
-        timings_combined = {
-            "time_input_read_sec": _metric_float(summary, "time_input_read_sec", 0.0),
-            "time_parse_sec": _metric_float(summary, "time_parse_sec", 0.0),
-            "time_term_match_sec": _metric_float(summary, "time_term_match_sec", 0.0),
-            "time_domain_extract_sec": _metric_float(
-                summary, "time_domain_extract_sec", 0.0
-            ),
-            "time_write_sec": _metric_float(summary, "time_write_sec", 0.0),
-            "total_elapsed_sec": _metric_float(summary, "total_elapsed_sec", 0.0),
-        }
 
     sample_seed = _seed_for_run(project_seed, corpus_runid)
     sample_n = min(50, len(corpus_df))
@@ -320,47 +236,19 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     print(f"unique_domains_hits: {unique_domains_hits}")
     print("scan_stage1b_instrumentation:")
 
-    slice_ids = sorted(
-        set(docs_scanned_by_crawl)
-        | set(candidate_hits_by_crawl)
-        | set(final_hits_by_crawl)
-        | set(removed_boilerplate_az_index_by_crawl)
-        | set(removed_boilerplate_topic_hub_by_crawl)
-        | set(removed_boilerplate_commerce_by_crawl)
-        | set(removed_boilerplate_navlex_by_crawl)
-        | set(removed_boilerplate_listiness_by_crawl)
-        | set(removed_boilerplate_total_by_crawl)
-    )
+    slice_ids = _slice_ids(summary)
     for slice_id in slice_ids:
         _print_slice_metrics(
             label=f"slice[{slice_id}]",
-            docs_scanned=docs_scanned_by_crawl.get(slice_id, 0),
-            candidate_hits=candidate_hits_by_crawl.get(slice_id, 0),
-            final_hits=final_hits_by_crawl.get(slice_id, 0),
-            removed_boilerplate_signature=removed_boilerplate_signature_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_density=removed_boilerplate_density_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_listiness=removed_boilerplate_listiness_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_az_index=removed_boilerplate_az_index_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_topic_hub=removed_boilerplate_topic_hub_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_commerce=removed_boilerplate_commerce_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_navlex=removed_boilerplate_navlex_by_crawl.get(
-                slice_id, 0
-            ),
-            removed_boilerplate_total=removed_boilerplate_total_by_crawl.get(slice_id, 0),
-            docs_per_sec=docs_per_sec_by_crawl.get(slice_id, 0.0),
-            timings=timings_sec_by_crawl.get(slice_id, {}),
+            docs_scanned=_slice_metric_int(summary, slice_id, "docs_scanned"),
+            candidate_hits=_slice_metric_int(summary, slice_id, "candidate_hits"),
+            final_hits=_slice_metric_int(summary, slice_id, "final_hits"),
+            docs_per_sec=_slice_metric_float(summary, slice_id, "docs_per_sec"),
+            timings={
+                "total_elapsed_sec": _slice_metric_float(
+                    summary, slice_id, "total_elapsed_sec"
+                )
+            },
         )
 
     _print_slice_metrics(
@@ -368,17 +256,22 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         docs_scanned=docs_scanned,
         candidate_hits=candidate_hits,
         final_hits=final_hits,
-        removed_boilerplate_signature=removed_boilerplate_signature,
-        removed_boilerplate_density=removed_boilerplate_density,
-        removed_boilerplate_listiness=removed_boilerplate_listiness,
-        removed_boilerplate_az_index=removed_boilerplate_az_index,
-        removed_boilerplate_topic_hub=removed_boilerplate_topic_hub,
-        removed_boilerplate_commerce=removed_boilerplate_commerce,
-        removed_boilerplate_navlex=removed_boilerplate_navlex,
-        removed_boilerplate_total=removed_boilerplate_total,
         docs_per_sec=_metric_float(summary, "docs_per_sec", 0.0),
         timings=timings_combined,
     )
+    print("  removal_by_filter (combined):")
+    combined_removal_keys = sorted(
+        [
+            key
+            for key in summary
+            if key.startswith("removed_boilerplate_")
+            and not key.startswith("slice.")
+        ]
+    )
+    for key in combined_removal_keys:
+        print(f"    {key}={_metric_int(summary, key, 0)}")
+    print(f"    removed_domaincap={_metric_int(summary, 'removed_domaincap', 0)}")
+    print(f"    removed_total={_metric_int(summary, 'removed_total', 0)}")
     print("top_domains:")
 
     for _, row in top_domains_df.head(10).iterrows():

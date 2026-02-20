@@ -8,6 +8,7 @@ from src.data_sources.commoncrawl.cc_scan import (
     find_term_matches,
     is_boilerplate_az_index,
     is_boilerplate_commerce,
+    is_boilerplate_directory_index,
     is_boilerplate_density,
     is_boilerplate_listiness,
     is_boilerplate_navlex,
@@ -157,6 +158,65 @@ def test_boilerplate_navlex_detects_nav_menu_snippet():
         min_hits=4,
         max_sentence_terminators=1,
         min_short_fragments=4,
+    )
+
+
+def test_boilerplate_directory_index_detects_directory_like_snippet():
+    snippet = (
+        "All conditions | Conditions A-Z | Browse conditions | Symptoms | Diagnosis | "
+        "Treatment | Diseases | Disorders | A to Z"
+    )
+    phrases = normalize_listiness_phrases(
+        [
+            "all conditions",
+            "conditions a-z",
+            "health a-z",
+            "browse conditions",
+            "symptoms",
+            "diagnosis",
+            "treatment",
+            "diseases",
+            "disorders",
+            "a to z",
+            "a-z index",
+        ]
+    )
+    assert is_boilerplate_directory_index(
+        snippet,
+        phrases=phrases,
+        min_phrase_hits=2,
+        min_short_fragments=4,
+        max_sentence_terminators=2,
+    )
+
+
+def test_boilerplate_directory_index_keeps_substantive_adhd_autism_paragraph():
+    snippet = (
+        "This clinic article explains ADHD and autism assessments, discusses diagnosis "
+        "criteria in full narrative sentences, and outlines treatment planning with "
+        "clear recommendations for families and clinicians."
+    )
+    phrases = normalize_listiness_phrases(
+        [
+            "all conditions",
+            "conditions a-z",
+            "health a-z",
+            "browse conditions",
+            "symptoms",
+            "diagnosis",
+            "treatment",
+            "diseases",
+            "disorders",
+            "a to z",
+            "a-z index",
+        ]
+    )
+    assert not is_boilerplate_directory_index(
+        snippet,
+        phrases=phrases,
+        min_phrase_hits=2,
+        min_short_fragments=4,
+        max_sentence_terminators=2,
     )
 
 

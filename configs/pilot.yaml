@@ -1,11 +1,11 @@
 project:
   seed: 123 # base seed for deterministic sampling and validation sampling
-  out_dir: "data/interim/cc_pilot_stage_01b/iter_04" # Stage 1b Iteration 04 outputs
+  out_dir: "data/interim/cc_pilot_stage_01b/iter_05" # Stage 1b Iteration 05 outputs
 
 pilot:
   crawl_ids:
-    - "CC-MAIN-2016-44"
-    - "CC-MAIN-2026-04"
+    - "CC-MAIN-2016-44" # older crawl slice for temporal coverage
+    - "CC-MAIN-2026-04" # newer crawl slice for temporal coverage
     
 ## Common Crawl Nomenclature
 # WARC files: full HTML source code
@@ -23,7 +23,7 @@ filters:
 boilerplate:
   enabled: true # master switch for snippet-level boilerplate filtering
   check_window_chars: 2000 # +/- chars used only for boilerplate checks around a match
-  signature_patterns:
+  signature_patterns: # regex cues for obvious nav/cookie/cart boilerplate
     - "skip\\s+to\\s+content"
     - "cookie\\s+consent"
     - "accept\\s+cookies?"
@@ -37,7 +37,7 @@ boilerplate:
   min_snippet_words: 8 # minimum words required before a snippet is treated as prose
   min_alpha_ratio: 0.45 # minimum alphabetic-character ratio for prose-like snippets
   listiness_enabled: true # enable generic listiness/taxonomy rule
-  listiness_phrases:
+  listiness_phrases: # generic taxonomy/list cues used by listiness rule
     - "more topics"
     - "browse all listings"
     - "resource center"
@@ -51,14 +51,14 @@ boilerplate:
     max_sentence_punct: 1 # max sentence punctuation marks allowed for list-like snippets
     min_short_fragments: 4 # minimum short fragments split by separators
     short_fragment_max_words: 3 # max words defining a short fragment
-  az_index_enabled: true # enable A-Z / index-list boilerplate rule
+  az_index_enabled: false # disabled in iter_05 while directory-index rule replaces it
   az_index_thresholds:
     min_letter_tokens: 8 # minimum unique single-letter tokens for index detection
     min_short_fragments: 5 # minimum short fragments for index-like snippets
     short_fragment_max_words: 2 # max words defining a short index fragment
     max_sentence_punct: 1 # max sentence punctuation marks for index-like snippets
   topic_hub_enabled: true # enable generic topic-hub / browse page rule
-  topic_hub_phrases:
+  topic_hub_phrases: # generic topic-hub cues to avoid article-index fragments
     - "topics"
     - "browse"
     - "subscribe"
@@ -68,7 +68,23 @@ boilerplate:
     - "a-z"
   topic_hub_min_phrase_hits: 2 # minimum phrase hits before topic-hub removal
   topic_hub_max_sentence_punct: 1 # max sentence punctuation marks for topic-hub snippets
-  nav_lexicon:
+  directory_index_enabled: true # enable directory / conditions-index boilerplate rule
+  directory_index_phrases: # generic conditions-directory cues (non-domain-specific)
+    - "all conditions"
+    - "conditions a-z"
+    - "health a-z"
+    - "browse conditions"
+    - "symptoms"
+    - "diagnosis"
+    - "treatment"
+    - "diseases"
+    - "disorders"
+    - "a to z"
+    - "a-z index"
+  directory_index_min_phrase_hits: 2 # minimum directory-phrase hits before considering removal
+  directory_index_min_short_fragments: 4 # minimum short fragments indicating list-like layout
+  directory_index_max_sentence_terminators: 2 # prose guard for directory-style text
+  nav_lexicon: # generic UI/navigation lexicon used by nav-density rule
     - "home"
     - "about"
     - "contact"
@@ -90,7 +106,7 @@ boilerplate:
   nav_lexicon_max_sentence_terminators: 1 # prose guard: max likely sentence terminators
   nav_lexicon_min_short_fragments: 4 # fragmentiness guard for nav-heavy snippet removal
   commerce_enabled: true # enable generic commerce listing rule
-  commerce_phrases:
+  commerce_phrases: # generic ecommerce listing cues
     - "add to cart"
     - "quick view"
     - "select options"
