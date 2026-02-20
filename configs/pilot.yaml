@@ -56,37 +56,6 @@ boilerplate:
     - "disable\\s+.*"
     - "barrierefreiheit"
     - "tillganglighet"
-  signature_soft_patterns: # generic UI terms requiring multiple distinct matches
-    - "\\blogin\\b"
-    - "sign\\s+in"
-    - "register"
-    - "search"
-    - "menu"
-    - "terms\\s+of\\s+service"
-  signature_soft_min_hits: 2 # distinct soft signature cues required before removal
-  min_snippet_words: 8 # minimum words required before a snippet is treated as prose
-  min_alpha_ratio: 0.45 # minimum alphabetic-character ratio for prose-like snippets
-  listiness_enabled: true # enable generic listiness/taxonomy rule
-  listiness_phrases: # generic taxonomy/list cues used by listiness rule
-    - "more topics"
-    - "browse all listings"
-    - "resource center"
-    - "categories"
-    - "tags"
-    - "topics"
-    - "a-z"
-    - "all conditions"
-  listiness_thresholds:
-    min_separator_density: 0.12 # separators per word threshold for list-like snippets
-    max_sentence_punct: 1 # max sentence punctuation marks allowed for list-like snippets
-    min_short_fragments: 4 # minimum short fragments split by separators
-    short_fragment_max_words: 3 # max words defining a short fragment
-  az_index_enabled: true # keep A-Z index heuristic enabled for residual index pages
-  az_index_thresholds:
-    min_letter_tokens: 8 # minimum unique single-letter tokens for index detection
-    min_short_fragments: 5 # minimum short fragments for index-like snippets
-    short_fragment_max_words: 2 # max words defining a short index fragment
-    max_sentence_punct: 1 # max sentence punctuation marks for index-like snippets
   topic_hub_enabled: true # enable generic topic-hub / browse page rule
   topic_hub_phrases: # generic topic-hub cues to avoid article-index fragments
     - "topics"
@@ -111,23 +80,6 @@ boilerplate:
     - "a-z"
   topic_hub_min_phrase_hits: 2 # minimum phrase hits before topic-hub removal
   topic_hub_max_sentence_punct: 1 # max sentence punctuation marks for topic-hub snippets
-  condition_index_enabled: true # enable structural condition-index/directory detection
-  condition_index_markers: # generic markers used by condition-index rule
-    - "all conditions"
-    - "conditions"
-    - "symptoms"
-    - "diseases"
-    - "a-z"
-    - "a to z"
-    - "index"
-  condition_index_thresholds:
-    min_marker_hits: 2 # minimum marker hits required in check window
-    min_separator_per_1k: 8.0 # minimum separator density per 1k chars
-    min_short_fragments: 8 # minimum short fragments indicating list/directory structure
-    min_short_fragment_ratio: 0.35 # minimum proportion of short fragments among all fragments
-    short_fragment_min_chars: 3 # lower bound for a short fragment label
-    short_fragment_max_chars: 40 # upper bound for a short fragment label
-    max_sentence_terminators_per_1k: 5.0 # maximum sentence punctuation density for low-prose pages
   directory_index:
     enabled: true # enable structural directory / conditions-index boilerplate rule
     lexicon: # generic index-like medical/category cues used as one score feature
@@ -152,47 +104,6 @@ boilerplate:
     low_narrative_min_separator_per_1k: 6.0 # min separator density required to apply low-narrative boost
     min_lexicon_hits: 2 # minimum lexicon hits to score lexical directory signal
     min_capitalized_token_ratio: 0.22 # minimum title-case token ratio for noun-list signal
-  nav_lexicon: # generic UI/navigation lexicon used by nav-density rule
-    - "home"
-    - "about"
-    - "contact"
-    - "privacy"
-    - "terms"
-    - "cookie"
-    - "subscribe"
-    - "rss"
-    - "login"
-    - "sign in"
-    - "register"
-    - "sitemap"
-    - "search"
-    - "menu"
-    - "toggle"
-    - "schedule"
-    - "newsletter"
-    - "more articles"
-    - "see all articles"
-    - "all articles"
-    - "latest news"
-    - "archives"
-    - "categories"
-    - "tagged"
-    - "related articles"
-    - "popular posts"
-    - "site map"
-    - "e-edition"
-    - "edition"
-  nav_lexicon_min_hits: 4 # minimum nav-lexicon hits before navlex removal
-  nav_lexicon_max_sentence_terminators: 1 # prose guard: max likely sentence terminators
-  nav_lexicon_min_short_fragments: 4 # fragmentiness guard for nav-heavy snippet removal
-  commerce_enabled: true # enable generic commerce listing rule
-  commerce_phrases: # generic ecommerce listing cues
-    - "add to cart"
-    - "quick view"
-    - "select options"
-    - "free shipping"
-    - "in stock"
-  commerce_min_phrase_hits: 2 # minimum phrase hits before commerce removal
 
 terms:
   adhd_patterns:

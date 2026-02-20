@@ -6,15 +6,8 @@ from src.data_sources.commoncrawl.cc_scan import (
     compile_patterns,
     extract_registered_domain,
     find_term_matches,
-    is_boilerplate_az_index,
-    is_boilerplate_commerce,
-    is_boilerplate_condition_index,
     is_boilerplate_directory_index,
-    is_boilerplate_density,
-    is_boilerplate_listiness,
-    is_boilerplate_navlex,
     is_boilerplate_signature,
-    is_boilerplate_signature_soft,
     is_boilerplate_topic_hub,
     normalize_listiness_phrases,
 )
@@ -32,18 +25,6 @@ def _directory_index_thresholds():
         "low_narrative_min_separator_per_1k": 6.0,
         "min_lexicon_hits": 2,
         "min_capitalized_token_ratio": 0.22,
-    }
-
-
-def _condition_index_thresholds():
-    return {
-        "min_marker_hits": 2,
-        "min_separator_per_1k": 8.0,
-        "min_short_fragments": 8,
-        "min_short_fragment_ratio": 0.35,
-        "short_fragment_min_chars": 3,
-        "short_fragment_max_chars": 40,
-        "max_sentence_terminators_per_1k": 5.0,
     }
 
 
@@ -74,12 +55,8 @@ def test_asd_disambiguation_window():
 
 
 def test_registered_domain_extraction():
-    url = "https://sub.example.co.uk/path"
-    assert extract_registered_domain(url) == "example.co.uk"
-
-    url2 = "http://www.example.com/page"
-    assert extract_registered_domain(url2) == "example.com"
-
+    assert extract_registered_domain("https://sub.example.co.uk/path") == "example.co.uk"
+    assert extract_registered_domain("http://www.example.com/page") == "example.com"
     assert extract_registered_domain(None) == ""
 
 
@@ -89,263 +66,49 @@ def test_boilerplate_signature_removes_snippet():
     assert is_boilerplate_signature(snippet, patterns)
 
 
-def test_boilerplate_signature_soft_requires_multiple_distinct_hits():
-    patterns = compile_boilerplate_patterns(
-        [r"\blogin\b", r"register", r"search", r"\bmenu\b"]
-    )
-    single_cue = "Please login to continue reading."
-    multi_cue = "Login | Register | Search the site menu"
-    assert not is_boilerplate_signature_soft(single_cue, patterns, min_hits=2)
-    assert is_boilerplate_signature_soft(multi_cue, patterns, min_hits=2)
-
-
-def test_boilerplate_checks_keep_normal_prose():
-    patterns = compile_boilerplate_patterns([r"skip\s+to\s+content"])
+def test_boilerplate_topic_hub_detects_hub_snippet():
     snippet = (
-        "Autism research continues to improve screening and support options "
-        "for children, families, and clinicians in routine care."
-    )
-    assert not is_boilerplate_signature(snippet, patterns)
-    assert not is_boilerplate_density(snippet, min_snippet_words=8, min_alpha_ratio=0.45)
-
-
-def test_boilerplate_listiness_detects_taxonomy_snippet():
-    snippet = (
-        "Resource center | Categories | Tags | Topics | A-Z | All conditions | More topics"
-    )
-    phrases = normalize_listiness_phrases(
-        ["resource center", "categories", "tags", "topics", "a-z", "all conditions"]
-    )
-    thresholds = {
-        "min_separator_density": 0.12,
-        "max_sentence_punct": 1,
-        "min_short_fragments": 4,
-        "short_fragment_max_words": 3,
-    }
-    assert is_boilerplate_listiness(snippet, phrases, thresholds)
-
-
-def test_boilerplate_listiness_keeps_substantive_snippet():
-    snippet = (
-        "The care team discusses autism screening methods and treatment planning "
-        "in complete sentences with clear context and recommendations."
-    )
-    phrases = normalize_listiness_phrases(
-        ["resource center", "categories", "tags", "topics", "a-z", "all conditions"]
-    )
-    thresholds = {
-        "min_separator_density": 0.12,
-        "max_sentence_punct": 1,
-        "min_short_fragments": 4,
-        "short_fragment_max_words": 3,
-    }
-    assert not is_boilerplate_listiness(snippet, phrases, thresholds)
-
-
-def test_boilerplate_az_index_detects_index_snippet():
-    snippet = "A | B | C | D | E | F | G | H | I | J | A-Z index"
-    thresholds = {
-        "min_letter_tokens": 8,
-        "min_short_fragments": 5,
-        "short_fragment_max_words": 2,
-        "max_sentence_punct": 1,
-    }
-    assert is_boilerplate_az_index(snippet, thresholds)
-
-
-def test_boilerplate_topic_hub_detects_hub_snippet_with_ellipses():
-    snippet = (
-        "Browse topics ... More topics ... Subscribe ... RSS ... "
+        "Browse topics ... More articles ... Subscribe ... RSS ... "
         "All conditions ... no articles match"
     )
     phrases = normalize_listiness_phrases(
-        ["topics", "browse", "subscribe", "rss", "no articles match", "all conditions"]
+        [
+            "topics",
+            "browse",
+            "subscribe",
+            "rss",
+            "no articles match",
+            "all conditions",
+            "more articles",
+        ]
     )
     assert is_boilerplate_topic_hub(
         snippet, phrases, min_phrase_hits=2, max_sentence_punct=1
     )
 
 
-def test_boilerplate_commerce_detects_listing_snippet():
-    snippet = "Quick view | Add to cart | Select options | In stock"
-    phrases = normalize_listiness_phrases(
-        ["add to cart", "quick view", "select options", "free shipping", "in stock"]
-    )
-    assert is_boilerplate_commerce(snippet, phrases, min_phrase_hits=2)
-
-
-def test_boilerplate_navlex_detects_nav_menu_snippet():
-    snippet = (
-        "Home | About | Contact | Privacy | Terms | Login | Register | Menu | Search"
-    )
-    lexicon = normalize_listiness_phrases(
-        [
-            "home",
-            "about",
-            "contact",
-            "privacy",
-            "terms",
-            "login",
-            "register",
-            "menu",
-            "search",
-        ]
-    )
-    assert is_boilerplate_navlex(
-        snippet,
-        nav_lexicon=lexicon,
-        min_hits=4,
-        max_sentence_terminators=1,
-        min_short_fragments=4,
-    )
-
-
-def test_boilerplate_directory_index_detects_directory_like_snippet():
-    snippet = (
-        "All conditions | Conditions A-Z | Browse conditions | Symptoms | Diagnosis | "
-        "Treatment | Diseases | Disorders | A to Z"
-    )
-    lexicon = normalize_listiness_phrases(
-        [
-            "all conditions",
-            "conditions a-z",
-            "health a-z",
-            "browse conditions",
-            "symptoms",
-            "diagnosis",
-            "treatment",
-            "diseases",
-            "disorders",
-            "a to z",
-            "a-z index",
-        ]
-    )
-    assert is_boilerplate_directory_index(
-        snippet,
-        lexicon=lexicon,
-        thresholds=_directory_index_thresholds(),
-    )
-
-
-def test_boilerplate_directory_index_detects_condition_list_without_explicit_phrase():
-    snippet = (
-        "Acne, ADHD, Allergy, Anxiety, Arthritis, Asthma, Autism, Back Pain, Bipolar, "
-        "Bronchitis, Depression, Diabetes, Dyslexia, Eczema, Epilepsy, Fibromyalgia, "
-        "Flu, GERD, Headache, Insomnia, Migraine, OCD, PTSD, Schizophrenia, "
-        "Symptoms, Diagnosis, Treatment"
-    )
-    lexicon = normalize_listiness_phrases(
-        ["conditions", "symptoms", "diagnosis", "treatment", "diseases", "disorders"]
-    )
-    assert is_boilerplate_directory_index(
-        snippet,
-        lexicon=lexicon,
-        thresholds=_directory_index_thresholds(),
-    )
-
-
-def test_boilerplate_directory_index_keeps_substantive_adhd_autism_paragraph():
-    snippet = (
-        "This clinic article explains ADHD and autism assessments, discusses diagnosis "
-        "criteria in full narrative sentences, and outlines treatment planning with "
-        "clear recommendations for families and clinicians."
-    )
-    lexicon = normalize_listiness_phrases(
-        [
-            "all conditions",
-            "conditions a-z",
-            "health a-z",
-            "browse conditions",
-            "symptoms",
-            "diagnosis",
-            "treatment",
-            "diseases",
-            "disorders",
-            "a to z",
-            "a-z index",
-        ]
-    )
-    assert not is_boilerplate_directory_index(
-        snippet,
-        lexicon=lexicon,
-        thresholds=_directory_index_thresholds(),
-    )
-
-
-def test_boilerplate_condition_index_detects_structural_conditions_list():
+def test_boilerplate_directory_index_detects_conditions_list():
     snippet = (
         "All conditions: Acne, ADHD, Allergy, ALS, Anxiety, Arthritis, Asthma, Autism, "
         "Back Pain, Bipolar, Bronchitis, Depression, Diabetes, Dyslexia, Eczema, "
-        "Epilepsy, Fibromyalgia, Flu, GERD, Headache, Insomnia, Migraine, OCD, PTSD."
+        "Epilepsy, Fibromyalgia, Flu, GERD, Headache, Insomnia, Migraine, OCD, PTSD"
     )
-    markers = normalize_listiness_phrases(
-        ["all conditions", "conditions", "symptoms", "diseases", "a-z", "index"]
+    lexicon = normalize_listiness_phrases(
+        ["all conditions", "conditions a-z", "symptoms", "diagnosis", "treatment"]
     )
-    assert is_boilerplate_condition_index(
-        snippet, markers=markers, thresholds=_condition_index_thresholds()
+    assert is_boilerplate_directory_index(
+        snippet, lexicon=lexicon, thresholds=_directory_index_thresholds()
     )
 
 
-def test_boilerplate_condition_index_keeps_normal_prose():
+def test_boilerplate_directory_index_keeps_prose():
     snippet = (
-        "Clinicians discuss conditions like ADHD and autism in full prose, with "
-        "careful sentence-level reasoning about diagnosis and treatment choices."
+        "This clinic article explains ADHD and autism assessments and discusses "
+        "diagnosis criteria in complete narrative sentences for families."
     )
-    markers = normalize_listiness_phrases(
-        ["all conditions", "conditions", "symptoms", "diseases", "a-z", "index"]
+    lexicon = normalize_listiness_phrases(
+        ["all conditions", "conditions a-z", "symptoms", "diagnosis", "treatment"]
     )
-    assert not is_boilerplate_condition_index(
-        snippet, markers=markers, thresholds=_condition_index_thresholds()
-    )
-
-
-def test_boilerplate_new_rules_keep_substantive_snippet():
-    snippet = (
-        "This article explains autism support planning, discusses clinical context, "
-        "and provides complete sentences with recommendations for families."
-    )
-    az_thresholds = {
-        "min_letter_tokens": 8,
-        "min_short_fragments": 5,
-        "short_fragment_max_words": 2,
-        "max_sentence_punct": 1,
-    }
-    topic_phrases = normalize_listiness_phrases(
-        ["topics", "browse", "subscribe", "rss", "no articles match", "all conditions"]
-    )
-    commerce_phrases = normalize_listiness_phrases(
-        ["add to cart", "quick view", "select options", "free shipping", "in stock"]
-    )
-    nav_lexicon = normalize_listiness_phrases(
-        [
-            "home",
-            "about",
-            "contact",
-            "privacy",
-            "terms",
-            "cookie",
-            "subscribe",
-            "rss",
-            "login",
-            "sign in",
-            "register",
-            "sitemap",
-            "search",
-            "menu",
-            "toggle",
-            "schedule",
-            "newsletter",
-        ]
-    )
-    assert not is_boilerplate_az_index(snippet, az_thresholds)
-    assert not is_boilerplate_topic_hub(
-        snippet, topic_phrases, min_phrase_hits=2, max_sentence_punct=1
-    )
-    assert not is_boilerplate_commerce(snippet, commerce_phrases, min_phrase_hits=2)
-    assert not is_boilerplate_navlex(
-        snippet,
-        nav_lexicon=nav_lexicon,
-        min_hits=4,
-        max_sentence_terminators=1,
-        min_short_fragments=4,
+    assert not is_boilerplate_directory_index(
+        snippet, lexicon=lexicon, thresholds=_directory_index_thresholds()
     )

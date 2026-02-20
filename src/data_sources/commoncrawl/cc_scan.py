@@ -57,15 +57,6 @@ DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS = [
     r"tillganglighet",
 ]
 
-DEFAULT_BOILERPLATE_SIGNATURE_SOFT_PATTERNS = [
-    r"\blogin\b",
-    r"sign\s+in",
-    r"register",
-    r"search",
-    r"\bmenu\b",
-    r"terms\s+of\s+service",
-]
-
 
 def _utc_runid() -> str:
     return time.strftime("%Y%m%d_%H%M%S", time.gmtime())
@@ -168,16 +159,8 @@ def _new_counter_bucket() -> Dict[str, int]:
         "candidate_hits": 0,
         "final_hits": 0,
         "removed_domaincap": 0,
-        "removed_boilerplate_signature": 0,
         "removed_boilerplate_signature_hard": 0,
-        "removed_boilerplate_signature_soft": 0,
-        "removed_boilerplate_density": 0,
-        "removed_boilerplate_listiness": 0,
-        "removed_boilerplate_az_index": 0,
         "removed_boilerplate_topic_hub": 0,
-        "removed_boilerplate_commerce": 0,
-        "removed_boilerplate_navlex": 0,
-        "removed_boilerplate_condition_index": 0,
         "removed_boilerplate_directory_index": 0,
         "removed_boilerplate_total": 0,
     }
@@ -205,29 +188,6 @@ def is_boilerplate_signature(snippet: str, patterns: List[re.Pattern]) -> bool:
     return any(pattern.search(snippet) for pattern in patterns)
 
 
-def signature_soft_hit_count(snippet: str, patterns: List[re.Pattern]) -> int:
-    return sum(1 for pattern in patterns if pattern.search(snippet))
-
-
-def is_boilerplate_signature_soft(
-    snippet: str, patterns: List[re.Pattern], min_hits: int
-) -> bool:
-    return signature_soft_hit_count(snippet, patterns) >= min_hits
-
-
-def is_boilerplate_density(
-    snippet: str, min_snippet_words: int, min_alpha_ratio: float
-) -> bool:
-    words = snippet.split()
-    if len(words) < min_snippet_words:
-        return True
-    if not snippet:
-        return True
-    alpha_count = sum(ch.isalpha() for ch in snippet)
-    alpha_ratio = alpha_count / len(snippet)
-    return alpha_ratio < min_alpha_ratio
-
-
 def normalize_listiness_phrases(phrases: List[str]) -> List[str]:
     return [phrase.strip().lower() for phrase in phrases if phrase.strip()]
 
@@ -244,49 +204,6 @@ def _count_short_fragments(snippet: str, short_fragment_max_words: int) -> int:
         1
         for fragment in fragments
         if len(fragment.split()) <= int(short_fragment_max_words)
-    )
-
-
-def is_boilerplate_listiness(
-    snippet: str, phrases: List[str], thresholds: Dict[str, float]
-) -> bool:
-    if not snippet:
-        return False
-
-    lower_snippet = snippet.lower()
-    if not any(phrase in lower_snippet for phrase in phrases):
-        return False
-
-    words = snippet.split()
-    separator_count = sum(snippet.count(ch) for ch in "|/>•")
-    separator_density = separator_count / max(1, len(words))
-    sentence_punct_count = likely_sentence_terminator_count(snippet)
-    short_fragment_count = _count_short_fragments(
-        snippet, int(thresholds["short_fragment_max_words"])
-    )
-
-    return (
-        separator_density >= float(thresholds["min_separator_density"])
-        or sentence_punct_count <= int(thresholds["max_sentence_punct"])
-        or short_fragment_count >= int(thresholds["min_short_fragments"])
-    )
-
-
-def is_boilerplate_az_index(snippet: str, thresholds: Dict[str, float]) -> bool:
-    if not snippet:
-        return False
-    lower_snippet = snippet.lower()
-    has_az_marker = "a-z" in lower_snippet or "a to z" in lower_snippet
-    letter_tokens = re.findall(r"\b[a-z]\b", lower_snippet)
-    letter_token_count = len(set(letter_tokens))
-    short_fragment_count = _count_short_fragments(
-        snippet, int(thresholds["short_fragment_max_words"])
-    )
-    sentence_punct_count = likely_sentence_terminator_count(snippet)
-    return (
-        (has_az_marker or letter_token_count >= int(thresholds["min_letter_tokens"]))
-        and short_fragment_count >= int(thresholds["min_short_fragments"])
-        and sentence_punct_count <= int(thresholds["max_sentence_punct"])
     )
 
 
@@ -309,53 +226,6 @@ def is_boilerplate_topic_hub(
         or short_fragment_count >= 4
         or ellipsis_count >= 2
     )
-
-
-def is_boilerplate_commerce(snippet: str, phrases: List[str], min_phrase_hits: int) -> bool:
-    if not snippet:
-        return False
-    phrase_hits = _phrase_hit_count(snippet, phrases)
-    return phrase_hits >= min_phrase_hits
-
-
-def _tokenize_for_navlex(text: str) -> List[str]:
-    normalized = re.sub(r"[^a-z0-9\s]", " ", text.lower())
-    return [token for token in normalized.split() if token]
-
-
-def nav_lexicon_hit_count(text: str, lexicon: List[str]) -> int:
-    lower_text = text.lower()
-    tokens = _tokenize_for_navlex(text)
-    token_set = set(tokens)
-    hits = 0
-    for entry in lexicon:
-        if " " in entry:
-            if entry in lower_text:
-                hits += 1
-        elif entry in token_set:
-            hits += 1
-    return hits
-
-
-def is_boilerplate_navlex(
-    snippet: str,
-    nav_lexicon: List[str],
-    min_hits: int,
-    max_sentence_terminators: int,
-    min_short_fragments: int,
-) -> bool:
-    if not snippet:
-        return False
-    nav_hits = nav_lexicon_hit_count(snippet, nav_lexicon)
-    if nav_hits < min_hits:
-        return False
-    sentence_terminators = likely_sentence_terminator_count(snippet)
-    short_fragments = _count_short_fragments(snippet, short_fragment_max_words=3)
-    low_prose = (
-        sentence_terminators <= max_sentence_terminators
-        or short_fragments >= min_short_fragments
-    )
-    return low_prose
 
 
 def is_boilerplate_directory_index(
@@ -415,49 +285,6 @@ def is_boilerplate_directory_index(
         score += 1
 
     return score >= int(thresholds["score_threshold"])
-
-
-def is_boilerplate_condition_index(
-    snippet: str,
-    markers: List[str],
-    thresholds: Dict[str, float],
-) -> bool:
-    if not snippet:
-        return False
-    lower_snippet = snippet.lower()
-    marker_hits = sum(1 for marker in markers if marker in lower_snippet)
-    if marker_hits < int(thresholds["min_marker_hits"]):
-        return False
-
-    char_count = max(1, len(snippet))
-    separator_count = sum(snippet.count(ch) for ch in ",|;•»›/\n\r")
-    separator_per_1k = (separator_count * 1000.0) / char_count
-    fragments = [
-        frag.strip()
-        for frag in re.split(r"[\n\r,|;•»›/]+", snippet)
-        if frag and frag.strip()
-    ]
-    short_fragment_count = sum(
-        1
-        for frag in fragments
-        if int(thresholds["short_fragment_min_chars"])
-        <= len(frag)
-        <= int(thresholds["short_fragment_max_chars"])
-    )
-    short_fragment_ratio = short_fragment_count / max(1, len(fragments))
-    sentence_per_1k = (
-        likely_sentence_terminator_count(snippet) * 1000.0
-    ) / char_count
-
-    has_list_structure = (
-        separator_per_1k >= float(thresholds["min_separator_per_1k"])
-        or short_fragment_count >= int(thresholds["min_short_fragments"])
-        or short_fragment_ratio >= float(thresholds["min_short_fragment_ratio"])
-    )
-    low_narrative = (
-        sentence_per_1k <= float(thresholds["max_sentence_terminators_per_1k"])
-    )
-    return has_list_structure and low_narrative
 
 
 def _seed_for_run(project_seed: int, runid: str) -> int:
@@ -546,14 +373,6 @@ def _record_boilerplate_removal(
     crawl_counters["removed_boilerplate_total"] += 1
 
 
-def _record_signature_removal(
-    combined: Dict[str, int], crawl_counters: Dict[str, int], reason: str
-) -> None:
-    _record_boilerplate_removal(combined, crawl_counters, reason)
-    combined["removed_boilerplate_signature"] += 1
-    crawl_counters["removed_boilerplate_signature"] += 1
-
-
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
     scan_start = time.perf_counter()
     runid = _utc_runid()
@@ -575,71 +394,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             ),
         )
     )
-    boilerplate_signature_soft_patterns = compile_boilerplate_patterns(
-        boilerplate_cfg.get(
-            "signature_soft_patterns", DEFAULT_BOILERPLATE_SIGNATURE_SOFT_PATTERNS
-        )
-    )
-    boilerplate_signature_soft_min_hits = int(
-        boilerplate_cfg.get("signature_soft_min_hits", 2)
-    )
-    boilerplate_min_snippet_words = int(boilerplate_cfg.get("min_snippet_words", 8))
-    boilerplate_min_alpha_ratio = float(boilerplate_cfg.get("min_alpha_ratio", 0.45))
-    boilerplate_listiness_enabled = bool(boilerplate_cfg.get("listiness_enabled", True))
-    boilerplate_listiness_phrases = normalize_listiness_phrases(
-        boilerplate_cfg.get(
-            "listiness_phrases",
-            [
-                "more topics",
-                "browse all listings",
-                "resource center",
-                "categories",
-                "tags",
-                "topics",
-                "a-z",
-                "all conditions",
-            ],
-        )
-    )
-    boilerplate_listiness_thresholds = {
-        "min_separator_density": float(
-            boilerplate_cfg.get("listiness_thresholds", {}).get(
-                "min_separator_density", 0.12
-            )
-        ),
-        "max_sentence_punct": int(
-            boilerplate_cfg.get("listiness_thresholds", {}).get(
-                "max_sentence_punct", 1
-            )
-        ),
-        "min_short_fragments": int(
-            boilerplate_cfg.get("listiness_thresholds", {}).get(
-                "min_short_fragments", 4
-            )
-        ),
-        "short_fragment_max_words": int(
-            boilerplate_cfg.get("listiness_thresholds", {}).get(
-                "short_fragment_max_words", 3
-            )
-        ),
-    }
-    boilerplate_az_index_enabled = bool(boilerplate_cfg.get("az_index_enabled", True))
-    boilerplate_az_index_thresholds = {
-        "min_letter_tokens": int(
-            boilerplate_cfg.get("az_index_thresholds", {}).get("min_letter_tokens", 8)
-        ),
-        "min_short_fragments": int(
-            boilerplate_cfg.get("az_index_thresholds", {}).get("min_short_fragments", 5)
-        ),
-        "short_fragment_max_words": int(
-            boilerplate_cfg.get("az_index_thresholds", {}).get(
-                "short_fragment_max_words", 2
-            )
-        ),
-        "max_sentence_punct": int(
-            boilerplate_cfg.get("az_index_thresholds", {}).get("max_sentence_punct", 1)
-        ),
-    }
     boilerplate_topic_hub_enabled = bool(boilerplate_cfg.get("topic_hub_enabled", True))
     boilerplate_topic_hub_phrases = normalize_listiness_phrases(
         boilerplate_cfg.get(
@@ -674,53 +428,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     boilerplate_topic_hub_max_sentence_punct = int(
         boilerplate_cfg.get("topic_hub_max_sentence_punct", 1)
     )
-    condition_index_cfg = boilerplate_cfg.get("condition_index", {})
-    boilerplate_condition_index_enabled = bool(
-        condition_index_cfg.get(
-            "enabled", boilerplate_cfg.get("condition_index_enabled", True)
-        )
-    )
-    boilerplate_condition_index_markers = normalize_listiness_phrases(
-        condition_index_cfg.get(
-            "markers",
-            boilerplate_cfg.get(
-                "condition_index_markers",
-                [
-                    "all conditions",
-                    "conditions",
-                    "symptoms",
-                    "diseases",
-                    "a-z",
-                    "a to z",
-                    "index",
-                ],
-            ),
-        )
-    )
-    condition_index_threshold_cfg = condition_index_cfg.get(
-        "thresholds", boilerplate_cfg.get("condition_index_thresholds", {})
-    )
-    boilerplate_condition_index_thresholds = {
-        "min_marker_hits": int(condition_index_threshold_cfg.get("min_marker_hits", 2)),
-        "min_separator_per_1k": float(
-            condition_index_threshold_cfg.get("min_separator_per_1k", 8.0)
-        ),
-        "min_short_fragments": int(
-            condition_index_threshold_cfg.get("min_short_fragments", 8)
-        ),
-        "min_short_fragment_ratio": float(
-            condition_index_threshold_cfg.get("min_short_fragment_ratio", 0.35)
-        ),
-        "short_fragment_min_chars": int(
-            condition_index_threshold_cfg.get("short_fragment_min_chars", 3)
-        ),
-        "short_fragment_max_chars": int(
-            condition_index_threshold_cfg.get("short_fragment_max_chars", 40)
-        ),
-        "max_sentence_terminators_per_1k": float(
-            condition_index_threshold_cfg.get("max_sentence_terminators_per_1k", 5.0)
-        ),
-    }
     directory_index_cfg = boilerplate_cfg.get("directory_index", {})
     boilerplate_directory_index_enabled = bool(
         directory_index_cfg.get(
@@ -774,67 +481,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             directory_index_cfg.get("min_capitalized_token_ratio", 0.22)
         ),
     }
-    boilerplate_nav_lexicon = normalize_listiness_phrases(
-        boilerplate_cfg.get(
-            "nav_lexicon",
-            [
-                "home",
-                "about",
-                "contact",
-                "privacy",
-                "terms",
-                "cookie",
-                "subscribe",
-                "rss",
-                "login",
-                "sign in",
-                "register",
-                "sitemap",
-                "search",
-                "menu",
-                "toggle",
-                "schedule",
-                "newsletter",
-                "more articles",
-                "see all articles",
-                "all articles",
-                "latest news",
-                "archives",
-                "categories",
-                "tagged",
-                "related articles",
-                "popular posts",
-                "site map",
-                "e-edition",
-                "edition",
-            ],
-        )
-    )
-    boilerplate_nav_lexicon_min_hits = int(
-        boilerplate_cfg.get("nav_lexicon_min_hits", 4)
-    )
-    boilerplate_nav_lexicon_max_sentence_terminators = int(
-        boilerplate_cfg.get("nav_lexicon_max_sentence_terminators", 1)
-    )
-    boilerplate_nav_lexicon_min_short_fragments = int(
-        boilerplate_cfg.get("nav_lexicon_min_short_fragments", 4)
-    )
-    boilerplate_commerce_enabled = bool(boilerplate_cfg.get("commerce_enabled", True))
-    boilerplate_commerce_phrases = normalize_listiness_phrases(
-        boilerplate_cfg.get(
-            "commerce_phrases",
-            [
-                "add to cart",
-                "quick view",
-                "select options",
-                "free shipping",
-                "in stock",
-            ],
-        )
-    )
-    boilerplate_commerce_min_phrase_hits = int(
-        boilerplate_cfg.get("commerce_min_phrase_hits", 2)
-    )
 
     terms = config["terms"]
     patterns = compile_patterns(terms)
@@ -851,16 +497,13 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Boilerplate enabled: %s", boilerplate_enabled)
     logger.info("Boilerplate check window: %d", boilerplate_check_window_chars)
     logger.info(
-        "Boilerplate signature soft min hits: %d", boilerplate_signature_soft_min_hits
+        "Stage 1b consolidation recommendation (iter_07 evidence): keep signature_hard (159 removals, high precision on UI/widget boilerplate), directory_index (70 removals, strong coarse triage of condition lists), and topic_hub (32 removals, archive/category cleanup with acceptable audit risk)."
     )
-    logger.info("Boilerplate listiness enabled: %s", boilerplate_listiness_enabled)
-    logger.info("Boilerplate A-Z index enabled: %s", boilerplate_az_index_enabled)
+    logger.info("Boilerplate signature hard patterns: %d", len(boilerplate_signature_hard_patterns))
     logger.info("Boilerplate topic hub enabled: %s", boilerplate_topic_hub_enabled)
-    logger.info("Boilerplate condition index enabled: %s", boilerplate_condition_index_enabled)
     logger.info(
         "Boilerplate directory index enabled: %s", boilerplate_directory_index_enabled
     )
-    logger.info("Boilerplate commerce enabled: %s", boilerplate_commerce_enabled)
 
     wet_dir = Path("data/raw/wet")
     wet_files = sorted(wet_dir.glob("*.wet.gz"))
@@ -874,8 +517,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             key
             for key in combined
             if key.startswith("removed_boilerplate_")
-            and key
-            not in {"removed_boilerplate_total", "removed_boilerplate_signature"}
+            and key != "removed_boilerplate_total"
         ]
     )
     removed_rows_by_reason: Dict[str, List[Dict[str, str]]] = defaultdict(list)
@@ -957,7 +599,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         if is_boilerplate_signature(
                             check_text, boilerplate_signature_hard_patterns
                         ):
-                            _record_signature_removal(
+                            _record_boilerplate_removal(
                                 combined,
                                 crawl_counters,
                                 "removed_boilerplate_signature_hard",
@@ -971,85 +613,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 label,
                                 stored_snippet,
                                 removal_reason="boilerplate_signature_hard",
-                            )
-                            continue
-                        if is_boilerplate_signature_soft(
-                            check_text,
-                            boilerplate_signature_soft_patterns,
-                            boilerplate_signature_soft_min_hits,
-                        ):
-                            _record_signature_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_signature_soft",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_signature_soft",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                                removal_reason="boilerplate_signature_soft",
-                            )
-                            continue
-                        if is_boilerplate_density(
-                            check_text,
-                            boilerplate_min_snippet_words,
-                            boilerplate_min_alpha_ratio,
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_density",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_density",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                            )
-                            continue
-                        if boilerplate_listiness_enabled and is_boilerplate_listiness(
-                            check_text,
-                            boilerplate_listiness_phrases,
-                            boilerplate_listiness_thresholds,
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_listiness",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_listiness",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                            )
-                            continue
-                        if boilerplate_az_index_enabled and is_boilerplate_az_index(
-                            check_text, boilerplate_az_index_thresholds
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_az_index",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_az_index",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
                             )
                             continue
                         if boilerplate_topic_hub_enabled and is_boilerplate_topic_hub(
@@ -1071,52 +634,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 domain,
                                 label,
                                 stored_snippet,
-                            )
-                            continue
-                        if is_boilerplate_navlex(
-                            check_text,
-                            boilerplate_nav_lexicon,
-                            boilerplate_nav_lexicon_min_hits,
-                            boilerplate_nav_lexicon_max_sentence_terminators,
-                            boilerplate_nav_lexicon_min_short_fragments,
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_navlex",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_navlex",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                            )
-                            continue
-                        if (
-                            boilerplate_condition_index_enabled
-                            and is_boilerplate_condition_index(
-                                check_text,
-                                boilerplate_condition_index_markers,
-                                boilerplate_condition_index_thresholds,
-                            )
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_condition_index",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_condition_index",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                                removal_reason="boilerplate_condition_index",
                             )
                             continue
                         if (
@@ -1141,26 +658,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 label,
                                 stored_snippet,
                                 removal_reason="directory_index",
-                            )
-                            continue
-                        if boilerplate_commerce_enabled and is_boilerplate_commerce(
-                            check_text,
-                            boilerplate_commerce_phrases,
-                            boilerplate_commerce_min_phrase_hits,
-                        ):
-                            _record_boilerplate_removal(
-                                combined,
-                                crawl_counters,
-                                "removed_boilerplate_commerce",
-                            )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_commerce",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
                             )
                             continue
 
@@ -1315,14 +812,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 "Combined removals triggered by this specific boilerplate rule.",
             )
         )
-
-    summary_rows.append(
-        _summary_row(
-            "removed_boilerplate_signature",
-            combined["removed_boilerplate_signature"],
-            "Combined total removals from hard+soft signature filters.",
-        )
-    )
 
     summary_rows.append(
         _summary_row(
