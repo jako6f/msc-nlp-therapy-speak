@@ -1,6 +1,16 @@
 project:
   seed: 123 # base seed for deterministic sampling and validation sampling
-  out_dir: "data/interim/cc_pilot_stage_01b/iter_08b" # Stage 1b Iteration 08b outputs
+  out_dir: "data/interim/stage1_pilot-dev/stage1b/iter_08b" # Stage 1b Iteration 08b outputs
+
+paths:
+  interim_base: "data/interim"
+  stage1_base: "data/interim/stage1_pilot-dev"
+  reports_figures_base: "reports/figures"
+  reports_tables_base: "reports/tables"
+
+run_context:
+  stage: "stage1b"
+  track: "stage1_pilot-dev"
 
 pilot:
   crawl_ids:

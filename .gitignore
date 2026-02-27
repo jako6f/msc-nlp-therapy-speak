@@ -1,8 +1,8 @@
 # data (never commit raw crawl data)
 data/raw/
 data/interim/*
-!data/interim/cc_pilot_stage_01b/
-!data/interim/cc_pilot_stage_01b/**
+!data/interim/stage1_pilot-dev/
+!data/interim/stage1_pilot-dev/**
 data/interim/**/*.parquet
 data/processed/
 

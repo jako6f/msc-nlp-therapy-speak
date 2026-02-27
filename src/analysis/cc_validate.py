@@ -5,6 +5,8 @@ from typing import Dict, Optional, Tuple
 
 import pandas as pd
 
+from src.pathing import stage1_output_dir
+
 REQUIRED_COLUMNS = [
     "matched_term",
     "registered_domain",
@@ -158,7 +160,7 @@ def _slice_metric_float(summary: Dict[str, str], slice_id: str, metric: str) -> 
 
 
 def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
-    interim_dir = Path(config.get("project", {}).get("out_dir", "data/interim"))
+    interim_dir = stage1_output_dir(config, default_stage="stage1b")
     project_seed = int(config.get("project", {}).get("seed", 0))
 
     corpus_runid, corpus_path = _latest_by_runid(

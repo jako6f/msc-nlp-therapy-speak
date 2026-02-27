@@ -13,10 +13,17 @@ from src.data_sources.commoncrawl import (
     scan_wet_files,
     validate_counts,
 )
+from src.pathing import stage1_base, stage1_output_dir
 
 
 def load_config(path: Path) -> dict:
     return yaml.safe_load(path.read_text())
+
+
+def _ensure_stage1_dirs(cfg: dict) -> None:
+    base = stage1_base(cfg)
+    for stage in ("stage1a", "stage1b", "stage1c"):
+        (base / stage).mkdir(parents=True, exist_ok=True)
 
 
 def main() -> None:
@@ -46,6 +53,7 @@ def main() -> None:
     args = p.parse_args()
     cfg_path = Path(args.config)
     cfg = load_config(cfg_path)
+    _ensure_stage1_dirs(cfg)
 
     if args.command == "cc-sample":
         sample_and_write_manifest(cfg, cfg_path)
@@ -67,9 +75,8 @@ def main() -> None:
         return
 
     if args.command == "cc-export":
-        interim_dir = Path(cfg.get("project", {}).get("out_dir", "data/interim"))
-        reports_dir = Path("reports")
-        export_tables_and_figures(interim_dir, reports_dir)
+        interim_dir = stage1_output_dir(cfg, default_stage="stage1b")
+        export_tables_and_figures(cfg, interim_dir)
         return
 
     if args.command == "cc-validate":

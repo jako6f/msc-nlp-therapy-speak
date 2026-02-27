@@ -6,6 +6,8 @@ from typing import Dict, Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from src.pathing import reports_figures_base, reports_namespace, reports_tables_base
+
 RUNID_PATTERN = re.compile(r".*_(\d{8}_\d{6})\.(csv|parquet)$")
 
 
@@ -40,7 +42,7 @@ def _format_rate(numer: int, denom: int) -> str:
     return f"{numer / denom:.3f}"
 
 
-def export_tables_and_figures(interim_dir: Path, reports_dir: Path) -> Tuple[Path, Path, Path]:
+def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Path, Path]:
     runid = _latest_runid(interim_dir)
     summary_path = interim_dir / f"cc_scan_summary_{runid}.csv"
     top_domains_path = interim_dir / f"cc_scan_top_domains_{runid}.csv"
@@ -50,9 +52,14 @@ def export_tables_and_figures(interim_dir: Path, reports_dir: Path) -> Tuple[Pat
     docs_minlen = int(summary.get("docs_minlen", 0))
     hit_rate = _format_rate(hits_total, docs_minlen)
 
-    summary_table_path = reports_dir / "tables" / "TAB_stage1_pilot_summary.tex"
-    top_domains_table_path = reports_dir / "tables" / "TAB_stage1_top_domains.tex"
-    fig_path = reports_dir / "figures" / "FIG_stage1_hits_by_term.pdf"
+    report_ns = reports_namespace(config)
+    summary_table_path = (
+        reports_tables_base(config) / report_ns / "TAB_stage1_pilot_summary.tex"
+    )
+    top_domains_table_path = (
+        reports_tables_base(config) / report_ns / "TAB_stage1_top_domains.tex"
+    )
+    fig_path = reports_figures_base(config) / report_ns / "FIG_stage1_hits_by_term.pdf"
 
     summary_lines = [
         "\\begin{tabular}{lr}",

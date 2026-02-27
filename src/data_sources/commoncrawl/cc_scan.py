@@ -14,6 +14,8 @@ import pandas as pd
 import tldextract
 from warcio.archiveiterator import ArchiveIterator
 
+from src.pathing import stage1_output_dir
+
 TIMING_FIELDS = [
     "time_input_read_sec",
     "time_parse_sec",
@@ -624,7 +626,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
         elapsed_by_crawl[crawl_id] += time.perf_counter() - file_start
 
-    out_dir = Path(config.get("project", {}).get("out_dir", "data/interim"))
+    out_dir = stage1_output_dir(config, default_stage="stage1b")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     summary_path = out_dir / f"cc_scan_summary_{runid}.csv"
