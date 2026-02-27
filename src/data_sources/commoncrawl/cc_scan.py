@@ -147,7 +147,7 @@ def _new_counter_bucket() -> Dict[str, int]:
         "docs_scanned": 0,
         "docs_minlen": 0,
         "candidate_hits": 0,
-        "final_hits": 0,
+        "validated_hits_wet": 0,
         "removed_domaincap": 0,
         "removed_boilerplate_signature_hard": 0,
         "removed_boilerplate_directory_index": 0,
@@ -601,8 +601,8 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                             continue
                         domain_hit_counts[key] += 1
 
-                    combined["final_hits"] += 1
-                    crawl_counters["final_hits"] += 1
+                    combined["validated_hits_wet"] += 1
+                    crawl_counters["validated_hits_wet"] += 1
                     if domain:
                         domains_hits.add(domain)
                         top_domains_counter[domain] += 1
@@ -691,9 +691,9 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Term matches before downstream filtering and domain caps.",
         ),
         _summary_row(
-            "final_hits",
-            combined["final_hits"],
-            "Rows retained after filtering and domain-cap enforcement.",
+            "validated_hits_wet",
+            combined["validated_hits_wet"],
+            "Rows retained after WET filtering and domain-cap enforcement.",
         ),
         _summary_row(
             "candidate_per_10k",
@@ -701,9 +701,12 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Combined candidate hit rate per 10,000 scanned documents.",
         ),
         _summary_row(
-            "final_per_10k",
-            round(_rate_per(combined["final_hits"], combined["docs_scanned"], 10_000), 6),
-            "Combined final hit rate per 10,000 scanned documents.",
+            "validated_hits_wet_per_10k",
+            round(
+                _rate_per(combined["validated_hits_wet"], combined["docs_scanned"], 10_000),
+                6,
+            ),
+            "Combined WET-validated hit rate per 10,000 scanned documents.",
         ),
         _summary_row(
             "removed_domaincap",
@@ -747,6 +750,30 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
     summary_rows.append(
         _summary_row(
+            "final_hits",
+            combined["validated_hits_wet"],
+            "Deprecated alias for validated_hits_wet.",
+        )
+    )
+    summary_rows.append(
+        _summary_row(
+            "hits_total",
+            combined["validated_hits_wet"],
+            "Deprecated alias for validated_hits_wet.",
+        )
+    )
+    summary_rows.append(
+        _summary_row(
+            "final_per_10k",
+            round(
+                _rate_per(combined["validated_hits_wet"], combined["docs_scanned"], 10_000),
+                6,
+            ),
+            "Deprecated alias for validated_hits_wet_per_10k.",
+        )
+    )
+    summary_rows.append(
+        _summary_row(
             "removed_boilerplate_total",
             combined["removed_boilerplate_total"],
             "Combined total removals from all boilerplate rules.",
@@ -756,7 +783,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     for crawl_id in sorted(counters_by_crawl):
         slice_docs_scanned = counters_by_crawl[crawl_id]["docs_scanned"]
         slice_candidate_hits = counters_by_crawl[crawl_id]["candidate_hits"]
-        slice_final_hits = counters_by_crawl[crawl_id]["final_hits"]
+        slice_validated_hits_wet = counters_by_crawl[crawl_id]["validated_hits_wet"]
         prefix = f"slice.{crawl_id}"
         summary_rows.extend(
             [
@@ -771,9 +798,9 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     "Slice-level candidate matches before final filtering.",
                 ),
                 _summary_row(
-                    f"{prefix}.final_hits",
-                    slice_final_hits,
-                    "Slice-level final retained hits after filtering.",
+                    f"{prefix}.validated_hits_wet",
+                    slice_validated_hits_wet,
+                    "Slice-level WET-validated retained hits after filtering.",
                 ),
                 _summary_row(
                     f"{prefix}.candidate_per_10k",
@@ -781,9 +808,25 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                     "Slice-level candidate hit rate per 10,000 scanned documents.",
                 ),
                 _summary_row(
+                    f"{prefix}.validated_hits_wet_per_10k",
+                    round(
+                        _rate_per(slice_validated_hits_wet, slice_docs_scanned, 10_000),
+                        6,
+                    ),
+                    "Slice-level WET-validated hit rate per 10,000 scanned documents.",
+                ),
+                _summary_row(
+                    f"{prefix}.final_hits",
+                    slice_validated_hits_wet,
+                    "Deprecated alias for slice validated_hits_wet.",
+                ),
+                _summary_row(
                     f"{prefix}.final_per_10k",
-                    round(_rate_per(slice_final_hits, slice_docs_scanned, 10_000), 6),
-                    "Slice-level final hit rate per 10,000 scanned documents.",
+                    round(
+                        _rate_per(slice_validated_hits_wet, slice_docs_scanned, 10_000),
+                        6,
+                    ),
+                    "Deprecated alias for slice validated_hits_wet_per_10k.",
                 ),
                 _summary_row(
                     f"{prefix}.total_elapsed_sec",
@@ -825,7 +868,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         f"docs_scanned={combined['docs_scanned']}, "
         f"docs_minlen={combined['docs_minlen']}, "
         f"candidate_hits={combined['candidate_hits']}, "
-        f"final_hits={combined['final_hits']}, "
+        f"validated_hits_wet={combined['validated_hits_wet']}, "
         f"unique_domains_hits={len(domains_hits)}"
     )
     return summary_path

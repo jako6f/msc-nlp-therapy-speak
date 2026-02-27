@@ -46,11 +46,14 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
     runid = _latest_runid(interim_dir)
     summary_path = interim_dir / f"cc_scan_summary_{runid}.csv"
     top_domains_path = interim_dir / f"cc_scan_top_domains_{runid}.csv"
+    corpus_path = interim_dir / f"cc_pilot_corpus_{runid}.parquet"
 
     summary = _load_summary(summary_path)
-    hits_total = int(summary.get("hits_total", 0))
+    validated_hits_wet = int(
+        summary.get("validated_hits_wet", summary.get("final_hits", summary.get("hits_total", 0)))
+    )
     docs_minlen = int(summary.get("docs_minlen", 0))
-    hit_rate = _format_rate(hits_total, docs_minlen)
+    hit_rate = _format_rate(validated_hits_wet, docs_minlen)
 
     report_ns = reports_namespace(config)
     summary_table_path = (
@@ -68,11 +71,10 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
         "\\midrule",
         f"Docs scanned & {_format_int(summary.get('docs_scanned', '0'))} \\\\",
         f"Docs >= min chars & {_format_int(summary.get('docs_minlen', '0'))} \\\\",
-        f"Hits total & {_format_int(summary.get('hits_total', '0'))} \\\\",
-        f"Hit rate (hits / docs >= min chars) & {hit_rate} \\\\",
-        f"Unique domains (all) & {_format_int(summary.get('unique_domains_total', '0'))} \\\\",
-        f"Unique domains (hits) & {_format_int(summary.get('unique_domains_hits', '0'))} \\\\",
-        f"Capped removed & {_format_int(summary.get('capped_removed', '0'))} \\\\",
+        f"Validated hits (WET) & {validated_hits_wet:,} \\\\",
+        f"Validated hit rate (WET / docs >= min chars) & {hit_rate} \\\\",
+        f"Removed by domain cap & {_format_int(summary.get('removed_domaincap', '0'))} \\\\",
+        f"Removed total & {_format_int(summary.get('removed_total', '0'))} \\\\",
         "\\bottomrule",
         "\\end{tabular}",
     ]
@@ -80,8 +82,8 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
 
     top_domains = pd.read_csv(top_domains_path)
     top_domains = top_domains.head(10).copy()
-    if hits_total > 0:
-        top_domains["share"] = (top_domains["hits"] / hits_total).round(4)
+    if validated_hits_wet > 0:
+        top_domains["share"] = (top_domains["hits"] / validated_hits_wet).round(4)
     else:
         top_domains["share"] = 0.0
 
@@ -98,11 +100,15 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
     top_lines += ["\\bottomrule", "\\end{tabular}"]
     _write_latex_table(top_domains_table_path, top_lines)
 
-    hits_by_term = summary.get("hits_by_term", "{}")
-    try:
-        hits_by_term = json.loads(hits_by_term)
-    except json.JSONDecodeError:
-        hits_by_term = {}
+    hits_by_term = {}
+    if corpus_path.exists():
+        corpus_df = pd.read_parquet(corpus_path, columns=["matched_term"])
+        hits_by_term = corpus_df["matched_term"].value_counts().to_dict()
+    elif "hits_by_term" in summary:
+        try:
+            hits_by_term = json.loads(summary.get("hits_by_term", "{}"))
+        except json.JSONDecodeError:
+            hits_by_term = {}
 
     labels = list(hits_by_term.keys())
     values = [hits_by_term[label] for label in labels]

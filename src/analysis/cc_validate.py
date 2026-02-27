@@ -101,25 +101,25 @@ def _print_slice_metrics(
     label: str,
     docs_scanned: int,
     candidate_hits: int,
-    final_hits: int,
+    validated_hits_wet: int,
     docs_per_sec: float,
     timings: Dict[str, float],
 ) -> None:
     cand_10k = _rate_per(candidate_hits, docs_scanned, 10_000)
-    final_10k = _rate_per(final_hits, docs_scanned, 10_000)
-    delta_abs = candidate_hits - final_hits
+    wet_10k = _rate_per(validated_hits_wet, docs_scanned, 10_000)
+    delta_abs = candidate_hits - validated_hits_wet
     delta_pct = (delta_abs / candidate_hits * 100.0) if candidate_hits > 0 else 0.0
 
     print(
         f"{label}: docs_scanned={docs_scanned}, "
-        f"candidate_hits={candidate_hits}, final_hits={final_hits}"
+        f"candidate_hits={candidate_hits}, validated_hits_wet={validated_hits_wet}"
     )
     print(
         f"  rates: candidate_per_10k={cand_10k:.3f}, "
-        f"final_per_10k={final_10k:.3f}"
+        f"validated_hits_wet_per_10k={wet_10k:.3f}"
     )
     print(
-        f"  candidate_to_final_delta: abs={delta_abs}, pct={delta_pct:.2f}%"
+        f"  candidate_to_validated_hits_wet_delta: abs={delta_abs}, pct={delta_pct:.2f}%"
     )
     print(
         f"  throughput: docs_per_sec={docs_per_sec:.3f}, "
@@ -205,7 +205,11 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     candidate_hits = _metric_int(
         summary, "candidate_hits", _metric_int(summary, "hits_total", 0)
     )
-    final_hits = _metric_int(summary, "final_hits", _metric_int(summary, "hits_total", 0))
+    validated_hits_wet = _metric_int(
+        summary,
+        "validated_hits_wet",
+        _metric_int(summary, "final_hits", _metric_int(summary, "hits_total", 0)),
+    )
     timings_combined = {
         "time_input_read_sec": _metric_float(summary, "time_input_read_sec", 0.0),
         "time_parse_sec": _metric_float(summary, "time_parse_sec", 0.0),
@@ -244,7 +248,10 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
             label=f"slice[{slice_id}]",
             docs_scanned=_slice_metric_int(summary, slice_id, "docs_scanned"),
             candidate_hits=_slice_metric_int(summary, slice_id, "candidate_hits"),
-            final_hits=_slice_metric_int(summary, slice_id, "final_hits"),
+            validated_hits_wet=_slice_metric_int(
+                summary, slice_id, "validated_hits_wet"
+            )
+            or _slice_metric_int(summary, slice_id, "final_hits"),
             docs_per_sec=_slice_metric_float(summary, slice_id, "docs_per_sec"),
             timings={
                 "total_elapsed_sec": _slice_metric_float(
@@ -257,7 +264,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         label="combined",
         docs_scanned=docs_scanned,
         candidate_hits=candidate_hits,
-        final_hits=final_hits,
+        validated_hits_wet=validated_hits_wet,
         docs_per_sec=_metric_float(summary, "docs_per_sec", 0.0),
         timings=timings_combined,
     )
