@@ -169,6 +169,33 @@ def _summary_row(metric: str, value: object, description: str) -> List[object]:
     return [metric, value, description]
 
 
+def _warc_validation_placeholder_rows(prefix: str = "") -> List[List[object]]:
+    metric_prefix = f"{prefix}." if prefix else ""
+    scope = "Slice-level" if prefix else "Combined"
+    return [
+        _summary_row(
+            f"{metric_prefix}validated_hits_warc",
+            None,
+            f"{scope} WARC-validated hit placeholder; null until WARC validation is implemented.",
+        ),
+        _summary_row(
+            f"{metric_prefix}validated_hits_warc_per_10k",
+            None,
+            f"{scope} WARC-validated hit rate placeholder; null until WARC validation is implemented.",
+        ),
+        _summary_row(
+            f"{metric_prefix}warc_validation_attempted",
+            False,
+            f"{scope} flag indicating whether WARC validation ran for this scope.",
+        ),
+        _summary_row(
+            f"{metric_prefix}warc_validation_notes",
+            "",
+            f"{scope} notes for WARC validation execution state (empty when not run).",
+        ),
+    ]
+
+
 def compile_boilerplate_patterns(patterns: List[str]) -> List[re.Pattern]:
     return [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
 
@@ -729,6 +756,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
             "Total wall-clock time for the scan stage in seconds.",
         ),
     ]
+    summary_rows.extend(_warc_validation_placeholder_rows())
 
     for field in TIMING_FIELDS:
         summary_rows.append(
@@ -840,6 +868,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 ),
             ]
         )
+        summary_rows.extend(_warc_validation_placeholder_rows(prefix=prefix))
 
     write_start = time.perf_counter()
     with summary_path.open("w", newline="", encoding="utf-8") as f:
@@ -862,6 +891,8 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Wrote top domains %s", top_domains_path)
     logger.info("Wrote corpus %s", parquet_path)
     logger.info("Wrote removed-audit sample %s", removed_audit_path)
+    logger.info("validated_hits_warc=%s", "NA")
+    logger.info("warc_validation_attempted=%s", False)
 
     print(
         "Scan complete: "
@@ -869,6 +900,8 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         f"docs_minlen={combined['docs_minlen']}, "
         f"candidate_hits={combined['candidate_hits']}, "
         f"validated_hits_wet={combined['validated_hits_wet']}, "
+        f"validated_hits_warc=NA, "
+        f"warc_validation_attempted=False, "
         f"unique_domains_hits={len(domains_hits)}"
     )
     return summary_path

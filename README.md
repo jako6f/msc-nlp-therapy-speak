@@ -39,6 +39,7 @@ The default config is `configs/pilot.yaml`. It defines:
 Stage-1 outputs now live under `data/interim/stage1_pilot-dev/{stage1a,stage1b,stage1c}`.
 Generated report artifacts are namespaced under `reports/figures/{stage1_pilot-dev,trend,corpus}` and `reports/tables/{stage1_pilot-dev,trend,corpus}`.
 Within scan summaries, `validated_hits_wet` is the canonical WET-validated hit metric; `final_hits` is retained as a deprecated alias for backward compatibility.
+WARC validation metrics (`validated_hits_warc`, `validated_hits_warc_per_10k`, `warc_validation_attempted`, `warc_validation_notes`) are placeholder schema fields until Stage 1c/Stage 2 WARC validation is enabled.
 
 ## Notes
 

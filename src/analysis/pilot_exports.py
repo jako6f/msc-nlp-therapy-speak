@@ -1,12 +1,13 @@
 import json
 import re
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from src.pathing import reports_figures_base, reports_namespace, reports_tables_base
+from src.analysis.summary_schema import with_warc_metric_defaults
 
 RUNID_PATTERN = re.compile(r".*_(\d{8}_\d{6})\.(csv|parquet)$")
 
@@ -22,9 +23,9 @@ def _latest_runid(interim_dir: Path) -> str:
     return sorted(candidates)[-1]
 
 
-def _load_summary(summary_path: Path) -> Dict[str, str]:
+def _load_summary(summary_path: Path) -> Dict[str, object]:
     df = pd.read_csv(summary_path)
-    return dict(zip(df["metric"], df["value"]))
+    return with_warc_metric_defaults(dict(zip(df["metric"], df["value"])))
 
 
 def _write_latex_table(path: Path, lines: list[str]) -> None:
@@ -42,6 +43,12 @@ def _format_rate(numer: int, denom: int) -> str:
     return f"{numer / denom:.3f}"
 
 
+def _format_optional_rate(value: Optional[float]) -> str:
+    if value is None:
+        return "NA"
+    return f"{value:.3f}"
+
+
 def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Path, Path]:
     runid = _latest_runid(interim_dir)
     summary_path = interim_dir / f"cc_scan_summary_{runid}.csv"
@@ -52,8 +59,15 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
     validated_hits_wet = int(
         summary.get("validated_hits_wet", summary.get("final_hits", summary.get("hits_total", 0)))
     )
+    validated_hits_warc = summary.get("validated_hits_warc")
+    validated_hits_warc_per_10k = summary.get("validated_hits_warc_per_10k")
+    warc_validation_attempted = bool(summary.get("warc_validation_attempted", False))
+    warc_validation_notes = str(summary.get("warc_validation_notes", "")).strip()
     docs_minlen = int(summary.get("docs_minlen", 0))
     hit_rate = _format_rate(validated_hits_wet, docs_minlen)
+    validated_hits_warc_label = (
+        f"{int(validated_hits_warc):,}" if validated_hits_warc is not None else "NA"
+    )
 
     report_ns = reports_namespace(config)
     summary_table_path = (
@@ -73,8 +87,18 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
         f"Docs >= min chars & {_format_int(summary.get('docs_minlen', '0'))} \\\\",
         f"Validated hits (WET) & {validated_hits_wet:,} \\\\",
         f"Validated hit rate (WET / docs >= min chars) & {hit_rate} \\\\",
+        f"Validated hits (WARC) & {validated_hits_warc_label} \\\\",
+        "WARC validation attempted & "
+        + ("Yes" if warc_validation_attempted else "No")
+        + " \\\\",
+        "WARC validated hit rate (/10k scanned) & "
+        + _format_optional_rate(validated_hits_warc_per_10k)
+        + " \\\\",
         f"Removed by domain cap & {_format_int(summary.get('removed_domaincap', '0'))} \\\\",
         f"Removed total & {_format_int(summary.get('removed_total', '0'))} \\\\",
+        "WARC validation notes & "
+        + (warc_validation_notes if warc_validation_notes else "not run (placeholder)")
+        + " \\\\",
         "\\bottomrule",
         "\\end{tabular}",
     ]
