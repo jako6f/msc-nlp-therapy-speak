@@ -20,6 +20,12 @@ The default config is `configs/pilot.yaml`. It defines:
 - Sampling volume (WET files per crawl)
 - Simple filters (minimum chars, per-domain cap, disambiguation window)
 - Term patterns for ADHD/autism matching
+- Output routing for Stage-1 pilot/dev artifacts via:
+  - `paths.interim_base`
+  - `paths.stage1_base`
+  - `paths.reports_figures_base`
+  - `paths.reports_tables_base`
+  - `run_context.stage` / `run_context.track`
 
 ## Project Layout
 
@@ -29,6 +35,10 @@ The default config is `configs/pilot.yaml`. It defines:
 - `notebooks/` — exploratory notebooks
 - `data/` — data outputs (not committed)
 - `tests/` — test scaffolding (empty)
+
+Stage-1 outputs now live under `data/interim/stage1_pilot-dev/{stage1a,stage1b,stage1c}`.
+Generated report artifacts are namespaced under `reports/figures/{stage1_pilot-dev,trend,corpus}` and `reports/tables/{stage1_pilot-dev,trend,corpus}`.
+Within scan summaries, `validated_hits_wet` is the canonical WET-validated hit metric; `final_hits` is retained as a deprecated alias for backward compatibility.
 
 ## Notes
 

@@ -19,11 +19,11 @@ All other Stage 1b boilerplate rules were removed at freeze time.
 - `filters.asd_disambiguation_window_chars = 200`
 
 ## Final Acceptance Artefacts (iter_08)
-- `data/interim/cc_pilot_stage_01b/iter_08/cc_scan_summary_20260220_135152.csv`
-- `data/interim/cc_pilot_stage_01b/iter_08/cc_scan_top_domains_20260220_135152.csv`
-- `data/interim/cc_pilot_stage_01b/iter_08/cc_removed_audit_20260220_135152.csv`
-- `data/interim/cc_pilot_stage_01b/iter_08/cc_val_sample50_20260220_135152.csv`
-- `data/interim/cc_pilot_stage_01b/iter_08/cc_val_asd_20260220_135152.csv`
+- `data/interim/stage1_pilot-dev/stage1b/iter_08/cc_scan_summary_20260220_135152.csv`
+- `data/interim/stage1_pilot-dev/stage1b/iter_08/cc_scan_top_domains_20260220_135152.csv`
+- `data/interim/stage1_pilot-dev/stage1b/iter_08/cc_removed_audit_20260220_135152.csv`
+- `data/interim/stage1_pilot-dev/stage1b/iter_08/cc_val_sample50_20260220_135152.csv`
+- `data/interim/stage1_pilot-dev/stage1b/iter_08/cc_val_asd_20260220_135152.csv`
 
 ## Repro Steps
 Use the standard make targets:
