@@ -1,6 +1,6 @@
 project:
   seed: 123 # base seed for deterministic sampling and validation sampling
-  out_dir: "data/interim/stage1_pilot-dev/stage1b/iter_08b" # Stage 1b Iteration 08b outputs
+  out_dir: "data/interim/stage1_pilot-dev/stage1b/iter_08" # Stage 1b Iteration 08 outputs
 
 paths:
   interim_base: "data/interim"
