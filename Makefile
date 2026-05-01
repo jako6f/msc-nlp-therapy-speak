@@ -37,3 +37,16 @@ cc_pilot_validate:
 cc_stage1:
 	make cc_pilot
 	make cc_pilot_export
+
+cc_stage1c_scan:
+	python -m src.cli cc-scan --config configs/commoncrawl_collection.yaml
+
+cc_stage1c_export:
+	python -m src.cli cc-export --config configs/commoncrawl_collection.yaml
+
+cc_stage1c_validate:
+	python -m src.cli cc-validate --config configs/commoncrawl_collection.yaml
+
+cc_stage1c:
+	make cc_stage1c_scan
+	make cc_stage1c_export

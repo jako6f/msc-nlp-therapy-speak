@@ -1,7 +1,6 @@
-import re
-
 from src.data_sources.commoncrawl.cc_scan import (
     asd_disambiguated,
+    compile_asd_pattern,
     compile_boilerplate_patterns,
     compile_patterns,
     extract_registered_domain,
@@ -30,26 +29,34 @@ def _directory_index_thresholds():
 
 def test_regex_matching_basic():
     terms = {
-        "adhd_patterns": [r"\badhd\b"],
-        "autism_patterns": [r"autism"],
+        "adhd_patterns": [{"name": "adhd", "pattern": r"\badhd\b"}],
+        "autism_patterns": [{"name": "autism", "pattern": r"autism"}],
+        "baseline_patterns": [{"name": "worry", "pattern": r"\bworry\b"}],
     }
     patterns = compile_patterns(terms)
     text = "This discusses ADHD and autism in brief."
     matches = find_term_matches(text, patterns, None, 200)
-    labels = {label for label, _ in matches}
-    assert "adhd_patterns[0]" in labels
-    assert "autism_patterns[0]" in labels
+    labels = {term.matched_term for term, _ in matches}
+    assert "adhd" in labels
+    assert "autism" in labels
+
+    pattern_meta = {term.matched_term: (term.term_role, term.term_group) for term in patterns}
+    assert pattern_meta["adhd"] == ("target", "adhd")
+    assert pattern_meta["worry"] == ("baseline", "baseline_negative")
 
 
 def test_asd_disambiguation_window():
     text = "ASD is mentioned here, and autism appears later nearby."
-    asd_pattern = re.compile(r"\bASD\b", re.IGNORECASE)
-    match = asd_pattern.search(text)
+    asd_pattern = compile_asd_pattern(
+        {"asd_pattern": {"name": "asd", "pattern": r"\bASD\b"}}
+    )
+    assert asd_pattern is not None
+    match = asd_pattern.pattern.search(text)
     assert match is not None
     assert asd_disambiguated(text, match.span(), window=100)
 
     text_far = "ASD is mentioned here. " + ("x" * 300) + " autism"
-    match_far = asd_pattern.search(text_far)
+    match_far = asd_pattern.pattern.search(text_far)
     assert match_far is not None
     assert not asd_disambiguated(text_far, match_far.span(), window=50)
 

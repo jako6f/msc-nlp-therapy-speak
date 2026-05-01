@@ -14,12 +14,13 @@ python src/cli.py --config configs/pilot.yaml
 
 ## Configuration
 
-The default config is `configs/pilot.yaml`. It defines:
+The default Stage 1b freeze config is `configs/pilot.yaml`. The canonical Common Crawl collection config is `configs/commoncrawl_collection.yaml`. They define:
 
 - Common Crawl IDs to sample (e.g., `CC-MAIN-YYYY-WW`)
 - Sampling volume (WET files per crawl)
 - Simple filters (minimum chars, per-domain cap, disambiguation window)
 - Term patterns for ADHD/autism matching
+- Baseline term patterns for the current selected baseline set (`frustration`, `sadness`, `loneliness`)
 - Output routing for Stage-1 pilot/dev artifacts via:
   - `paths.interim_base`
   - `paths.stage1_base`
@@ -39,6 +40,7 @@ The default config is `configs/pilot.yaml`. It defines:
 Stage-1 outputs now live under `data/interim/stage1_pilot-dev/{stage1a,stage1b,stage1c}`.
 Generated report artifacts are namespaced under `reports/figures/{stage1_pilot-dev,trend,corpus}` and `reports/tables/{stage1_pilot-dev,trend,corpus}`.
 Within scan summaries, `validated_hits_wet` is the canonical WET-validated hit metric; `final_hits` is retained as a deprecated alias for backward compatibility.
+Stage 1c scan outputs also persist row-level `candidate_hits` and `validated_hits_wet` parquet tables plus a per-term diagnostics CSV.
 WARC validation metrics (`validated_hits_warc`, `validated_hits_warc_per_10k`, `warc_validation_attempted`, `warc_validation_notes`) are placeholder schema fields until Stage 1c/Stage 2 WARC validation is enabled.
 
 ## Notes

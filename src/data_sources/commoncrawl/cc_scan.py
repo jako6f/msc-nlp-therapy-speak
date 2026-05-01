@@ -7,8 +7,9 @@ import re
 import tempfile
 import time
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import pandas as pd
 import tldextract
@@ -46,6 +47,58 @@ DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS = [
     r"cursor\s+size",
     r"adhd[-\s]?friendly\s+(mode|profile)",
 ]
+
+TERM_SECTION_DEFAULTS = {
+    "adhd_patterns": {"term_role": "target", "term_group": "adhd"},
+    "autism_patterns": {"term_role": "target", "term_group": "autism"},
+    "baseline_patterns": {
+        "term_role": "baseline",
+        "term_group": "baseline_negative",
+    },
+}
+
+CANDIDATE_HIT_COLUMNS = [
+    "crawl_id",
+    "source_wet",
+    "url",
+    "registered_domain",
+    "warc_date",
+    "term_role",
+    "term_group",
+    "matched_term",
+    "term_pattern",
+    "context_snippet",
+    "doc_char_len",
+    "text_len",
+    "triage_rule_signature_hard",
+    "triage_rule_directory_index",
+    "removed_by_domaincap",
+    "is_validated_hits_wet",
+    "triage_decision",
+]
+
+REMOVED_AUDIT_FIELDS = [
+    "crawl_id",
+    "source_wet",
+    "url",
+    "registered_domain",
+    "term_role",
+    "term_group",
+    "matched_term",
+    "term_pattern",
+    "context_snippet",
+    "triage_decision",
+    "removal_reason",
+]
+
+
+@dataclass(frozen=True)
+class CompiledTerm:
+    matched_term: str
+    term_pattern: str
+    term_group: str
+    term_role: str
+    pattern: re.Pattern[str]
 
 
 def _utc_runid() -> str:
@@ -86,13 +139,70 @@ def iter_wet_records(path: Path) -> Iterable[Tuple[Optional[str], Optional[str],
             yield url, warc_date, text
 
 
-def compile_patterns(terms: Dict[str, List[str]]) -> List[Tuple[str, re.Pattern]]:
-    compiled: List[Tuple[str, re.Pattern]] = []
-    for idx, pattern in enumerate(terms.get("adhd_patterns", [])):
-        compiled.append((f"adhd_patterns[{idx}]", re.compile(pattern, re.IGNORECASE)))
-    for idx, pattern in enumerate(terms.get("autism_patterns", [])):
-        compiled.append((f"autism_patterns[{idx}]", re.compile(pattern, re.IGNORECASE)))
+def _normalize_term_spec(
+    raw_spec: Any,
+    default_name: str,
+    default_role: str,
+    default_group: str,
+) -> Tuple[str, str, str, str]:
+    if isinstance(raw_spec, str):
+        return default_name, raw_spec, default_role, default_group
+    if not isinstance(raw_spec, dict):
+        raise TypeError(
+            f"Unsupported term spec type for {default_name}: {type(raw_spec).__name__}"
+        )
+
+    matched_term = str(raw_spec.get("name", default_name)).strip() or default_name
+    term_pattern = str(raw_spec.get("pattern", "")).strip()
+    if not term_pattern:
+        raise ValueError(f"Missing term pattern for {matched_term}")
+
+    term_role = str(raw_spec.get("term_role", default_role)).strip() or default_role
+    term_group = str(raw_spec.get("term_group", default_group)).strip() or default_group
+    return matched_term, term_pattern, term_role, term_group
+
+
+def compile_patterns(terms: Dict[str, Any]) -> List[CompiledTerm]:
+    compiled: List[CompiledTerm] = []
+    for section, defaults in TERM_SECTION_DEFAULTS.items():
+        raw_specs = terms.get(section, [])
+        for idx, raw_spec in enumerate(raw_specs):
+            matched_term, term_pattern, term_role, term_group = _normalize_term_spec(
+                raw_spec=raw_spec,
+                default_name=f"{section}[{idx}]",
+                default_role=str(defaults["term_role"]),
+                default_group=str(defaults["term_group"]),
+            )
+            compiled.append(
+                CompiledTerm(
+                    matched_term=matched_term,
+                    term_pattern=term_pattern,
+                    term_group=term_group,
+                    term_role=term_role,
+                    pattern=re.compile(term_pattern, re.IGNORECASE),
+                )
+            )
     return compiled
+
+
+def compile_asd_pattern(terms: Dict[str, Any]) -> Optional[CompiledTerm]:
+    raw_spec = terms.get("asd_pattern")
+    if not raw_spec:
+        return None
+
+    matched_term, term_pattern, term_role, term_group = _normalize_term_spec(
+        raw_spec=raw_spec,
+        default_name="asd_pattern",
+        default_role="target",
+        default_group="autism",
+    )
+    return CompiledTerm(
+        matched_term=matched_term,
+        term_pattern=term_pattern,
+        term_group=term_group,
+        term_role=term_role,
+        pattern=re.compile(term_pattern, re.IGNORECASE),
+    )
 
 
 def asd_disambiguated(text: str, span: Tuple[int, int], window: int) -> bool:
@@ -104,20 +214,20 @@ def asd_disambiguated(text: str, span: Tuple[int, int], window: int) -> bool:
 
 def find_term_matches(
     text: str,
-    patterns: List[Tuple[str, re.Pattern]],
-    asd_pattern: Optional[re.Pattern],
+    patterns: List[CompiledTerm],
+    asd_pattern: Optional[CompiledTerm],
     asd_window: int,
-) -> List[Tuple[str, Tuple[int, int]]]:
-    hits: List[Tuple[str, Tuple[int, int]]] = []
-    for label, pattern in patterns:
-        match = pattern.search(text)
+) -> List[Tuple[CompiledTerm, Tuple[int, int]]]:
+    hits: List[Tuple[CompiledTerm, Tuple[int, int]]] = []
+    for term in patterns:
+        match = term.pattern.search(text)
         if match:
-            hits.append((label, match.span()))
+            hits.append((term, match.span()))
 
     if asd_pattern:
-        match = asd_pattern.search(text)
+        match = asd_pattern.pattern.search(text)
         if match and asd_disambiguated(text, match.span(), asd_window):
-            hits.append(("asd_pattern", match.span()))
+            hits.append((asd_pattern, match.span()))
 
     return hits
 
@@ -293,22 +403,13 @@ def _seed_for_run(project_seed: int, runid: str) -> int:
 def _add_removed_audit_row(
     removed_rows_by_reason: Dict[str, List[Dict[str, str]]],
     reason: str,
-    crawl_id: str,
-    url: str,
-    registered_domain: str,
-    matched_term: str,
-    context_snippet: str,
+    row: Dict[str, object],
     removal_reason: Optional[str] = None,
 ) -> None:
+    audit_row = {field: row.get(field, "") for field in REMOVED_AUDIT_FIELDS}
+    audit_row["removal_reason"] = removal_reason or reason
     removed_rows_by_reason[reason].append(
-        {
-            "crawl_id": crawl_id,
-            "url": url,
-            "registered_domain": registered_domain,
-            "matched_term": matched_term,
-            "context_snippet": context_snippet,
-            "removal_reason": removal_reason or reason,
-        }
+        {key: str(value) if value is not None else "" for key, value in audit_row.items()}
     )
 
 
@@ -336,10 +437,15 @@ def _write_removed_audit_csv(
             sampled = [
                 {
                     "crawl_id": "",
+                    "source_wet": "",
                     "url": "",
                     "registered_domain": "",
+                    "term_role": "",
+                    "term_group": "",
                     "matched_term": "",
+                    "term_pattern": "",
                     "context_snippet": "",
+                    "triage_decision": reason,
                     "removal_reason": reason,
                 }
                 for _ in range(sample_size)
@@ -361,14 +467,7 @@ def _write_removed_audit_csv(
     with audit_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=[
-                "crawl_id",
-                "url",
-                "registered_domain",
-                "matched_term",
-                "context_snippet",
-                "removal_reason",
-            ],
+            fieldnames=REMOVED_AUDIT_FIELDS,
         )
         writer.writeheader()
         writer.writerows(sampled_rows)
@@ -383,6 +482,134 @@ def _record_boilerplate_removal(
     crawl_counters[reason] += 1
     combined["removed_boilerplate_total"] += 1
     crawl_counters["removed_boilerplate_total"] += 1
+
+
+def _build_hit_row(
+    crawl_id: str,
+    source_wet: str,
+    url: str,
+    registered_domain: str,
+    warc_date: str,
+    term: CompiledTerm,
+    context_snippet: str,
+    doc_char_len: int,
+    triage_rule_signature_hard: bool,
+    triage_rule_directory_index: bool,
+    removed_by_domaincap: bool,
+    is_validated_hits_wet: bool,
+    triage_decision: str,
+) -> Dict[str, object]:
+    return {
+        "crawl_id": crawl_id,
+        "source_wet": source_wet,
+        "url": url,
+        "registered_domain": registered_domain,
+        "warc_date": warc_date,
+        "term_role": term.term_role,
+        "term_group": term.term_group,
+        "matched_term": term.matched_term,
+        "term_pattern": term.term_pattern,
+        "context_snippet": context_snippet,
+        "doc_char_len": doc_char_len,
+        "text_len": doc_char_len,
+        "triage_rule_signature_hard": triage_rule_signature_hard,
+        "triage_rule_directory_index": triage_rule_directory_index,
+        "removed_by_domaincap": removed_by_domaincap,
+        "is_validated_hits_wet": is_validated_hits_wet,
+        "triage_decision": triage_decision,
+    }
+
+
+def _write_term_summary_csv(
+    candidate_df: pd.DataFrame,
+    out_dir: Path,
+    runid: str,
+) -> Path:
+    summary_path = out_dir / f"cc_term_summary_{runid}.csv"
+    if candidate_df.empty:
+        summary_df = pd.DataFrame(
+            columns=[
+                "crawl_id",
+                "term_role",
+                "term_group",
+                "matched_term",
+                "candidate_hits",
+                "validated_hits_wet",
+                "removed_boilerplate_signature_hard",
+                "removed_boilerplate_directory_index",
+                "removed_domaincap",
+            ]
+        )
+        summary_df.to_csv(summary_path, index=False)
+        return summary_path
+
+    group_cols = ["crawl_id", "term_role", "term_group", "matched_term"]
+
+    def _summarize(df: pd.DataFrame) -> pd.DataFrame:
+        grouped = (
+            df.groupby(group_cols, dropna=False)
+            .agg(
+                candidate_hits=("matched_term", "size"),
+                validated_hits_wet=("is_validated_hits_wet", "sum"),
+                removed_boilerplate_signature_hard=(
+                    "triage_rule_signature_hard",
+                    "sum",
+                ),
+                removed_boilerplate_directory_index=(
+                    "triage_rule_directory_index",
+                    "sum",
+                ),
+                removed_domaincap=("removed_by_domaincap", "sum"),
+            )
+            .reset_index()
+        )
+        return grouped.sort_values(group_cols).reset_index(drop=True)
+
+    per_crawl = _summarize(candidate_df)
+    combined_input = candidate_df.copy()
+    combined_input["crawl_id"] = "ALL"
+    combined = _summarize(combined_input)
+    summary_df = pd.concat([per_crawl, combined], ignore_index=True)
+    summary_df.to_csv(summary_path, index=False)
+    return summary_path
+
+
+def _write_top_domains_by_term_csv(
+    validated_df: pd.DataFrame,
+    out_dir: Path,
+    runid: str,
+) -> Path:
+    path = out_dir / f"cc_scan_top_domains_by_term_{runid}.csv"
+    if validated_df.empty:
+        pd.DataFrame(
+            columns=[
+                "term_role",
+                "term_group",
+                "matched_term",
+                "registered_domain",
+                "hits",
+            ]
+        ).to_csv(path, index=False)
+        return path
+
+    filtered = validated_df[validated_df["registered_domain"].fillna("") != ""].copy()
+    top_domains_df = (
+        filtered.groupby(
+            ["term_role", "term_group", "matched_term", "registered_domain"],
+            dropna=False,
+        )
+        .size()
+        .reset_index(name="hits")
+        .sort_values(
+            ["term_role", "matched_term", "hits", "registered_domain"],
+            ascending=[True, True, False, True],
+        )
+        .groupby(["term_role", "matched_term"], group_keys=False)
+        .head(10)
+        .reset_index(drop=True)
+    )
+    top_domains_df.to_csv(path, index=False)
+    return path
 
 
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
@@ -465,10 +692,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
     terms = config["terms"]
     patterns = compile_patterns(terms)
-    asd_pattern_str = terms.get("asd_pattern")
-    asd_pattern = (
-        re.compile(asd_pattern_str, re.IGNORECASE) if asd_pattern_str else None
-    )
+    asd_pattern = compile_asd_pattern(terms)
 
     logger.info("Loaded config %s", config_path)
     logger.info("Min chars: %d", min_chars)
@@ -506,9 +730,10 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     elapsed_by_crawl: Dict[str, float] = defaultdict(float)
     domains_hits: set[str] = set()
     domain_hit_counts: Dict[Tuple[str, str], int] = defaultdict(int)
-    top_domains_counter: Counter = Counter()
+    top_domains_counter: Counter[str] = Counter()
 
-    hit_rows: List[Dict[str, str]] = []
+    candidate_rows: List[Dict[str, object]] = []
+    validated_rows: List[Dict[str, object]] = []
 
     for wet_path in wet_files:
         source_wet = wet_path.name
@@ -570,32 +795,29 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                 combined["candidate_hits"] += len(matches)
                 crawl_counters["candidate_hits"] += len(matches)
 
-                for label, span in matches:
+                for term, span in matches:
                     stored_snippet = _context_snippet(text, span, context_window_chars)
                     check_text = _context_snippet(
                         text, span, boilerplate_check_window_chars
                     )
+                    triage_rule_signature_hard = False
+                    triage_rule_directory_index = False
+                    removed_by_domaincap = False
+                    is_validated_hits_wet = False
+                    triage_decision = "validated_hits_wet"
+
                     if boilerplate_enabled:
                         if is_boilerplate_signature(
                             check_text, boilerplate_signature_hard_patterns
                         ):
+                            triage_rule_signature_hard = True
+                            triage_decision = "removed_boilerplate_signature_hard"
                             _record_boilerplate_removal(
                                 combined,
                                 crawl_counters,
                                 "removed_boilerplate_signature_hard",
                             )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_signature_hard",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                                removal_reason="boilerplate_signature_hard",
-                            )
-                            continue
-                        if (
+                        elif (
                             boilerplate_directory_index_enabled
                             and is_boilerplate_directory_index(
                                 check_text,
@@ -603,50 +825,63 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 boilerplate_directory_index_thresholds,
                             )
                         ):
+                            triage_rule_directory_index = True
+                            triage_decision = "removed_boilerplate_directory_index"
                             _record_boilerplate_removal(
                                 combined,
                                 crawl_counters,
                                 "removed_boilerplate_directory_index",
                             )
-                            _add_removed_audit_row(
-                                removed_rows_by_reason,
-                                "removed_boilerplate_directory_index",
-                                crawl_id,
-                                url or "",
-                                domain,
-                                label,
-                                stored_snippet,
-                                removal_reason="directory_index",
-                            )
-                            continue
 
-                    if domain:
+                    if triage_decision == "validated_hits_wet" and domain:
                         key = (crawl_id, domain)
                         if domain_hit_counts[key] >= domain_cap:
+                            removed_by_domaincap = True
+                            triage_decision = "removed_domaincap"
                             combined["removed_domaincap"] += 1
                             crawl_counters["removed_domaincap"] += 1
-                            continue
-                        domain_hit_counts[key] += 1
+                        else:
+                            domain_hit_counts[key] += 1
 
-                    combined["validated_hits_wet"] += 1
-                    crawl_counters["validated_hits_wet"] += 1
-                    if domain:
-                        domains_hits.add(domain)
-                        top_domains_counter[domain] += 1
+                    if triage_decision == "validated_hits_wet":
+                        is_validated_hits_wet = True
+                        combined["validated_hits_wet"] += 1
+                        crawl_counters["validated_hits_wet"] += 1
+                        if domain:
+                            domains_hits.add(domain)
+                            top_domains_counter[domain] += 1
 
                     write_start = time.perf_counter()
-                    hit_rows.append(
-                        {
-                            "crawl_id": crawl_id,
-                            "source_wet": source_wet,
-                            "url": url or "",
-                            "registered_domain": domain,
-                            "warc_date": warc_date or "",
-                            "matched_term": label,
-                            "context_snippet": stored_snippet,
-                            "text_len": text_len,
-                        }
+                    row = _build_hit_row(
+                        crawl_id=crawl_id,
+                        source_wet=source_wet,
+                        url=url or "",
+                        registered_domain=domain,
+                        warc_date=warc_date or "",
+                        term=term,
+                        context_snippet=stored_snippet,
+                        doc_char_len=text_len,
+                        triage_rule_signature_hard=triage_rule_signature_hard,
+                        triage_rule_directory_index=triage_rule_directory_index,
+                        removed_by_domaincap=removed_by_domaincap,
+                        is_validated_hits_wet=is_validated_hits_wet,
+                        triage_decision=triage_decision,
                     )
+                    candidate_rows.append(row)
+                    if is_validated_hits_wet:
+                        validated_rows.append(row)
+                    elif triage_decision.startswith("removed_boilerplate_"):
+                        removal_reason = (
+                            "signature_hard"
+                            if triage_decision == "removed_boilerplate_signature_hard"
+                            else "directory_index"
+                        )
+                        _add_removed_audit_row(
+                            removed_rows_by_reason,
+                            triage_decision,
+                            row,
+                            removal_reason=removal_reason,
+                        )
                     write_elapsed = time.perf_counter() - write_start
                     combined_timings["time_write_sec"] += write_elapsed
                     crawl_timings["time_write_sec"] += write_elapsed
@@ -658,7 +893,9 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
     summary_path = out_dir / f"cc_scan_summary_{runid}.csv"
     top_domains_path = out_dir / f"cc_scan_top_domains_{runid}.csv"
-    parquet_path = out_dir / f"cc_pilot_corpus_{runid}.parquet"
+    candidate_hits_path = out_dir / f"cc_candidate_hits_{runid}.parquet"
+    validated_hits_wet_path = out_dir / f"cc_validated_hits_wet_{runid}.parquet"
+    legacy_parquet_path = out_dir / f"cc_pilot_corpus_{runid}.parquet"
 
     write_start = time.perf_counter()
     with top_domains_path.open("w", newline="", encoding="utf-8") as f:
@@ -669,23 +906,29 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     write_elapsed = time.perf_counter() - write_start
     combined_timings["time_write_sec"] += write_elapsed
 
-    df = pd.DataFrame(
-        hit_rows,
-        columns=[
-            "crawl_id",
-            "source_wet",
-            "url",
-            "registered_domain",
-            "warc_date",
-            "matched_term",
-            "context_snippet",
-            "text_len",
-        ],
-    )
+    candidate_df = pd.DataFrame(candidate_rows, columns=CANDIDATE_HIT_COLUMNS)
+    validated_df = pd.DataFrame(validated_rows, columns=CANDIDATE_HIT_COLUMNS)
     write_start = time.perf_counter()
-    df.to_parquet(parquet_path, index=False)
+    candidate_df.to_parquet(candidate_hits_path, index=False)
+    validated_df.to_parquet(validated_hits_wet_path, index=False)
+    validated_df.to_parquet(legacy_parquet_path, index=False)
     write_elapsed = time.perf_counter() - write_start
     combined_timings["time_write_sec"] += write_elapsed
+
+    write_start = time.perf_counter()
+    term_summary_path = _write_term_summary_csv(candidate_df, out_dir, runid)
+    top_domains_by_term_path = _write_top_domains_by_term_csv(validated_df, out_dir, runid)
+    write_elapsed = time.perf_counter() - write_start
+    combined_timings["time_write_sec"] += write_elapsed
+
+    candidate_hits_by_role = (
+        candidate_df.groupby("term_role").size().to_dict() if not candidate_df.empty else {}
+    )
+    validated_hits_wet_by_role = (
+        validated_df.groupby("term_role").size().to_dict()
+        if not validated_df.empty
+        else {}
+    )
 
     total_elapsed_sec = time.perf_counter() - scan_start
     docs_per_sec = (
@@ -757,6 +1000,46 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         ),
     ]
     summary_rows.extend(_warc_validation_placeholder_rows())
+    summary_rows.extend(
+        [
+            _summary_row(
+                "candidate_hits_path",
+                str(candidate_hits_path),
+                "Parquet table containing row-level candidate hits before Stage 1b triage removal.",
+            ),
+            _summary_row(
+                "validated_hits_wet_path",
+                str(validated_hits_wet_path),
+                "Parquet table containing row-level WET-validated hits after Stage 1b triage.",
+            ),
+            _summary_row(
+                "term_summary_path",
+                str(term_summary_path),
+                "CSV table containing per-term candidate and removal diagnostics.",
+            ),
+            _summary_row(
+                "top_domains_by_term_path",
+                str(top_domains_by_term_path),
+                "CSV table containing per-term top registered domains for validated WET hits.",
+            ),
+        ]
+    )
+
+    for term_role in ("target", "baseline"):
+        summary_rows.extend(
+            [
+                _summary_row(
+                    f"term_role.{term_role}.candidate_hits",
+                    int(candidate_hits_by_role.get(term_role, 0)),
+                    f"Candidate hits attributed to term_role={term_role}.",
+                ),
+                _summary_row(
+                    f"term_role.{term_role}.validated_hits_wet",
+                    int(validated_hits_wet_by_role.get(term_role, 0)),
+                    f"WET-validated hits attributed to term_role={term_role}.",
+                ),
+            ]
+        )
 
     for field in TIMING_FIELDS:
         summary_rows.append(
@@ -889,7 +1172,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
     logger.info("Wrote summary %s", summary_path)
     logger.info("Wrote top domains %s", top_domains_path)
-    logger.info("Wrote corpus %s", parquet_path)
+    logger.info("Wrote candidate hits %s", candidate_hits_path)
+    logger.info("Wrote validated hits %s", validated_hits_wet_path)
+    logger.info("Wrote legacy corpus alias %s", legacy_parquet_path)
+    logger.info("Wrote term summary %s", term_summary_path)
+    logger.info("Wrote top domains by term %s", top_domains_by_term_path)
     logger.info("Wrote removed-audit sample %s", removed_audit_path)
     logger.info("validated_hits_warc=%s", "NA")
     logger.info("warc_validation_attempted=%s", False)

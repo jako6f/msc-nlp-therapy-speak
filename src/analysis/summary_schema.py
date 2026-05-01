@@ -1,11 +1,12 @@
 from typing import Any, Dict, Optional
+import math
 
 
 def _as_optional_float(value: Any) -> Optional[float]:
     if value is None:
         return None
     if isinstance(value, float):
-        return value
+        return None if math.isnan(value) else value
     value_str = str(value).strip()
     if value_str == "" or value_str.lower() in {"none", "na", "nan", "null"}:
         return None

@@ -28,6 +28,13 @@ def _load_summary(summary_path: Path) -> Dict[str, object]:
     return with_warc_metric_defaults(dict(zip(df["metric"], df["value"])))
 
 
+def _validated_hits_wet_path(interim_dir: Path, runid: str) -> Path:
+    canonical = interim_dir / f"cc_validated_hits_wet_{runid}.parquet"
+    if canonical.exists():
+        return canonical
+    return interim_dir / f"cc_pilot_corpus_{runid}.parquet"
+
+
 def _write_latex_table(path: Path, lines: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n")
@@ -53,7 +60,7 @@ def export_tables_and_figures(config: Dict, interim_dir: Path) -> Tuple[Path, Pa
     runid = _latest_runid(interim_dir)
     summary_path = interim_dir / f"cc_scan_summary_{runid}.csv"
     top_domains_path = interim_dir / f"cc_scan_top_domains_{runid}.csv"
-    corpus_path = interim_dir / f"cc_pilot_corpus_{runid}.parquet"
+    corpus_path = _validated_hits_wet_path(interim_dir, runid)
 
     summary = _load_summary(summary_path)
     validated_hits_wet = int(

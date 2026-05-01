@@ -63,6 +63,13 @@ def _latest_by_runid(interim_dir: Path, prefix: str, suffix: str) -> Tuple[str, 
     return latest_runid, latest_path
 
 
+def _latest_validated_hits_wet(interim_dir: Path) -> Tuple[str, Path]:
+    try:
+        return _latest_by_runid(interim_dir, "cc_validated_hits_wet_", ".parquet")
+    except FileNotFoundError:
+        return _latest_by_runid(interim_dir, "cc_pilot_corpus_", ".parquet")
+
+
 def _seed_for_run(project_seed: int, runid: str) -> int:
     digest = hashlib.sha256(f"{project_seed}:{runid}".encode("utf-8")).hexdigest()
     return int(digest[:8], 16)
@@ -215,9 +222,7 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     interim_dir = stage1_output_dir(config, default_stage="stage1b")
     project_seed = int(config.get("project", {}).get("seed", 0))
 
-    corpus_runid, corpus_path = _latest_by_runid(
-        interim_dir, "cc_pilot_corpus_", ".parquet"
-    )
+    corpus_runid, corpus_path = _latest_validated_hits_wet(interim_dir)
     top_domains_path = interim_dir / f"cc_scan_top_domains_{corpus_runid}.csv"
     if not top_domains_path.exists():
         domains_runid, top_domains_path = _latest_by_runid(
