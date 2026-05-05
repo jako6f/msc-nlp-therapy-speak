@@ -304,12 +304,10 @@ Reason for exclusions (short form):
 - `tiredness`: too sparse and too symptom-oriented for the intended comparator role
 
 ### 8.6 Stage 1c outputs
-- Canonical collection config:
-  - `configs/commoncrawl_collection.yaml`
+- Active Stage 1c freeze config:
+  - `configs/stage1c_freeze.yaml`
 - Baseline candidate scan tables under:
   - `data/interim/stage1_pilot-dev/stage1c/…`
-- Baseline diagnostics tables/figures under:
-  - `reports/{figures,tables}/stage1_pilot-dev/…`
 - A short baseline decision note documenting:
   - final selected baseline terms;
   - excluded candidates and reasons;
@@ -471,28 +469,32 @@ Layout:
   - `data_sources/commoncrawl/` — WET sampling/scanning/triage + (Stage 1d+) WARC pointers/enrichment.
   - `analysis/` — downstream analyses consuming processed outputs.
   - `cli.py` — stable CLI entrypoints (sample/acquire/scan/validate/export).
-- `configs/` — versioned run configs (crawl IDs, seed, K/M, regex, baseline terms, ASD window, domain cap, stage flags). Current canonical collection config: `configs/commoncrawl_collection.yaml`.
+- `configs/` — versioned run configs (crawl IDs, seed, K/M, regex, baseline terms, ASD window, domain cap, stage flags).
+  - Stage-scoped freeze configs should follow:
+    - `configs/stage1b_freeze.yaml`
+    - `configs/stage1c_freeze.yaml`
+    - `configs/stage1d_freeze.yaml` (when Stage 1d is implemented)
+  - Reserve `configs/commoncrawl_collection.yaml` for the post-Stage-1 collection freeze that will drive Stage 2.
 - `data/`
   - `raw/` — immutable inputs (e.g., `.wet.gz` downloaded in Stage 1). **Untracked.**
   - `manifests/` — JSONL sampling provenance (seed, crawl ID, sampled paths, timestamps). **Tracked.**
   - `interim/` — working outputs (untracked; stage-namespaced).
   - `processed/` — production datasets (untracked; track only small “release” subsets if needed).
 - `reports/`
-  - `figures/`, `tables/` — code-generated artifacts included in LaTeX (track only compact finals).
+  - strategy notes and supporting report materials.
   - `logs/` — run logs (untracked).
-- `paper/` — Trinity template + dissertation content; includes `reports/` outputs by path (no copy–paste).
+- `paper/` — Trinity template + dissertation content.
 - `notebooks/` — exploration only; stable logic is promoted into `src/` to avoid notebook sprawl.
 
 ### 13.2 Execution workflow (repeatable “daily loop”)
 Runs are executed via CLI entrypoints (not ad-hoc notebooks):
-1) Set run parameters in `configs/*.yaml` (crawl IDs, seed, K/M, regex, baseline terms, caps).
+1) Set run parameters in the relevant stage-scoped `configs/*.yaml` file (crawl IDs, seed, K/M, regex, baseline terms, caps).
 2) **Sample** WET paths → write manifest JSONL to `data/manifests/` (tracked).
 3) **Acquire** WET files (Stage 1: download to `data/raw/`; Stage 2: stream in-region).
 4) **Scan** WET → doc denominators + candidate hits/snippets (`data/interim/…`).
 5) **Validate (Stage 1b/1c)** → `validated_hits_wet` + removal diagnostics.
 6) **Enrich (Stage 1d+)** → add `capture_ts`, WARC pointers, attempt `published_ts`.
-7) **Export** tables/figures to `reports/{tables,figures}/…` for LaTeX inclusion (no copy–paste).
-8) Compile `paper/` and commit code/config/manifests (+ compact final report artifacts).
+7) Compile `paper/` and commit code/config/manifests.
 
 ### 13.3 Directory conventions (Stage 1)
 - Stage outputs (untracked):
@@ -500,12 +502,9 @@ Runs are executed via CLI entrypoints (not ad-hoc notebooks):
   - `data/interim/stage1_pilot-dev/stage1b/…`
   - `data/interim/stage1_pilot-dev/stage1c/…`
   - `data/interim/stage1_pilot-dev/stage1d/…`
-- Report artifacts:
-  - `reports/figures/stage1_pilot-dev/…`
-  - `reports/tables/stage1_pilot-dev/…`
 
 ### 13.4 Tracked vs untracked
-**Tracked:** `src/`, `configs/`, `paper/`, `data/manifests/`, and small final artifacts in `reports/{figures,tables}/…`.
+**Tracked:** `src/`, `configs/`, `paper/`, `data/manifests/`, and selected report notes/materials as needed.
 **Untracked:** `data/raw/`, `data/interim/`, `data/processed/`, `reports/logs/`, caches/notebook checkpoints, and secrets (e.g., `.env`).
 
 ### 13.5 Immutable raw data rule
@@ -515,7 +514,12 @@ Anything under `data/raw/` is treated as immutable input (never edited in place)
 Every sampling action writes a manifest (JSONL) capturing crawl IDs, sampled paths, seed, timestamp, and source URLs. Manifests are tracked.
 
 ### 13.7 Makefile discipline
-- A minimal `Makefile` provides one-command entrypoints for `sample`, `acquire`, `scan`, `validate`, `export`, and `paper` builds (reduces run divergence and errors).
+- A minimal `Makefile` provides one-command entrypoints for routine pipeline actions (`sample`, `download`, `acquire`, `scan`, `validate`, `process`, `run`) and paper builds (reduces run divergence and errors).
+- Stage-scoped freeze targets should mirror the stage config name:
+  - `cc_stage1b_freeze_*` ↔ `configs/stage1b_freeze.yaml`
+  - `cc_stage1c_freeze_*` ↔ `configs/stage1c_freeze.yaml`
+  - `cc_stage1d_freeze_*` ↔ `configs/stage1d_freeze.yaml` (when Stage 1d is implemented)
+- Reserve `cc_collection_*` for the post-Stage-1 collection workflow that will pair with `configs/commoncrawl_collection.yaml`.
 
 ---
 

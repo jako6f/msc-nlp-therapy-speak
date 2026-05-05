@@ -57,6 +57,12 @@ TERM_SECTION_DEFAULTS = {
     },
 }
 
+DEPRECATED_SUMMARY_METRICS = (
+    "final_hits",
+    "hits_total",
+    "final_per_10k",
+)
+
 CANDIDATE_HIT_COLUMNS = [
     "crawl_id",
     "source_wet",
@@ -612,6 +618,199 @@ def _write_top_domains_by_term_csv(
     return path
 
 
+def _build_scan_summary_rows(
+    combined: Dict[str, int],
+    docs_per_sec: float,
+    total_elapsed_sec: float,
+    candidate_hits_path: Path,
+    validated_hits_wet_path: Path,
+    term_summary_path: Path,
+    top_domains_by_term_path: Path,
+    candidate_hits_by_role: Dict[str, int],
+    validated_hits_wet_by_role: Dict[str, int],
+    combined_timings: Dict[str, float],
+    boilerplate_reasons: List[str],
+    counters_by_crawl: Dict[str, Dict[str, int]],
+    elapsed_by_crawl: Dict[str, float],
+    docs_per_sec_by_crawl: Dict[str, float],
+) -> List[List[object]]:
+    removed_total = combined["removed_boilerplate_total"] + combined["removed_domaincap"]
+
+    summary_rows: List[List[object]] = [
+        _summary_row(
+            "docs_scanned",
+            combined["docs_scanned"],
+            "Total conversion documents scanned across all crawl slices.",
+        ),
+        _summary_row(
+            "docs_minlen",
+            combined["docs_minlen"],
+            "Documents that passed the minimum character-length filter.",
+        ),
+        _summary_row(
+            "candidate_hits",
+            combined["candidate_hits"],
+            "Term matches before downstream filtering and domain caps.",
+        ),
+        _summary_row(
+            "validated_hits_wet",
+            combined["validated_hits_wet"],
+            "Rows retained after WET filtering and domain-cap enforcement.",
+        ),
+        _summary_row(
+            "candidate_per_10k",
+            round(_rate_per(combined["candidate_hits"], combined["docs_scanned"], 10_000), 6),
+            "Combined candidate hit rate per 10,000 scanned documents.",
+        ),
+        _summary_row(
+            "validated_hits_wet_per_10k",
+            round(
+                _rate_per(combined["validated_hits_wet"], combined["docs_scanned"], 10_000),
+                6,
+            ),
+            "Combined WET-validated hit rate per 10,000 scanned documents.",
+        ),
+        _summary_row(
+            "removed_domaincap",
+            combined["removed_domaincap"],
+            "Candidate matches removed because the per-domain cap was reached.",
+        ),
+        _summary_row(
+            "removed_total",
+            removed_total,
+            "Total removed candidates (domain-cap plus all boilerplate rules).",
+        ),
+        _summary_row(
+            "docs_per_sec",
+            round(docs_per_sec, 6),
+            "Overall scan throughput in scanned documents per second.",
+        ),
+        _summary_row(
+            "total_elapsed_sec",
+            round(total_elapsed_sec, 6),
+            "Total wall-clock time for the scan stage in seconds.",
+        ),
+    ]
+    summary_rows.extend(_warc_validation_placeholder_rows())
+    summary_rows.extend(
+        [
+            _summary_row(
+                "candidate_hits_path",
+                str(candidate_hits_path),
+                "Parquet table containing row-level candidate hits before Stage 1b triage removal.",
+            ),
+            _summary_row(
+                "validated_hits_wet_path",
+                str(validated_hits_wet_path),
+                "Parquet table containing row-level WET-validated hits after Stage 1b triage.",
+            ),
+            _summary_row(
+                "term_summary_path",
+                str(term_summary_path),
+                "CSV table containing per-term candidate and removal diagnostics.",
+            ),
+            _summary_row(
+                "top_domains_by_term_path",
+                str(top_domains_by_term_path),
+                "CSV table containing per-term top registered domains for validated WET hits.",
+            ),
+        ]
+    )
+
+    for term_role in ("target", "baseline"):
+        summary_rows.extend(
+            [
+                _summary_row(
+                    f"term_role.{term_role}.candidate_hits",
+                    int(candidate_hits_by_role.get(term_role, 0)),
+                    f"Candidate hits attributed to term_role={term_role}.",
+                ),
+                _summary_row(
+                    f"term_role.{term_role}.validated_hits_wet",
+                    int(validated_hits_wet_by_role.get(term_role, 0)),
+                    f"WET-validated hits attributed to term_role={term_role}.",
+                ),
+            ]
+        )
+
+    for field in TIMING_FIELDS:
+        summary_rows.append(
+            _summary_row(
+                field,
+                round(combined_timings[field], 6),
+                "Combined coarse timing for this processing stage in seconds.",
+            )
+        )
+
+    for reason in boilerplate_reasons:
+        summary_rows.append(
+            _summary_row(
+                reason,
+                combined[reason],
+                "Combined removals triggered by this specific boilerplate rule.",
+            )
+        )
+
+    summary_rows.append(
+        _summary_row(
+            "removed_boilerplate_total",
+            combined["removed_boilerplate_total"],
+            "Combined total removals from all boilerplate rules.",
+        )
+    )
+
+    for crawl_id in sorted(counters_by_crawl):
+        slice_docs_scanned = counters_by_crawl[crawl_id]["docs_scanned"]
+        slice_candidate_hits = counters_by_crawl[crawl_id]["candidate_hits"]
+        slice_validated_hits_wet = counters_by_crawl[crawl_id]["validated_hits_wet"]
+        prefix = f"slice.{crawl_id}"
+        summary_rows.extend(
+            [
+                _summary_row(
+                    f"{prefix}.docs_scanned",
+                    slice_docs_scanned,
+                    "Slice-level scanned documents for this crawl_id.",
+                ),
+                _summary_row(
+                    f"{prefix}.candidate_hits",
+                    slice_candidate_hits,
+                    "Slice-level candidate matches before final filtering.",
+                ),
+                _summary_row(
+                    f"{prefix}.validated_hits_wet",
+                    slice_validated_hits_wet,
+                    "Slice-level WET-validated retained hits after filtering.",
+                ),
+                _summary_row(
+                    f"{prefix}.candidate_per_10k",
+                    round(_rate_per(slice_candidate_hits, slice_docs_scanned, 10_000), 6),
+                    "Slice-level candidate hit rate per 10,000 scanned documents.",
+                ),
+                _summary_row(
+                    f"{prefix}.validated_hits_wet_per_10k",
+                    round(
+                        _rate_per(slice_validated_hits_wet, slice_docs_scanned, 10_000),
+                        6,
+                    ),
+                    "Slice-level WET-validated hit rate per 10,000 scanned documents.",
+                ),
+                _summary_row(
+                    f"{prefix}.total_elapsed_sec",
+                    round(elapsed_by_crawl.get(crawl_id, 0.0), 6),
+                    "Slice-level wall-clock elapsed time in seconds.",
+                ),
+                _summary_row(
+                    f"{prefix}.docs_per_sec",
+                    round(docs_per_sec_by_crawl.get(crawl_id, 0.0), 6),
+                    "Slice-level throughput in scanned documents per second.",
+                ),
+            ]
+        )
+        summary_rows.extend(_warc_validation_placeholder_rows(prefix=prefix))
+
+    return summary_rows
+
+
 def scan_wet_files(config: Dict, config_path: Path) -> Path:
     scan_start = time.perf_counter()
     runid = _utc_runid()
@@ -895,7 +1094,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     top_domains_path = out_dir / f"cc_scan_top_domains_{runid}.csv"
     candidate_hits_path = out_dir / f"cc_candidate_hits_{runid}.parquet"
     validated_hits_wet_path = out_dir / f"cc_validated_hits_wet_{runid}.parquet"
-    legacy_parquet_path = out_dir / f"cc_pilot_corpus_{runid}.parquet"
 
     write_start = time.perf_counter()
     with top_domains_path.open("w", newline="", encoding="utf-8") as f:
@@ -911,7 +1109,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     write_start = time.perf_counter()
     candidate_df.to_parquet(candidate_hits_path, index=False)
     validated_df.to_parquet(validated_hits_wet_path, index=False)
-    validated_df.to_parquet(legacy_parquet_path, index=False)
     write_elapsed = time.perf_counter() - write_start
     combined_timings["time_write_sec"] += write_elapsed
 
@@ -942,216 +1139,22 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         )
         for crawl_id, counters in counters_by_crawl.items()
     }
-    removed_total = combined["removed_boilerplate_total"] + combined["removed_domaincap"]
-
-    summary_rows: List[List[object]] = [
-        _summary_row(
-            "docs_scanned",
-            combined["docs_scanned"],
-            "Total conversion documents scanned across all crawl slices.",
-        ),
-        _summary_row(
-            "docs_minlen",
-            combined["docs_minlen"],
-            "Documents that passed the minimum character-length filter.",
-        ),
-        _summary_row(
-            "candidate_hits",
-            combined["candidate_hits"],
-            "Term matches before downstream filtering and domain caps.",
-        ),
-        _summary_row(
-            "validated_hits_wet",
-            combined["validated_hits_wet"],
-            "Rows retained after WET filtering and domain-cap enforcement.",
-        ),
-        _summary_row(
-            "candidate_per_10k",
-            round(_rate_per(combined["candidate_hits"], combined["docs_scanned"], 10_000), 6),
-            "Combined candidate hit rate per 10,000 scanned documents.",
-        ),
-        _summary_row(
-            "validated_hits_wet_per_10k",
-            round(
-                _rate_per(combined["validated_hits_wet"], combined["docs_scanned"], 10_000),
-                6,
-            ),
-            "Combined WET-validated hit rate per 10,000 scanned documents.",
-        ),
-        _summary_row(
-            "removed_domaincap",
-            combined["removed_domaincap"],
-            "Candidate matches removed because the per-domain cap was reached.",
-        ),
-        _summary_row(
-            "removed_total",
-            removed_total,
-            "Total removed candidates (domain-cap plus all boilerplate rules).",
-        ),
-        _summary_row(
-            "docs_per_sec",
-            round(docs_per_sec, 6),
-            "Overall scan throughput in scanned documents per second.",
-        ),
-        _summary_row(
-            "total_elapsed_sec",
-            round(total_elapsed_sec, 6),
-            "Total wall-clock time for the scan stage in seconds.",
-        ),
-    ]
-    summary_rows.extend(_warc_validation_placeholder_rows())
-    summary_rows.extend(
-        [
-            _summary_row(
-                "candidate_hits_path",
-                str(candidate_hits_path),
-                "Parquet table containing row-level candidate hits before Stage 1b triage removal.",
-            ),
-            _summary_row(
-                "validated_hits_wet_path",
-                str(validated_hits_wet_path),
-                "Parquet table containing row-level WET-validated hits after Stage 1b triage.",
-            ),
-            _summary_row(
-                "term_summary_path",
-                str(term_summary_path),
-                "CSV table containing per-term candidate and removal diagnostics.",
-            ),
-            _summary_row(
-                "top_domains_by_term_path",
-                str(top_domains_by_term_path),
-                "CSV table containing per-term top registered domains for validated WET hits.",
-            ),
-        ]
+    summary_rows = _build_scan_summary_rows(
+        combined=combined,
+        docs_per_sec=docs_per_sec,
+        total_elapsed_sec=total_elapsed_sec,
+        candidate_hits_path=candidate_hits_path,
+        validated_hits_wet_path=validated_hits_wet_path,
+        term_summary_path=term_summary_path,
+        top_domains_by_term_path=top_domains_by_term_path,
+        candidate_hits_by_role=candidate_hits_by_role,
+        validated_hits_wet_by_role=validated_hits_wet_by_role,
+        combined_timings=combined_timings,
+        boilerplate_reasons=boilerplate_reasons,
+        counters_by_crawl=counters_by_crawl,
+        elapsed_by_crawl=elapsed_by_crawl,
+        docs_per_sec_by_crawl=docs_per_sec_by_crawl,
     )
-
-    for term_role in ("target", "baseline"):
-        summary_rows.extend(
-            [
-                _summary_row(
-                    f"term_role.{term_role}.candidate_hits",
-                    int(candidate_hits_by_role.get(term_role, 0)),
-                    f"Candidate hits attributed to term_role={term_role}.",
-                ),
-                _summary_row(
-                    f"term_role.{term_role}.validated_hits_wet",
-                    int(validated_hits_wet_by_role.get(term_role, 0)),
-                    f"WET-validated hits attributed to term_role={term_role}.",
-                ),
-            ]
-        )
-
-    for field in TIMING_FIELDS:
-        summary_rows.append(
-            _summary_row(
-                field,
-                round(combined_timings[field], 6),
-                "Combined coarse timing for this processing stage in seconds.",
-            )
-        )
-
-    for reason in boilerplate_reasons:
-        summary_rows.append(
-            _summary_row(
-                reason,
-                combined[reason],
-                "Combined removals triggered by this specific boilerplate rule.",
-            )
-        )
-
-    summary_rows.append(
-        _summary_row(
-            "final_hits",
-            combined["validated_hits_wet"],
-            "Deprecated alias for validated_hits_wet.",
-        )
-    )
-    summary_rows.append(
-        _summary_row(
-            "hits_total",
-            combined["validated_hits_wet"],
-            "Deprecated alias for validated_hits_wet.",
-        )
-    )
-    summary_rows.append(
-        _summary_row(
-            "final_per_10k",
-            round(
-                _rate_per(combined["validated_hits_wet"], combined["docs_scanned"], 10_000),
-                6,
-            ),
-            "Deprecated alias for validated_hits_wet_per_10k.",
-        )
-    )
-    summary_rows.append(
-        _summary_row(
-            "removed_boilerplate_total",
-            combined["removed_boilerplate_total"],
-            "Combined total removals from all boilerplate rules.",
-        )
-    )
-
-    for crawl_id in sorted(counters_by_crawl):
-        slice_docs_scanned = counters_by_crawl[crawl_id]["docs_scanned"]
-        slice_candidate_hits = counters_by_crawl[crawl_id]["candidate_hits"]
-        slice_validated_hits_wet = counters_by_crawl[crawl_id]["validated_hits_wet"]
-        prefix = f"slice.{crawl_id}"
-        summary_rows.extend(
-            [
-                _summary_row(
-                    f"{prefix}.docs_scanned",
-                    slice_docs_scanned,
-                    "Slice-level scanned documents for this crawl_id.",
-                ),
-                _summary_row(
-                    f"{prefix}.candidate_hits",
-                    slice_candidate_hits,
-                    "Slice-level candidate matches before final filtering.",
-                ),
-                _summary_row(
-                    f"{prefix}.validated_hits_wet",
-                    slice_validated_hits_wet,
-                    "Slice-level WET-validated retained hits after filtering.",
-                ),
-                _summary_row(
-                    f"{prefix}.candidate_per_10k",
-                    round(_rate_per(slice_candidate_hits, slice_docs_scanned, 10_000), 6),
-                    "Slice-level candidate hit rate per 10,000 scanned documents.",
-                ),
-                _summary_row(
-                    f"{prefix}.validated_hits_wet_per_10k",
-                    round(
-                        _rate_per(slice_validated_hits_wet, slice_docs_scanned, 10_000),
-                        6,
-                    ),
-                    "Slice-level WET-validated hit rate per 10,000 scanned documents.",
-                ),
-                _summary_row(
-                    f"{prefix}.final_hits",
-                    slice_validated_hits_wet,
-                    "Deprecated alias for slice validated_hits_wet.",
-                ),
-                _summary_row(
-                    f"{prefix}.final_per_10k",
-                    round(
-                        _rate_per(slice_validated_hits_wet, slice_docs_scanned, 10_000),
-                        6,
-                    ),
-                    "Deprecated alias for slice validated_hits_wet_per_10k.",
-                ),
-                _summary_row(
-                    f"{prefix}.total_elapsed_sec",
-                    round(elapsed_by_crawl.get(crawl_id, 0.0), 6),
-                    "Slice-level wall-clock elapsed time in seconds.",
-                ),
-                _summary_row(
-                    f"{prefix}.docs_per_sec",
-                    round(docs_per_sec_by_crawl.get(crawl_id, 0.0), 6),
-                    "Slice-level throughput in scanned documents per second.",
-                ),
-            ]
-        )
-        summary_rows.extend(_warc_validation_placeholder_rows(prefix=prefix))
 
     write_start = time.perf_counter()
     with summary_path.open("w", newline="", encoding="utf-8") as f:
@@ -1174,7 +1177,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Wrote top domains %s", top_domains_path)
     logger.info("Wrote candidate hits %s", candidate_hits_path)
     logger.info("Wrote validated hits %s", validated_hits_wet_path)
-    logger.info("Wrote legacy corpus alias %s", legacy_parquet_path)
     logger.info("Wrote term summary %s", term_summary_path)
     logger.info("Wrote top domains by term %s", top_domains_by_term_path)
     logger.info("Wrote removed-audit sample %s", removed_audit_path)

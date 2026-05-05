@@ -7,9 +7,21 @@ It is intentionally not a precision-grade boilerplate filter; it is a pragmatic 
 ## Final Frozen Rule Stack
 Only 2 boilerplate rules are kept:
 1. `signature_hard`
+  - **What it is:** a list of regular expressions that represent high-confidence UI/chrome fragments (cookie banners, accessibility widgets, ecommerce chrome, skip-links, etc.)
 2. `directory_index`
+  - **What it is:** 
+    - a structural heuristic that tries to detect directory/index pages (e.g., category listings, navigation-heavy medical indexes)
+    - besides lexicon hits it used signals such as separator density, low sentence-terminator rate (.!?), lots of title-case words, etc. 
+    - each satisfied condition increments a score; the default score_threshold is 4
 
-All other Stage 1b boilerplate rules were removed at freeze time.
+All other Stage 1b boilerplate rules were removed at freeze time. Removed filters included:
+- signature_soft_* (soft UI tokens with min-hit threshold)
+- Density rule (any “low-content density” heuristics)
+- Generic listiness/taxonomy detection (listiness_*, “short fragments / separator density” as a standalone rule)
+- Explicit condition-index detector (condition_index_* markers/thresholds)
+- Navigation-lexicon density scoring (nav_lexicon_*)
+- Commerce-page detection (commerce_*)
+- Topic-hub/archive/category cleanup (topic_hub_*)
 
 ## Final Key Parameters
 - `boilerplate.check_window_chars = 2000` (window used only for boilerplate checks)
@@ -29,8 +41,8 @@ All other Stage 1b boilerplate rules were removed at freeze time.
 Use the standard make targets:
 
 ```bash
-make cc_pilot_scan
-make cc_pilot_validate
+make cc_stage1b_freeze_scan
+make cc_stage1b_freeze_validate
 ```
 
 ## Stop-Tuning Rationale

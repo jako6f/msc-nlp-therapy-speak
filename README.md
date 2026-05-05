@@ -1,6 +1,6 @@
 # msc-nlp-therapy-speak
 
-Research repo for building a pilot NLP pipeline that samples and filters Common Crawl text related to mental‑health terms (e.g., ADHD/autism) for downstream analysis. This repo currently contains a minimal CLI and configuration to validate data access, sampling, and pilot scan exports for the Appendix.
+Research repo for building a pilot NLP pipeline that samples and filters Common Crawl text related to mental‑health terms (e.g., ADHD/autism) for downstream analysis. This repo currently contains a minimal CLI and configuration to validate data access, sampling, and Stage 1 scan diagnostics.
 
 **Status**: early pilot / scaffolding.
 
@@ -9,12 +9,17 @@ Research repo for building a pilot NLP pipeline that samples and filters Common 
 ```bash
 conda env create -f environment.yml
 conda activate msc-nlp
-python src/cli.py --config configs/pilot.yaml
+python -m src.cli cc-scan --config configs/stage1c_freeze.yaml
 ```
 
 ## Configuration
 
-The default Stage 1b freeze config is `configs/pilot.yaml`. The canonical Common Crawl collection config is `configs/commoncrawl_collection.yaml`. They define:
+Stage-scoped configs are kept separately. The current repo state includes:
+
+- `configs/stage1b_freeze.yaml` — historical Stage 1b freeze reproduction
+- `configs/stage1c_freeze.yaml` — active Stage 1c freeze workflow
+
+All stage configs define:
 
 - Common Crawl IDs to sample (e.g., `CC-MAIN-YYYY-WW`)
 - Sampling volume (WET files per crawl)
@@ -24,22 +29,18 @@ The default Stage 1b freeze config is `configs/pilot.yaml`. The canonical Common
 - Output routing for Stage-1 pilot/dev artifacts via:
   - `paths.interim_base`
   - `paths.stage1_base`
-  - `paths.reports_figures_base`
-  - `paths.reports_tables_base`
   - `run_context.stage` / `run_context.track`
 
 ## Project Layout
 
 - `src/cli.py` — minimal CLI that loads a config and prints key fields
 - `src/data_sources/commoncrawl/` — placeholder package for Common Crawl logic
-- `configs/` — YAML configs for pilot runs
+- `configs/` — stage-scoped YAML configs plus small historical notes
 - `notebooks/` — exploratory notebooks
 - `data/` — data outputs (not committed)
-- `tests/` — test scaffolding (empty)
 
 Stage-1 outputs now live under `data/interim/stage1_pilot-dev/{stage1a,stage1b,stage1c}`.
-Generated report artifacts are namespaced under `reports/figures/{stage1_pilot-dev,trend,corpus}` and `reports/tables/{stage1_pilot-dev,trend,corpus}`.
-Within scan summaries, `validated_hits_wet` is the canonical WET-validated hit metric; `final_hits` is retained as a deprecated alias for backward compatibility.
+Within scan summaries, `validated_hits_wet` and `validated_hits_wet_per_10k` are the canonical WET-validated metrics. Historical Stage 1b summaries may still contain legacy aliases such as `final_hits`, `hits_total`, and `final_per_10k`, but new runs do not emit them.
 Stage 1c scan outputs also persist row-level `candidate_hits` and `validated_hits_wet` parquet tables plus a per-term diagnostics CSV.
 WARC validation metrics (`validated_hits_warc`, `validated_hits_warc_per_10k`, `warc_validation_attempted`, `warc_validation_notes`) are placeholder schema fields until Stage 1c/Stage 2 WARC validation is enabled.
 

@@ -30,7 +30,7 @@ Use these three baseline terms going forward:
 3. `loneliness`
 
 Selected config:
-- `configs/commoncrawl_collection.yaml`
+- `configs/stage1c_freeze.yaml`
 
 ## Why these three
 ### `frustration`

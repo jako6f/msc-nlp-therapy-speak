@@ -292,16 +292,16 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     sample_df.to_csv(sample_path, index=False)
     asd_df.to_csv(asd_path, index=False)
 
-    hits_total = int(len(corpus_df))
+    validated_hits_wet_total = int(len(corpus_df))
     hits_by_term = corpus_df["matched_term"].value_counts().to_dict()
     unique_domains_hits = int(
         corpus_df["registered_domain"].fillna("").replace("", pd.NA).dropna().nunique()
     )
 
-    print(f"hits_total: {hits_total}")
+    print(f"validated_hits_wet_total: {validated_hits_wet_total}")
     print(f"hits_by_term: {hits_by_term}")
     print(f"unique_domains_hits: {unique_domains_hits}")
-    print("scan_stage1b_instrumentation:")
+    print("scan_instrumentation:")
 
     slice_ids = _slice_ids(summary)
     for slice_id in slice_ids:
@@ -355,12 +355,12 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     for _, row in top_domains_df.head(10).iterrows():
         domain = str(row["registered_domain"])
         count = int(row["hits"])
-        share = (count / hits_total) if hits_total else 0.0
+        share = (count / validated_hits_wet_total) if validated_hits_wet_total else 0.0
         print(f"  {domain}: count={count}, share={share:.4f}")
 
     logger.info("Wrote sample validation CSV: %s", sample_path)
     logger.info("Wrote ASD validation CSV: %s", asd_path)
-    logger.info("hits_total=%d", hits_total)
+    logger.info("validated_hits_wet_total=%d", validated_hits_wet_total)
     logger.info("hits_by_term=%s", hits_by_term)
     logger.info("unique_domains_hits=%d", unique_domains_hits)
     logger.info(

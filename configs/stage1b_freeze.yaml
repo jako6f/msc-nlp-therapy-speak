@@ -5,8 +5,6 @@ project:
 paths:
   interim_base: "data/interim"
   stage1_base: "data/interim/stage1_pilot-dev"
-  reports_figures_base: "reports/figures"
-  reports_tables_base: "reports/tables"
 
 run_context:
   stage: "stage1b"
@@ -16,7 +14,7 @@ pilot:
   crawl_ids:
     - "CC-MAIN-2016-44" # older crawl slice for temporal coverage
     - "CC-MAIN-2026-04" # newer crawl slice for temporal coverage
-    
+
 ## Common Crawl Nomenclature
 # WARC files: full HTML source code
 # WAT files: just metadata

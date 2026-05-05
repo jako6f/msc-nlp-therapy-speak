@@ -5,7 +5,6 @@ from pathlib import Path
 import yaml
 
 from src.analysis.cc_validate import validate_corpus_outputs
-from src.analysis.pilot_exports import export_tables_and_figures
 from src.data_sources.commoncrawl import (
     download_from_manifest,
     find_latest_manifest,
@@ -13,7 +12,7 @@ from src.data_sources.commoncrawl import (
     scan_wet_files,
     validate_counts,
 )
-from src.pathing import stage1_base, stage1_output_dir
+from src.pathing import stage1_base
 
 
 def load_config(path: Path) -> dict:
@@ -26,15 +25,23 @@ def _ensure_stage1_dirs(cfg: dict) -> None:
         (base / stage).mkdir(parents=True, exist_ok=True)
 
 
+def _add_config_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to the stage-scoped YAML config for this run.",
+    )
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="command", required=True)
 
     p_sample = sub.add_parser("cc-sample", help="Sample WET paths per crawl")
-    p_sample.add_argument("--config", default="configs/pilot.yaml")
+    _add_config_arg(p_sample)
 
     p_download = sub.add_parser("cc-download", help="Download sampled WET files")
-    p_download.add_argument("--config", default="configs/pilot.yaml")
+    _add_config_arg(p_download)
     p_download.add_argument(
         "--manifest",
         help="Path to manifest JSONL (defaults to latest in data/manifests)",
@@ -42,13 +49,10 @@ def main() -> None:
     )
 
     p_scan = sub.add_parser("cc-scan", help="Scan downloaded WET files")
-    p_scan.add_argument("--config", default="configs/pilot.yaml")
+    _add_config_arg(p_scan)
 
-    p_export = sub.add_parser("cc-export", help="Export pilot scan tables/figures")
-    p_export.add_argument("--config", default="configs/pilot.yaml")
-
-    p_validate = sub.add_parser("cc-validate", help="Validate latest pilot outputs")
-    p_validate.add_argument("--config", default="configs/pilot.yaml")
+    p_validate = sub.add_parser("cc-validate", help="Validate latest scan outputs")
+    _add_config_arg(p_validate)
 
     args = p.parse_args()
     cfg_path = Path(args.config)
@@ -72,11 +76,6 @@ def main() -> None:
 
     if args.command == "cc-scan":
         scan_wet_files(cfg, cfg_path)
-        return
-
-    if args.command == "cc-export":
-        interim_dir = stage1_output_dir(cfg, default_stage="stage1b")
-        export_tables_and_figures(cfg, interim_dir)
         return
 
     if args.command == "cc-validate":

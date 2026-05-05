@@ -1,0 +1,115 @@
+% Copyright (c) 2022 by Lars Spreng
+% This work is licensed under the Creative Commons Attribution 4.0 International License.
+% To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/
+% or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Add your packages and commands to this file
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+% Fonts / encoding
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\RequirePackage[scaled]{helvet} % sans-serif slides
+
+% Theme
+\usepackage{styles/elegantmacros}
+\usefolder{styles}
+\usetheme[style=lecture]{elegant}
+
+\newcommand{\makepart}[1]{%
+	\part{#1}\frame{\partpage}
+}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Tables / figures
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{ragged2e}
+\usepackage{schemabloc}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{pgfplots}
+\usepackage{adjustbox}
+\usepackage{environ}
+\pgfplotsset{compat=1.18}
+
+\RequirePackage[%
+natbib=true,
+backend=biber,
+style=apa,
+isbn=false,
+url=false,
+uniquename=false
+]{biblatex}
+\addbibresource{msc-nlp-therapy-speak.bib}
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% TikZ
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds}
+
+\tikzstyle{decision} = [diamond, draw, fill=blue!20,
+text width=7em, text badly centered, inner sep=0pt, minimum height=4em]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20,
+text width=8.8em, text centered, rounded corners, minimum height=4.0em]
+\tikzstyle{block2} = [rectangle, draw, fill=yellow!20,
+text width=9.5em, text centered, rounded corners, minimum height=4.0em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{cloud} = [draw, ellipse, fill=red!20,
+minimum width=7.6em, minimum height=4.0em, text centered]
+\tikzstyle{note} = [rectangle, draw, dashed, rounded corners, fill=gray!10,
+text width=13.2em, text centered, minimum height=3em]
+
+\makeatletter
+\newsavebox{\measure@tikzpicture}
+\NewEnviron{scaletikzpicturetowidth}[1]{%
+	\def\tikz@width{#1}%
+	\def\tikzscale{1}%
+	\begin{lrbox}{\measure@tikzpicture}%
+		\BODY
+	\end{lrbox}%
+	\pgfmathparse{#1/\wd\measure@tikzpicture}%
+	\edef\tikzscale{\pgfmathresult}%
+	\BODY
+}
+\makeatother
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Maths
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\RequirePackage{textcomp}
+\RequirePackage{amsmath}
+\RequirePackage{amsthm}
+\RequirePackage{mathtools}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\setbeamertemplate{theorems}[numbered]
+
+\theoremstyle{definition}
+\newtheorem{fact}{Fact}[section]
+\newtheorem{examp}{Example}[section]
+
+\theoremstyle{plain}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{assumption}{Assumption}
+
+\providecommand{\H}{\mathscr{H}}
+\providecommand{\E}{\mathbb{E}}
+
+\makeatletter
+\def\munderbar#1{\underline{\sbox\tw@{$#1$}\dp\tw@\z@\box\tw@}}
+\makeatother
