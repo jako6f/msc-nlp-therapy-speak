@@ -1,0 +1,42 @@
+metric,value,description
+docs_scanned,152621,Total conversion documents scanned across all crawl slices.
+docs_minlen,141126,Documents that passed the minimum character-length filter.
+candidate_hits,1377,Term matches before downstream filtering and domain caps.
+validated_hits_wet,1173,Rows retained after WET filtering and domain-cap enforcement.
+candidate_per_10k,90.223495,"Combined candidate hit rate per 10,000 scanned documents."
+validated_hits_wet_per_10k,76.857051,"Combined WET-validated hit rate per 10,000 scanned documents."
+removed_domaincap,0,Candidate matches removed because the per-domain cap was reached.
+removed_total,204,Total removed candidates (domain-cap plus all boilerplate rules).
+docs_per_sec,1359.921599,Overall scan throughput in scanned documents per second.
+total_elapsed_sec,112.227793,Total wall-clock time for the scan stage in seconds.
+validated_hits_warc,,Combined WARC-validated hit placeholder; null until WARC validation is implemented.
+validated_hits_warc_per_10k,,Combined WARC-validated hit rate placeholder; null until WARC validation is implemented.
+warc_validation_attempted,False,Combined flag indicating whether WARC validation ran for this scope.
+warc_validation_notes,,Combined notes for WARC validation execution state (empty when not run).
+candidate_hits_path,data/interim/stage1_pilot-dev/stage1d/holdout/cc_candidate_hits_20260505_161016.parquet,Parquet table containing row-level candidate hits before Stage 1b triage removal.
+validated_hits_wet_path,data/interim/stage1_pilot-dev/stage1d/holdout/cc_validated_hits_wet_20260505_161016.parquet,Parquet table containing row-level WET-validated hits after Stage 1b triage.
+term_summary_path,data/interim/stage1_pilot-dev/stage1d/holdout/cc_term_summary_20260505_161016.csv,CSV table containing per-term candidate and removal diagnostics.
+top_domains_by_term_path,data/interim/stage1_pilot-dev/stage1d/holdout/cc_scan_top_domains_by_term_20260505_161016.csv,CSV table containing per-term top registered domains for validated WET hits.
+term_role.target.candidate_hits,749,Candidate hits attributed to term_role=target.
+term_role.target.validated_hits_wet,624,WET-validated hits attributed to term_role=target.
+term_role.baseline.candidate_hits,628,Candidate hits attributed to term_role=baseline.
+term_role.baseline.validated_hits_wet,549,WET-validated hits attributed to term_role=baseline.
+time_input_read_sec,8.740685,Combined coarse timing for this processing stage in seconds.
+time_parse_sec,4.753455,Combined coarse timing for this processing stage in seconds.
+time_term_match_sec,94.632367,Combined coarse timing for this processing stage in seconds.
+time_domain_extract_sec,0.924934,Combined coarse timing for this processing stage in seconds.
+time_write_sec,1.891079,Combined coarse timing for this processing stage in seconds.
+removed_boilerplate_directory_index,59,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_signature_hard,145,Combined removals triggered by this specific boilerplate rule.
+removed_boilerplate_total,204,Combined total removals from all boilerplate rules.
+slice.CC-MAIN-2021-49.docs_scanned,152621,Slice-level scanned documents for this crawl_id.
+slice.CC-MAIN-2021-49.candidate_hits,1377,Slice-level candidate matches before final filtering.
+slice.CC-MAIN-2021-49.validated_hits_wet,1173,Slice-level WET-validated retained hits after filtering.
+slice.CC-MAIN-2021-49.candidate_per_10k,90.223495,"Slice-level candidate hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2021-49.validated_hits_wet_per_10k,76.857051,"Slice-level WET-validated hit rate per 10,000 scanned documents."
+slice.CC-MAIN-2021-49.total_elapsed_sec,110.32684,Slice-level wall-clock elapsed time in seconds.
+slice.CC-MAIN-2021-49.docs_per_sec,1383.353313,Slice-level throughput in scanned documents per second.
+slice.CC-MAIN-2021-49.validated_hits_warc,,Slice-level WARC-validated hit placeholder; null until WARC validation is implemented.
+slice.CC-MAIN-2021-49.validated_hits_warc_per_10k,,Slice-level WARC-validated hit rate placeholder; null until WARC validation is implemented.
+slice.CC-MAIN-2021-49.warc_validation_attempted,False,Slice-level flag indicating whether WARC validation ran for this scope.
+slice.CC-MAIN-2021-49.warc_validation_notes,,Slice-level notes for WARC validation execution state (empty when not run).

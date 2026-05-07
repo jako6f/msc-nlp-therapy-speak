@@ -2,9 +2,9 @@ import gzip
 import hashlib
 import json
 import logging
-from pathlib import Path
 import random
 import time
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 from urllib.request import urlopen
 

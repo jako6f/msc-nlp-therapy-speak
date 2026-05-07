@@ -1,0 +1,143 @@
+project:
+  seed: 123
+  out_dir: "data/interim/stage1_pilot-dev/stage1d/holdout"
+
+paths:
+  interim_base: "data/interim"
+  stage1_base: "data/interim/stage1_pilot-dev"
+
+run_context:
+  stage: "stage1d"
+  track: "stage1_pilot-dev"
+
+pilot:
+  crawl_ids:
+    - "CC-MAIN-2021-49"
+
+sampling:
+  wet_files_per_crawl: 4
+
+filters:
+  min_chars: 500
+  domain_cap: 50
+  asd_disambiguation_window_chars: 200
+  context_window_chars: 200
+
+boilerplate:
+  enabled: true
+  check_window_chars: 2000
+  signature_hard_patterns:
+    - "skip\\s+to\\s+content"
+    - "skip\\s+navigation"
+    - "privacy\\s+policy.{0,80}cookies?"
+    - "cookie\\s+consent"
+    - "cookie\\s+settings"
+    - "accept\\s+cookies?"
+    - "manage\\s+cookies?"
+    - "add\\s+to\\s+cart"
+    - "\\bcheckout\\b"
+    - "toggle\\s+navigation"
+    - "open\\s+accessibility\\s+menu"
+    - "accessibility\\s+widget"
+    - "accessibility\\s+profile"
+    - "choose\\s+accessibility\\s+menu"
+    - "cognitive\\s+disability"
+    - "seizure\\s+safe"
+    - "reading\\s+mask"
+    - "line\\s+height"
+    - "cursor\\s+size"
+    - "adhd[-\\s]?friendly\\s+(mode|profile)"
+  directory_index:
+    enabled: true
+    lexicon:
+      - "all conditions"
+      - "conditions a-z"
+      - "health a-z"
+      - "browse conditions"
+      - "symptoms"
+      - "diagnosis"
+      - "treatment"
+      - "diseases"
+      - "disorders"
+      - "a to z"
+      - "a-z index"
+    score_threshold: 4
+    min_separator_per_1k: 10.0
+    min_short_fragment_ratio: 0.45
+    min_short_fragments: 10
+    short_fragment_min_chars: 3
+    short_fragment_max_chars: 35
+    max_sentence_terminators_per_1k: 2.5
+    low_narrative_min_separator_per_1k: 8.0
+    min_lexicon_hits: 3
+    min_capitalized_token_ratio: 0.3
+    min_single_letter_tokens: 6
+
+terms:
+  adhd_patterns:
+    - name: "adhd"
+      pattern: "\\badhd\\b"
+    - name: "attention_deficit"
+      pattern: "attention[-\\s]?deficit"
+  autism_patterns:
+    - name: "autism"
+      pattern: "\\bautism\\b"
+    - name: "autistic"
+      pattern: "\\bautistic\\b"
+    - name: "autism_spectrum"
+      pattern: "autism[-\\s]?spectrum"
+  asd_pattern:
+    name: "asd"
+    pattern: "\\bASD\\b"
+  baseline_patterns:
+    - name: "frustration"
+      pattern: "\\bfrustration\\b"
+    - name: "sadness"
+      pattern: "\\bsadness\\b"
+    - name: "loneliness"
+      pattern: "\\bloneliness\\b"
+
+stage1d:
+  anchor_stage: "stage1c"
+  url_export_dir: "data/interim/stage1_pilot-dev/stage1d/url_exports"
+  pointer_cache_dir: "data/interim/stage1_pilot-dev/stage1d/pointer_cache"
+  warc_out_dir: "data/interim/stage1_pilot-dev/stage1d/warc"
+  filter_en_dedup_out_dir: "data/interim/stage1_pilot-dev/stage1d/filter_en_dedup"
+  published_ts_tolerance_hours: 48
+  aws:
+    region: "us-east-1"
+    s3:
+      bucket: "msc-nlp-therapy-speak-823916751170-us-east-1-an"
+      prefix: "msc-nlp-therapy-speak/stage1d"
+    ec2:
+      instance_type: "m7i-flex.large"
+      ssh_key_name: "athena-extraction-key"
+      instance_profile: "msc-nlp-therapy-speak-ec2"
+  resolve_remote:
+    provider: "local_index_server"
+    index_manifest_base_url: "https://data.commoncrawl.org"
+    index_file_base_url: "https://data.commoncrawl.org"
+    request_timeout_s: 120
+    max_workers: 4
+    progress_log_every_shards: 10
+    server_host: "127.0.0.1"
+    server_port: 8080
+    server_runtime_dir: "~/.cache/msc-nlp-therapy-speak/stage1d_index_server"
+    server_collections_dir: "~/.cache/msc-nlp-therapy-speak/stage1d_index_server/collections"
+    server_log_path: "~/.cache/msc-nlp-therapy-speak/stage1d_index_server/index_server.log"
+    server_pid_path: "~/.cache/msc-nlp-therapy-speak/stage1d_index_server/index_server.pid"
+    startup_timeout_s: 60
+    url_workers: 16
+    progress_log_every_urls: 50
+    query_limit: 25
+  warc_validation:
+    favor_recall: false
+  language:
+    provider: "py3langid"
+    keep:
+      - "en"
+  dedup:
+    ngram_size: 5
+    jaccard_threshold: 0.9
+  filter_en_dedup:
+    validation_sample_n: 30

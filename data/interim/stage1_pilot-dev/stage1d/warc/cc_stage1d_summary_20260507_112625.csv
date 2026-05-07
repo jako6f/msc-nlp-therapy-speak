@@ -1,0 +1,21 @@
+metric,value,description
+docs_scanned,310082,Combined scanned documents across the frozen Stage 1c anchors and Stage 1d hold-out slice.
+candidate_hits,2682,Combined candidate hits across the frozen Stage 1c anchors and Stage 1d hold-out slice.
+validated_hits_wet,2299,Combined WET-validated hits used as input to Stage 1d WARC validation.
+validated_hits_warc,1126,Combined row-level hits that survived WARC validation and Trafilatura extraction.
+validated_hits_wet_per_10k,74.141679,"Combined WET-validated hit rate per 10,000 scanned documents."
+validated_hits_warc_per_10k,36.312975,"Combined WARC-validated hit rate per 10,000 scanned documents."
+warc_validation_attempted,True,Indicates that Stage 1d WARC validation ran for this summary.
+warc_validation_notes,Stage 1d WARC validation over frozen Stage 1c anchors plus Stage 1d hold-out using a remote resolver-produced pointer cache. pointer_cache_source=s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/stage1d/pointer_cache/20260506_155406/cc_pointer_cache_20260506_155406.parquet.,Short note describing the Stage 1d WARC validation scope.
+term_role.target.validated_hits_wet,1215,Input WET-validated hits attributed to term_role=target.
+term_role.target.validated_hits_warc,448,WARC-validated hits attributed to term_role=target.
+term_role.baseline.validated_hits_wet,1084,Input WET-validated hits attributed to term_role=baseline.
+term_role.baseline.validated_hits_warc,678,WARC-validated hits attributed to term_role=baseline.
+doc_count_extract_failed,957,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+doc_count_extract_success,938,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+doc_count_fetch_failed,0,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+doc_count_fetch_success,1895,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+doc_count_input,1899,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+doc_count_lookup_failed,4,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+doc_count_lookup_success,1895,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
+lookup_provider,pointer_cache,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."

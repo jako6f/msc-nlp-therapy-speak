@@ -5,8 +5,8 @@ from typing import Dict, Optional, Tuple
 
 import pandas as pd
 
-from src.pathing import stage1_output_dir
 from src.analysis.summary_schema import with_warc_metric_defaults
+from src.pathing import stage1_output_dir, stage1_stage_dir
 
 REQUIRED_COLUMNS = [
     "matched_term",
@@ -218,6 +218,74 @@ def _slice_metric_bool(
     return _metric_bool(summary, f"slice.{slice_id}.{metric}", default=default)
 
 
+def _print_stage1d_anchor_comparison(
+    config: Dict,
+    holdout_runid: str,
+    holdout_summary: Dict[str, object],
+    interim_dir: Path,
+) -> None:
+    anchor_stage = str(config.get("stage1d", {}).get("anchor_stage", "stage1c")).strip()
+    anchor_dir = stage1_stage_dir(config, anchor_stage)
+    if not anchor_dir.exists():
+        print(f"anchor_comparison: skipped (missing {anchor_dir})")
+        return
+
+    try:
+        anchor_runid, anchor_summary_path = _latest_by_runid(
+            anchor_dir, "cc_scan_summary_", ".csv"
+        )
+        anchor_term_runid, anchor_term_path = _latest_by_runid(
+            anchor_dir, "cc_term_summary_", ".csv"
+        )
+    except FileNotFoundError as exc:
+        print(f"anchor_comparison: skipped ({exc})")
+        return
+
+    holdout_term_path = interim_dir / f"cc_term_summary_{holdout_runid}.csv"
+    anchor_summary = _load_metric_map(anchor_summary_path)
+    print(
+        "anchor_comparison: "
+        f"{anchor_stage}.candidate_hits={_metric_int(anchor_summary, 'candidate_hits', 0)}, "
+        f"{anchor_stage}.validated_hits_wet="
+        f"{_metric_int(anchor_summary, 'validated_hits_wet', 0)}, "
+        f"holdout.candidate_hits={_metric_int(holdout_summary, 'candidate_hits', 0)}, "
+        f"holdout.validated_hits_wet={_metric_int(holdout_summary, 'validated_hits_wet', 0)}"
+    )
+
+    if anchor_term_runid != anchor_runid:
+        print(
+            "anchor_comparison: note "
+            f"anchor summary runid={anchor_runid}, "
+            f"anchor term summary runid={anchor_term_runid}"
+        )
+    if not holdout_term_path.exists():
+        print(f"anchor_term_comparison: skipped (missing {holdout_term_path.name})")
+        return
+
+    anchor_term_df = pd.read_csv(anchor_term_path)
+    holdout_term_df = pd.read_csv(holdout_term_path)
+    anchor_term_df = anchor_term_df.loc[anchor_term_df["crawl_id"] == "ALL"].copy()
+    holdout_term_df = holdout_term_df.loc[holdout_term_df["crawl_id"] == "ALL"].copy()
+
+    merged = anchor_term_df.merge(
+        holdout_term_df,
+        on=["term_role", "term_group", "matched_term"],
+        how="outer",
+        suffixes=("_anchor", "_holdout"),
+    ).fillna(0)
+
+    print("anchor_term_comparison:")
+    for _, row in merged.sort_values(["term_role", "matched_term"]).iterrows():
+        print(
+            "  "
+            f"{row['term_role']}:{row['matched_term']} "
+            f"anchor_candidate={int(row.get('candidate_hits_anchor', 0))}, "
+            f"anchor_validated={int(row.get('validated_hits_wet_anchor', 0))}, "
+            f"holdout_candidate={int(row.get('candidate_hits_holdout', 0))}, "
+            f"holdout_validated={int(row.get('validated_hits_wet_holdout', 0))}"
+        )
+
+
 def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
     interim_dir = stage1_output_dir(config, default_stage="stage1b")
     project_seed = int(config.get("project", {}).get("seed", 0))
@@ -368,5 +436,8 @@ def validate_corpus_outputs(config: Dict) -> Tuple[Path, Path]:
         "NA" if validated_hits_warc is None else int(validated_hits_warc),
     )
     logger.info("warc_validation_attempted=%s", warc_validation_attempted)
+
+    if str(config.get("run_context", {}).get("stage", "")).strip() == "stage1d":
+        _print_stage1d_anchor_comparison(config, corpus_runid, summary, interim_dir)
 
     return sample_path, asd_path

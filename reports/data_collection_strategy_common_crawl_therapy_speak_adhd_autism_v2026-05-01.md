@@ -6,7 +6,7 @@
 1) A living “North Star” for the end‑to‑end data collection pipeline (design → implementation → outputs).
 2) The shared reference for this ChatGPT project so future implementation decisions stay aligned.
 
-**Status:** Active / editable (updated through the Stage 1c baseline decision freeze on May 1, 2026; next major update after Stage 1d).
+**Status:** Active / editable (updated through the frozen Stage 1d EC2-backed pointer-resolution/extraction run; Stage 1e is the next cleanup pass).
 
 ---
 
@@ -34,7 +34,7 @@ We study the rise of “therapy‑speak” in general web discourse by tracking 
 - **Stage 1a (pilot/discovery):** complete — end‑to‑end WET pipeline proven on `CC-MAIN-2016-44` and `CC-MAIN-2026-04`.
 - **Stage 1b (WET target-terms scan + boilerplate triage):** frozen — conservative WET boilerplate mitigation reduced to a minimal, stable rule stack.
 - **Stage 1c (WET baseline-terms scan + boilerplate triage):** complete / frozen — baseline candidates evaluated and final pilot-dev baseline set selected.
-- **Stage 1d (generalisation + WARC validation/enrichment + polishing):** current gate to Stage 2.
+- **Stage 1d (generalisation + WARC validation/enrichment + English-only dedup filtering):** frozen gate to Stage 2.
 - **Stage 2 (scale):** one crawl per year across ~10 years, producing Trend Track + Corpus Track outputs.
 
 ---
@@ -88,7 +88,7 @@ A document/context is “substantive” if the term appears in meaningful conten
 ### 2.5 Domain cap
 To prevent a few large sites dominating:
 - **Cap:** ≤ 50 retained documents per **registered domain** per year (default 50; stored in config).
-- Apply cap on the retained set for the relevant track or module (Trend Track: WET‑validated hits; Corpus Track: post‑WARC / post‑polish survivors; Baseline module: WET‑validated baseline contexts unless otherwise specified).
+- Apply cap on the retained set for the relevant track or module (Trend Track: WET‑validated hits; Corpus Track: post‑WARC / post‑filter survivors; Baseline module: WET‑validated baseline contexts unless otherwise specified).
 
 ---
 
@@ -127,7 +127,7 @@ Per yearly crawl:
 Per yearly crawl:
 - Continue scanning beyond the Trend Track sample until **M** high‑quality target-term survivors are collected (or a budget is reached).
 - Apply domain caps and dedup rules.
-- Validate using WARC + Trafilatura; then apply polishing gates (language ID, dedup).
+- Validate using WARC + Trafilatura; then apply English-only filtering gates (language ID, dedup).
 
 **Key:** Corpus Track is designed for modelling quality while staying consistent with the Trend Track triage logic.
 
@@ -322,14 +322,14 @@ Reason for exclusions (short form):
 
 ---
 
-## 9. Stage 1d — Generalisation + WARC validation/enrichment + polishing (gate to Stage 2)
+## 9. Stage 1d — Generalisation + WARC validation/enrichment + English-only dedup filtering (frozen)
 
 ### 9.1 Objectives
 1) **Hold‑out generalisation test (WET):** sample WET files from a new year not used in Stage 1b/1c and apply frozen rules unchanged.
-2) **Authoritative content validation (WARC):** fetch WARC records only for selected survivors and run Trafilatura with `favor_recall=False`.
+2) **Authoritative content validation (WARC):** resolve WARC pointers in bulk on an EC2 worker by querying a local Common Crawl index server backed by the raw CDXJ secondary indexes, then fetch WARC records only for selected survivors and run main-content extraction.
 3) **Enrichment:** populate `capture_ts`, WARC pointers, and attempt `published_ts` (source + confidence).
-4) **Polishing:** English‑only gating (language ID) and de‑duplication on extracted main content.
-5) **Baseline smoke test:** ensure the selected baseline terms (`frustration`, `sadness`, `loneliness`) remain usable under the Stage 1d validation/polishing workflow, at least on a controlled sample.
+4) **Filtering:** English‑only gating (language ID) and de‑duplication on extracted main content.
+5) **Baseline smoke test:** ensure the selected baseline terms (`frustration`, `sadness`, `loneliness`) remain usable under the Stage 1d validation/filtering workflow, at least on a controlled sample.
 
 ### 9.2 Method (conceptual)
 **1d‑A — Hold‑out WET generalisation**
@@ -340,14 +340,33 @@ Reason for exclusions (short form):
   - boilerplate removal rate
 - Report separately for target and selected baseline terms.
 
-**1d‑B — WARC + Trafilatura authoritative extraction**
+**1d‑B — Remote local index-server pointer resolution**
+- Export unique `(crawl_id, url)` survivors from the frozen Stage 1c anchor set plus the Stage 1d hold-out.
+- Upload the URL table to S3.
+- On a small **EC2** worker in `us-east-1`, install the per-crawl Common Crawl secondary indexes locally and query them through a local pywb/Common Crawl index server, producing:
+  - `warc_filename`
+  - `warc_record_offset`
+  - `warc_record_length`
+  - `fetch_time`
+  - `fetch_status`
+  - MIME/language metadata where available
+- Treat the resulting pointer cache as the authoritative Stage 1d lookup surface.
+
+**1d‑C — WARC extraction on EC2**
+- Run the expensive WARC fetch and HTML extraction step on the same **EC2** worker in `us-east-1`.
+- Fetch WARC byte ranges from Common Crawl using the resolver-produced pointer cache.
+- Extract main content with:
+  1. `Trafilatura` (`favor_recall=False` / precision-leaning)
+  2. fallback extractor when Trafilatura returns empty output
+- Retain only if the relevant term still occurs in extracted main content.
+
+**1d‑D — Enrichment**
 - For WET‑validated survivors selected for enrichment:
-  - resolve WARC pointers and fetch the corresponding WARC record
-  - extract main content with Trafilatura (`favor_recall=False`)
+  - fetch the corresponding WARC record
+  - extract main content
   - retain only if the relevant term occurs in extracted main content
 - Populate `validated_hits_warc` for WARC‑validated records.
 
-**1d‑C — Enrichment**
 For WARC‑validated hits:
 - `capture_ts` from WARC headers (`WARC-Date`)
 - WARC pointers: `warc_filename`, `warc_offset`, `warc_length`
@@ -355,12 +374,13 @@ For WARC‑validated hits:
   - `published_ts_source`
   - `published_ts_confidence`
 
-**1d‑D — Polishing**
+**1d‑E — English-only dedup filtering**
 - **Language identification:** enforce **English‑only** gating for modelling outputs (record decision thresholds).
 - **Deduplication:** remove exact and near‑duplicate texts (record dedup strategy and % removed).
 
 ### 9.3 Stage 1d outputs
 - Hold‑out metrics table + cross‑year stability assessment.
+- Remote pointer cache (`cc_pointer_cache_*`) for the selected Stage 1d pilot URLs.
 - Trafilatura‑filtered hit records (`validated_hits_warc`) for selected target/baseline records.
 - Enriched hit records (`capture_ts`, WARC pointers, attempted `published_ts`).
 - English‑only + deduped modelling texts/snippets.
@@ -368,7 +388,12 @@ For WARC‑validated hits:
 
 Stage 1d outputs live under:
 - `data/interim/stage1_pilot-dev/stage1d/…`
-- report artifacts: `reports/{figures,tables}/stage1_pilot-dev/…`
+- freeze README: `data/interim/stage1_pilot-dev/stage1d/README_stage1d_freeze.md`
+
+### 9.4 Stage 1e — WARC-validated cleanup pass (next)
+- Stage 1e will start from the WARC-validated documents produced by Stage 1d.
+- Purpose: tighten corpus quality by removing tag pages, directory pages, and other residual junk that survived the Stage 1d freeze pipeline.
+- Scope: cleanup only; no new collection design decisions or Stage 2 expansion yet.
 
 ---
 
@@ -399,7 +424,7 @@ Attempt in order:
 
 ---
 
-## 11. Stage 2 — Full-scale diachronic collection (TBC after Stage 1d)
+## 11. Stage 2 — Full-scale diachronic collection (TBC after Stage 1e)
 
 ### 11.1 Stage 2 objectives
 - Collect ~10 years of data with:
@@ -417,8 +442,9 @@ Attempt in order:
 
 ### 11.3 Compute model (local vs AWS)
 Decision after Stage 1d throughput measurements:
-- If local is sufficient: run locally.
-- Otherwise: run in AWS `us-east-1` (in‑region) to avoid large transfers; store compact outputs only.
+- Stage 1d now assumes **AWS `us-east-1`** for the WARC stage.
+- Local execution remains appropriate for WET scanning, validation, and downstream analysis.
+- Store only compact outputs locally; keep the expensive WARC fetch/extraction step in-region.
 
 ---
 
@@ -468,12 +494,12 @@ Layout:
 - `src/`
   - `data_sources/commoncrawl/` — WET sampling/scanning/triage + (Stage 1d+) WARC pointers/enrichment.
   - `analysis/` — downstream analyses consuming processed outputs.
-  - `cli.py` — stable CLI entrypoints (sample/acquire/scan/validate/export).
+  - `cli.py` — stable CLI entrypoints (sample/download/scan/validate/filter-en-dedup).
 - `configs/` — versioned run configs (crawl IDs, seed, K/M, regex, baseline terms, ASD window, domain cap, stage flags).
   - Stage-scoped freeze configs should follow:
     - `configs/stage1b_freeze.yaml`
     - `configs/stage1c_freeze.yaml`
-    - `configs/stage1d_freeze.yaml` (when Stage 1d is implemented)
+    - `configs/stage1d_freeze.yaml`
   - Reserve `configs/commoncrawl_collection.yaml` for the post-Stage-1 collection freeze that will drive Stage 2.
 - `data/`
   - `raw/` — immutable inputs (e.g., `.wet.gz` downloaded in Stage 1). **Untracked.**
@@ -493,8 +519,12 @@ Runs are executed via CLI entrypoints (not ad-hoc notebooks):
 3) **Acquire** WET files (Stage 1: download to `data/raw/`; Stage 2: stream in-region).
 4) **Scan** WET → doc denominators + candidate hits/snippets (`data/interim/…`).
 5) **Validate (Stage 1b/1c)** → `validated_hits_wet` + removal diagnostics.
-6) **Enrich (Stage 1d+)** → add `capture_ts`, WARC pointers, attempt `published_ts`.
-7) Compile `paper/` and commit code/config/manifests.
+6) **Export URLs (Stage 1d freeze)** → write unique `(crawl_id, url)` survivors for remote pointer resolution.
+7) **Upload URLs (Stage 1d freeze)** → upload the latest URL export to S3.
+8) **Remote resolve (Stage 1d freeze)** → resolve WARC pointers in bulk on EC2 via the local Common Crawl index server in `us-east-1`.
+9) **Remote extract (Stage 1d freeze)** → fetch WARC byte ranges on EC2 and extract main content.
+10) **Filter (Stage 1d freeze)** → English gating + dedup annotations / corpus-ready texts.
+11) Compile `paper/` and commit code/config/manifests.
 
 ### 13.3 Directory conventions (Stage 1)
 - Stage outputs (untracked):
@@ -502,6 +532,11 @@ Runs are executed via CLI entrypoints (not ad-hoc notebooks):
   - `data/interim/stage1_pilot-dev/stage1b/…`
   - `data/interim/stage1_pilot-dev/stage1c/…`
   - `data/interim/stage1_pilot-dev/stage1d/…`
+  - Stage 1d commonly uses:
+    - `url_exports/`
+    - `pointer_cache/`
+    - `warc/`
+    - `filter_en_dedup/`
 
 ### 13.4 Tracked vs untracked
 **Tracked:** `src/`, `configs/`, `paper/`, `data/manifests/`, and selected report notes/materials as needed.
@@ -518,7 +553,7 @@ Every sampling action writes a manifest (JSONL) capturing crawl IDs, sampled pat
 - Stage-scoped freeze targets should mirror the stage config name:
   - `cc_stage1b_freeze_*` ↔ `configs/stage1b_freeze.yaml`
   - `cc_stage1c_freeze_*` ↔ `configs/stage1c_freeze.yaml`
-  - `cc_stage1d_freeze_*` ↔ `configs/stage1d_freeze.yaml` (when Stage 1d is implemented)
+  - `cc_stage1d_freeze_*` ↔ `configs/stage1d_freeze.yaml`
 - Reserve `cc_collection_*` for the post-Stage-1 collection workflow that will pair with `configs/commoncrawl_collection.yaml`.
 
 ---
@@ -578,12 +613,17 @@ Resolved in Stage 1c:
 - [x] Export baseline diagnostics (counts, removal rates, top domains, random samples)
 - [x] Select final baseline terms and document decision
 
-### Stage 1d (gate to Stage 2)
-- [ ] Hold‑out WET generalisation completed (4 WET files, unseen year)
-- [ ] Populate `validated_hits_warc` via WARC + Trafilatura (`favor_recall=False`) for selected target/baseline records
-- [ ] Enrichment: `capture_ts`, WARC pointers, attempted `published_ts` + provenance/confidence
-- [ ] Polishing: English‑only gating + dedup; report % removed
-- [ ] Freeze config + tag: `v0.2-stage1d-freeze`
+### Stage 1d (frozen)
+- [x] Hold‑out WET generalisation completed (4 WET files, unseen year)
+- [x] Populate `validated_hits_warc` via WARC + Trafilatura (`favor_recall=False`) for selected target/baseline records
+- [x] Enrichment: `capture_ts`, WARC pointers, attempted `published_ts` + provenance/confidence
+- [x] English-only dedup filtering: report % removed
+- [x] Freeze config + tag: `v0.2-stage1d-freeze`
+
+### Stage 1e (next)
+- [ ] Cleanup pass on the WARC-validated docs
+- [ ] Remove tag pages, directory pages, and residual junk from the Stage 1d frozen corpus
+- [ ] Validate the cleaned corpus manually before any Stage 2 expansion
 
 ### Stage 2 (provisional)
 - [ ] Freeze year→crawl mapping

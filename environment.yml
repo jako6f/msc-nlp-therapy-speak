@@ -4,9 +4,19 @@ channels:
   - defaults
 dependencies:
   - python=3.12
+  - pip
   - pandas
+  - boto3
+  - duckdb
   - pyarrow
   - pyyaml
+  - beautifulsoup4
+  - trafilatura
   - tldextract
   - warcio
+  - py3langid
   - ruff
+  - pip:
+      - cdx_toolkit
+      - pywb
+      - resiliparse

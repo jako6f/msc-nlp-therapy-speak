@@ -258,6 +258,10 @@ def _context_snippet(text: str, span: Tuple[int, int], window: int) -> str:
     return " ".join(snippet.split())
 
 
+def _crawl_id_from_wet_name(name: str) -> str:
+    return name.split("_", 1)[0]
+
+
 def _new_counter_bucket() -> Dict[str, int]:
     return {
         "docs_scanned": 0,
@@ -297,7 +301,8 @@ def _warc_validation_placeholder_rows(prefix: str = "") -> List[List[object]]:
         _summary_row(
             f"{metric_prefix}validated_hits_warc_per_10k",
             None,
-            f"{scope} WARC-validated hit rate placeholder; null until WARC validation is implemented.",
+            f"{scope} WARC-validated hit rate placeholder; "
+            "null until WARC validation is implemented.",
         ),
         _summary_row(
             f"{metric_prefix}warc_validation_attempted",
@@ -909,9 +914,21 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     )
 
     wet_dir = Path("data/raw/wet")
-    wet_files = sorted(wet_dir.glob("*.wet.gz"))
+    configured_crawl_ids = {
+        str(crawl_id).strip()
+        for crawl_id in config.get("pilot", {}).get("crawl_ids", [])
+        if str(crawl_id).strip()
+    }
+    wet_files = [
+        wet_path
+        for wet_path in sorted(wet_dir.glob("*.wet.gz"))
+        if not configured_crawl_ids
+        or _crawl_id_from_wet_name(wet_path.name) in configured_crawl_ids
+    ]
     if not wet_files:
         raise FileNotFoundError("No .wet.gz files found in data/raw/wet")
+    logger.info("Configured crawl IDs: %s", sorted(configured_crawl_ids) or "ALL")
+    logger.info("Matched WET files: %d", len(wet_files))
 
     combined = _new_counter_bucket()
     counters_by_crawl: Dict[str, Dict[str, int]] = defaultdict(_new_counter_bucket)
@@ -936,7 +953,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
     for wet_path in wet_files:
         source_wet = wet_path.name
-        crawl_id = source_wet.split("_")[0]
+        crawl_id = _crawl_id_from_wet_name(source_wet)
         logger.info("Scanning %s", wet_path)
         file_start = time.perf_counter()
         crawl_counters = counters_by_crawl[crawl_id]
