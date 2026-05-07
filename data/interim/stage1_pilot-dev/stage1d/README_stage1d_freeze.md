@@ -9,7 +9,7 @@ Stage 1d is the frozen Common Crawl pilot workflow that generalises the Stage 1b
 3. Fetch WARC byte ranges and validate them with HTML extraction.
 4. Apply the final English-only dedup filter to the WARC-validated hits.
 
-## Retained Outputs
+## Outputs
 - `url_exports/` - frozen Stage 1d URL export used for remote pointer resolution.
 - `pointer_cache/` - resolver-produced WARC pointers for the Stage 1d URL export.
 - `warc/` - WARC-validated rows plus Stage 1d summary metrics.

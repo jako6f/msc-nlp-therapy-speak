@@ -7,7 +7,6 @@ dependencies:
   - pip
   - pandas
   - boto3
-  - duckdb
   - pyarrow
   - pyyaml
   - beautifulsoup4
@@ -17,6 +16,5 @@ dependencies:
   - py3langid
   - ruff
   - pip:
-      - cdx_toolkit
       - pywb
       - resiliparse
