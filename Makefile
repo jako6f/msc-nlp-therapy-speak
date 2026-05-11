@@ -140,64 +140,64 @@ cc_stage1d_freeze_run:
 	$(MAKE) cc_stage1d_freeze_acquire
 	$(MAKE) cc_stage1d_freeze_process
 
-# Stage 1e corpus-tightening rerun (`configs/stage1e.yaml`)
-cc_stage1e_scan:
-	python -m src.cli cc-scan --config configs/stage1e.yaml
+# Frozen Stage 1e corpus-tightening workflow (`configs/stage1e_freeze.yaml`)
+cc_stage1e_freeze_scan:
+	python -m src.cli cc-scan --config configs/stage1e_freeze.yaml
 
-cc_stage1e_validate:
-	python -m src.cli cc-validate --config configs/stage1e.yaml
+cc_stage1e_freeze_validate:
+	python -m src.cli cc-validate --config configs/stage1e_freeze.yaml
 
-cc_stage1e_export_urls:
-	python -m src.cli cc-stage1e-export-urls --config configs/stage1e.yaml
+cc_stage1e_freeze_export_urls:
+	python -m src.cli cc-stage1e-export-urls --config configs/stage1e_freeze.yaml
 
-cc_stage1e_upload_urls:
-	python -m src.cli cc-stage1e-upload-urls --config configs/stage1e.yaml
+cc_stage1e_freeze_upload_urls:
+	python -m src.cli cc-stage1e-upload-urls --config configs/stage1e_freeze.yaml
 
-cc_stage1e_install_indexes_remote:
+cc_stage1e_freeze_install_indexes_remote:
 	@if [ -z "$(URL_EXPORT_URI)" ]; then \
-		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1e_install_indexes_remote"; \
+		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1e_freeze_install_indexes_remote"; \
 		exit 1; \
 	fi
 	python -m src.cli cc-stage1e-install-indexes-remote \
-		--config configs/stage1e.yaml \
+		--config configs/stage1e_freeze.yaml \
 		--url-export-uri $(URL_EXPORT_URI)
 
-cc_stage1e_start_index_server:
-	python -m src.cli cc-stage1e-start-index-server --config configs/stage1e.yaml
+cc_stage1e_freeze_start_index_server:
+	python -m src.cli cc-stage1e-start-index-server --config configs/stage1e_freeze.yaml
 
-cc_stage1e_resolve:
+cc_stage1e_freeze_resolve:
 	@if [ -z "$(URL_EXPORT_URI)" ]; then \
-		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1e_resolve"; \
+		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1e_freeze_resolve"; \
 		exit 1; \
 	fi
 	@if [ -z "$(RESOLVE_OUTPUT_PREFIX)" ]; then \
-		echo "Set RESOLVE_OUTPUT_PREFIX=s3://... before running cc_stage1e_resolve"; \
+		echo "Set RESOLVE_OUTPUT_PREFIX=s3://... before running cc_stage1e_freeze_resolve"; \
 		exit 1; \
 	fi
 	python -m src.cli cc-stage1e-resolve-remote \
-		--config configs/stage1e.yaml \
+		--config configs/stage1e_freeze.yaml \
 		--url-export-uri $(URL_EXPORT_URI) \
 		--s3-output-prefix $(RESOLVE_OUTPUT_PREFIX)
 
-cc_stage1e_extract:
+cc_stage1e_freeze_extract:
 	@if [ -z "$(POINTER_CACHE_URI)" ]; then \
-		echo "Set POINTER_CACHE_URI=s3://... before running cc_stage1e_extract"; \
+		echo "Set POINTER_CACHE_URI=s3://... before running cc_stage1e_freeze_extract"; \
 		exit 1; \
 	fi
 	@if [ -z "$(WARC_OUTPUT_PREFIX)" ]; then \
-		echo "Set WARC_OUTPUT_PREFIX=s3://... before running cc_stage1e_extract"; \
+		echo "Set WARC_OUTPUT_PREFIX=s3://... before running cc_stage1e_freeze_extract"; \
 		exit 1; \
 	fi
 	python -m src.cli cc-stage1e-extract-remote \
-		--config configs/stage1e.yaml \
+		--config configs/stage1e_freeze.yaml \
 		--pointer-cache-uri $(POINTER_CACHE_URI) \
 		--s3-output-prefix $(WARC_OUTPUT_PREFIX)
 
-cc_stage1e_document_quality:
-	python -m src.cli cc-stage1e-document-quality --config configs/stage1e.yaml
+cc_stage1e_freeze_document_quality:
+	python -m src.cli cc-stage1e-document-quality --config configs/stage1e_freeze.yaml
 
-cc_stage1e_process:
-	$(MAKE) cc_stage1e_scan
-	$(MAKE) cc_stage1e_validate
-	$(MAKE) cc_stage1e_export_urls
-	$(MAKE) cc_stage1e_upload_urls
+cc_stage1e_freeze_process:
+	$(MAKE) cc_stage1e_freeze_scan
+	$(MAKE) cc_stage1e_freeze_validate
+	$(MAKE) cc_stage1e_freeze_export_urls
+	$(MAKE) cc_stage1e_freeze_upload_urls

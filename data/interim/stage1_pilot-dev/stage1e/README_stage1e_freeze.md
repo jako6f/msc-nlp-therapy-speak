@@ -80,15 +80,15 @@ Manual inspection showed that the final Stage 1e output is the best pilot-dev co
 The Stage 1e flow is split across local and EC2 steps:
 
 ```bash
-make cc_stage1e_scan
-make cc_stage1e_validate
-make cc_stage1e_export_urls
-make cc_stage1e_upload_urls
-make cc_stage1e_install_indexes_remote
-make cc_stage1e_start_index_server
-make cc_stage1e_resolve
-make cc_stage1e_extract
-make cc_stage1e_document_quality
+make cc_stage1e_freeze_scan
+make cc_stage1e_freeze_validate
+make cc_stage1e_freeze_export_urls
+make cc_stage1e_freeze_upload_urls
+make cc_stage1e_freeze_install_indexes_remote
+make cc_stage1e_freeze_start_index_server
+make cc_stage1e_freeze_resolve
+make cc_stage1e_freeze_extract
+make cc_stage1e_freeze_document_quality
 ```
 
 See `reports/stage1e_execution_guide.md` for the full local/EC2 command sequence.

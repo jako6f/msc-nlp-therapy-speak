@@ -553,7 +553,7 @@ Layout:
     - `configs/stage1b_freeze.yaml`
     - `configs/stage1c_freeze.yaml`
     - `configs/stage1d_freeze.yaml`
-    - `configs/stage1e.yaml`
+    - `configs/stage1e_freeze.yaml`
   - Reserve `configs/commoncrawl_collection.yaml` for the post-Stage-1 collection freeze that will drive Stage 2.
 - `data/`
   - `raw/` — immutable inputs (e.g., `.wet.gz` downloaded in Stage 1). **Untracked.**
@@ -615,7 +615,7 @@ Every sampling action writes a manifest (JSONL) capturing crawl IDs, sampled pat
   - `cc_stage1b_freeze_*` ↔ `configs/stage1b_freeze.yaml`
   - `cc_stage1c_freeze_*` ↔ `configs/stage1c_freeze.yaml`
   - `cc_stage1d_freeze_*` ↔ `configs/stage1d_freeze.yaml`
-  - `cc_stage1e_*` ↔ `configs/stage1e.yaml`
+  - `cc_stage1e_freeze_*` ↔ `configs/stage1e_freeze.yaml`
 - Reserve `cc_collection_*` for the post-Stage-1 collection workflow that will pair with `configs/commoncrawl_collection.yaml`.
 
 ---

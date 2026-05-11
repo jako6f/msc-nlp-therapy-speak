@@ -79,10 +79,10 @@ Run on your **local Mac**.
 **Copy-paste:**
 
 ```bash
-make cc_stage1e_scan
-make cc_stage1e_validate
-make cc_stage1e_export_urls
-make cc_stage1e_upload_urls
+make cc_stage1e_freeze_scan
+make cc_stage1e_freeze_validate
+make cc_stage1e_freeze_export_urls
+make cc_stage1e_freeze_upload_urls
 ```
 
 This writes WET scan outputs to:
@@ -163,7 +163,7 @@ rsync -av \
   ec2-user@ec2-174-129-171-95.compute-1.amazonaws.com:~/msc-nlp-therapy-speak/data/interim/stage1_pilot-dev/stage1e/
 ```
 
-Repeat this artifact sync if you rerun `make cc_stage1e_scan` and produce a newer WET scan runid.
+Repeat this artifact sync if you rerun `make cc_stage1e_freeze_scan` and produce a newer WET scan runid.
 
 ## 5. SSH Into EC2
 
@@ -272,7 +272,7 @@ Install Common Crawl secondary indexes.
 **Copy-paste after setting `RUNID` and `BUCKET`:**
 
 ```bash
-make cc_stage1e_install_indexes_remote \
+make cc_stage1e_freeze_install_indexes_remote \
   URL_EXPORT_URI=$BUCKET/url_exports/$RUNID/cc_stage1e_urls_$RUNID.csv
 ```
 
@@ -289,7 +289,7 @@ Start the local index server.
 **Copy-paste:**
 
 ```bash
-make cc_stage1e_start_index_server
+make cc_stage1e_freeze_start_index_server
 ```
 
 If startup fails with “Address already in use”, repeat Section 6 and retry.
@@ -310,7 +310,7 @@ Resolve WARC pointers.
 **Copy-paste after setting `RUNID` and `BUCKET`:**
 
 ```bash
-make cc_stage1e_resolve \
+make cc_stage1e_freeze_resolve \
   URL_EXPORT_URI=$BUCKET/url_exports/$RUNID/cc_stage1e_urls_$RUNID.csv \
   RESOLVE_OUTPUT_PREFIX=$BUCKET/pointer_cache/$RUNID/
 ```
@@ -330,7 +330,7 @@ Run on the **remote EC2 shell**.
 **Copy-paste after setting `RUNID` and `BUCKET`:**
 
 ```bash
-make cc_stage1e_extract \
+make cc_stage1e_freeze_extract \
   POINTER_CACHE_URI=$BUCKET/pointer_cache/$RUNID/cc_pointer_cache_$RUNID.parquet \
   WARC_OUTPUT_PREFIX=$BUCKET/warc_output/$RUNID/
 ```
@@ -395,7 +395,7 @@ Run on your **local Mac**.
 **Copy-paste:**
 
 ```bash
-make cc_stage1e_document_quality
+make cc_stage1e_freeze_document_quality
 ```
 
 This writes final Stage 1e outputs to:
@@ -465,21 +465,21 @@ Then stop the EC2 instance in the AWS Console if you no longer need it.
 Local only:
 
 ```bash
-make cc_stage1e_scan
-make cc_stage1e_validate
-make cc_stage1e_export_urls
-make cc_stage1e_upload_urls
+make cc_stage1e_freeze_scan
+make cc_stage1e_freeze_validate
+make cc_stage1e_freeze_export_urls
+make cc_stage1e_freeze_upload_urls
 aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/stage1e/warc_output/$RUNID/ data/interim/stage1_pilot-dev/stage1e/warc/
-make cc_stage1e_document_quality
+make cc_stage1e_freeze_document_quality
 ```
 
 Remote EC2 only:
 
 ```bash
-make cc_stage1e_install_indexes_remote URL_EXPORT_URI=$BUCKET/url_exports/$RUNID/cc_stage1e_urls_$RUNID.csv
-make cc_stage1e_start_index_server
-make cc_stage1e_resolve URL_EXPORT_URI=$BUCKET/url_exports/$RUNID/cc_stage1e_urls_$RUNID.csv RESOLVE_OUTPUT_PREFIX=$BUCKET/pointer_cache/$RUNID/
-make cc_stage1e_extract POINTER_CACHE_URI=$BUCKET/pointer_cache/$RUNID/cc_pointer_cache_$RUNID.parquet WARC_OUTPUT_PREFIX=$BUCKET/warc_output/$RUNID/
+make cc_stage1e_freeze_install_indexes_remote URL_EXPORT_URI=$BUCKET/url_exports/$RUNID/cc_stage1e_urls_$RUNID.csv
+make cc_stage1e_freeze_start_index_server
+make cc_stage1e_freeze_resolve URL_EXPORT_URI=$BUCKET/url_exports/$RUNID/cc_stage1e_urls_$RUNID.csv RESOLVE_OUTPUT_PREFIX=$BUCKET/pointer_cache/$RUNID/
+make cc_stage1e_freeze_extract POINTER_CACHE_URI=$BUCKET/pointer_cache/$RUNID/cc_pointer_cache_$RUNID.parquet WARC_OUTPUT_PREFIX=$BUCKET/warc_output/$RUNID/
 ```
 
 Important:
