@@ -1,0 +1,239 @@
+project:
+  seed: 123
+
+paths:
+  interim_base: "data/interim"
+  processed_base: "data/processed"
+
+collection:
+  # Output roots
+  interim_dir: "data/interim/collection"
+  processed_dir: "data/processed"
+
+  # Temporal sampling frame
+  window:
+    primary_start_year: 2014
+    fallback_start_year: 2016
+    end_year: 2026
+
+  crawl_selection:
+    anchor_month_day: "04-15"
+    collinfo_url: "https://index.commoncrawl.org/collinfo.json"
+    require_availability_checks: true
+    availability_timeout_s: 20
+    versioned_manifest_path: "reports/commoncrawl_collection_crawl_map.json"
+
+  crawl_map:
+    - year: 2014
+      crawl_id: "CC-MAIN-2014-15"
+    - year: 2015
+      crawl_id: "CC-MAIN-2015-18"
+    - year: 2016
+      crawl_id: "CC-MAIN-2016-18"
+    - year: 2017
+      crawl_id: "CC-MAIN-2017-17"
+    - year: 2018
+      crawl_id: "CC-MAIN-2018-17"
+    - year: 2019
+      crawl_id: "CC-MAIN-2019-18"
+    - year: 2020
+      crawl_id: "CC-MAIN-2020-16"
+    - year: 2021
+      crawl_id: "CC-MAIN-2021-17"
+    - year: 2022
+      crawl_id: "CC-MAIN-2022-21"
+    - year: 2023
+      crawl_id: "CC-MAIN-2023-14"
+    - year: 2024
+      crawl_id: "CC-MAIN-2024-18"
+    - year: 2025
+      crawl_id: "CC-MAIN-2025-18"
+    - year: 2026
+      crawl_id: "CC-MAIN-2026-17"
+
+  # Track sizing
+  trend:
+    fixed_wet_files_per_year: 50
+
+  corpus:
+    target_docs_per_target_group_year: 1000
+    soft_min_docs_per_target_group_year: 500
+    initial_wet_batch_size: 50
+    expansion_wet_batch_size: 50
+    max_wet_files_per_year_first_pass: 150
+
+  # Remote execution. Personal AWS account values belong in configs/local/aws.yaml.
+  aws:
+    region: "us-east-1"
+    s3:
+      prefix: "msc-nlp-therapy-speak/collection"
+    ec2:
+      instance_type: "m7i-flex.large"
+
+  resolve_remote:
+    provider: "local_index_server"
+    index_manifest_base_url: "https://data.commoncrawl.org"
+    index_file_base_url: "https://data.commoncrawl.org"
+    request_timeout_s: 120
+    max_workers: 4
+    progress_log_every_shards: 10
+    server_host: "127.0.0.1"
+    server_port: 8080
+    server_runtime_dir: "~/.cache/msc-nlp-therapy-speak/collection_index_server"
+    server_collections_dir: "~/.cache/msc-nlp-therapy-speak/collection_index_server/collections"
+    server_log_path: "~/.cache/msc-nlp-therapy-speak/collection_index_server/index_server.log"
+    server_pid_path: "~/.cache/msc-nlp-therapy-speak/collection_index_server/index_server.pid"
+    startup_timeout_s: 60
+    url_workers: 16
+    progress_log_every_urls: 50
+    query_limit: 25
+
+  # WARC extraction and enrichment
+  warc_validation:
+    favor_recall: false
+    favor_precision: true
+    include_tables: false
+    resiliparse_comments: false
+    resiliparse_post_meta: false
+
+  published_ts_tolerance_hours: 48
+  published_ts_min_date: "1995-01-01"
+
+  # Post-WARC document-quality gate
+  document_quality:
+    schema_negative_types:
+      - "SearchResultsPage"
+      - "CollectionPage"
+      - "ItemList"
+      - "OfferCatalog"
+      - "MusicAlbum"
+      - "MusicRecording"
+      - "Product"
+      - "JobPosting"
+      - "QAPage"
+    sentence_min_tokens: 6
+    sentence_min_chars: 40
+    substantive_sentence_min_tokens: 8
+    doc_min_substantive_sentences: 3
+    min_extracted_text_chars: 500
+    snippet_target_chars: 200
+    snippet_max_chars: 600
+    datatrove:
+      gopher_repetition:
+        enabled: true
+      gopher_quality:
+        enabled: true
+      fineweb_quality:
+        enabled: true
+        line_punct_thr: 0.0
+    validation_sample_n: 30
+
+  language:
+    provider: "py3langid"
+    keep:
+      - "en"
+
+  dedup:
+    ngram_size: 5
+    jaccard_threshold: 0.9
+
+terms:
+  adhd_patterns:
+    - name: "adhd"
+      pattern: "\\badhd\\b"
+    - name: "attention_deficit"
+      pattern: "attention[-\\s]?deficit"
+  autism_patterns:
+    - name: "autism"
+      pattern: "\\bautism\\b"
+    - name: "autistic"
+      pattern: "\\bautistic\\b"
+    - name: "autism_spectrum"
+      pattern: "autism[-\\s]?spectrum"
+  asd_pattern:
+    name: "asd"
+    pattern: "\\bASD\\b"
+  baseline_patterns:
+    - name: "frustration"
+      pattern: "\\bfrustration\\b"
+    - name: "sadness"
+      pattern: "\\bsadness\\b"
+    - name: "loneliness"
+      pattern: "\\bloneliness\\b"
+
+filters:
+  min_chars: 500
+  domain_cap: 50
+  asd_disambiguation_window_chars: 200
+  context_window_chars: 200
+
+boilerplate:
+  enabled: true
+  check_window_chars: 2000
+  signature_hard_patterns:
+    - "skip\\s+to\\s+content"
+    - "skip\\s+navigation"
+    - "privacy\\s+policy.{0,80}cookies?"
+    - "cookie\\s+consent"
+    - "cookie\\s+settings"
+    - "accept\\s+cookies?"
+    - "manage\\s+cookies?"
+    - "add\\s+to\\s+cart"
+    - "\\bcheckout\\b"
+    - "toggle\\s+navigation"
+    - "open\\s+accessibility\\s+menu"
+    - "accessibility\\s+widget"
+    - "accessibility\\s+profile"
+    - "choose\\s+accessibility\\s+menu"
+    - "cognitive\\s+disability"
+    - "seizure\\s+safe"
+    - "reading\\s+mask"
+    - "line\\s+height"
+    - "cursor\\s+size"
+    - "adhd[-\\s]?friendly\\s+(mode|profile)"
+  directory_index:
+    enabled: true
+    lexicon:
+      - "all conditions"
+      - "conditions a-z"
+      - "health a-z"
+      - "browse conditions"
+      - "symptoms"
+      - "diagnosis"
+      - "treatment"
+      - "diseases"
+      - "disorders"
+      - "a to z"
+      - "a-z index"
+    score_threshold: 4
+    min_separator_per_1k: 10.0
+    min_short_fragment_ratio: 0.45
+    min_short_fragments: 10
+    short_fragment_min_chars: 3
+    short_fragment_max_chars: 35
+    max_sentence_terminators_per_1k: 2.5
+    low_narrative_min_separator_per_1k: 8.0
+    min_lexicon_hits: 3
+    min_capitalized_token_ratio: 0.3
+    min_single_letter_tokens: 6
+  negative_page_type_url:
+    enabled: true
+    patterns:
+      - "/(tag|tags)(/|[?#]|$)"
+      - "/(category|categories)(/|[?#]|$)"
+      - "/(search)(/|[?#]|$)"
+      - "[?&](s|q|search)="
+      - "/(playlist|playlists)(/|[?#]|$)"
+      - "/(forum|forums)(/|[?#]|$)"
+      - "/(thread|threads)(/|[?#]|$)"
+      - "/viewtopic([/?#]|$)"
+      - "/(quote|quotes)(/|[?#]|$)"
+      - "/(flashcard|flashcards)(/|[?#]|$)"
+      - "/(album|albums)(/|[?#]|$)"
+      - "trackAsin="
+      - "/(product|products)(/|[?#]|$)"
+      - "/product-category(/|[?#]|$)"
+      - "/list/job(/|[?#]|$)"
+      - "/(job|jobs)(/|[?#]|$)"
+      - "/pin(/|[?#]|$)"
+      - "https?://[^/]*(casino|slots?|betting|viagra|cialis|pharma|pharmacy)[^/]*[./]"

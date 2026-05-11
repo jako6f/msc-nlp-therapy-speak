@@ -356,14 +356,15 @@ def _write_stage1e_throughput_summary(
     document_quality_summary: Dict[str, object],
     document_quality_elapsed_sec: float,
 ) -> None:
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
     _, wet_summary = _latest_metric_map_or_empty(
         stage1_output_dir(config, default_stage="stage1e"), "cc_scan_summary_", ".csv"
     )
     _, url_summary = _latest_metric_map_or_empty(
-        stage1e_url_export_dir(config), "cc_stage1e_urls_summary_", ".csv"
+        stage1e_url_export_dir(config), f"cc_{label}_urls_summary_", ".csv"
     )
     _, warc_summary = _latest_metric_map_or_empty(
-        stage1e_warc_dir(config), "cc_stage1e_summary_", ".csv"
+        stage1e_warc_dir(config), f"cc_{label}_summary_", ".csv"
     )
 
     wet_docs = _metric_int(wet_summary, "docs_scanned", 0)
@@ -447,13 +448,15 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     _require_stage1e(config)
     filter_start = time.perf_counter()
     runid = _utc_runid()
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-document-quality", runid)
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-quality", runid)
 
     enrich_dir = stage1e_warc_dir(config)
     enrich_runid, enriched_path = _latest_enriched_hits(enrich_dir)
     enriched_df = pd.read_parquet(enriched_path)
     if enriched_df.empty:
-        raise ValueError("Latest Stage 1e enriched hits table is empty.")
+        raise ValueError(f"Latest {display_label} enriched hits table is empty.")
 
     quality_cfg = config.get("stage1e", {}).get("document_quality", {})
     negative_schema_types = {
@@ -477,7 +480,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     validated_df = enriched_df.loc[validated_mask].copy()
     if validated_df.empty:
         raise ValueError(
-            "No WARC-validated rows available for Stage 1e document-quality filtering."
+            f"No WARC-validated rows available for {display_label} document-quality filtering."
         )
 
     grouped_docs = (
@@ -621,7 +624,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         DOC_KEY_COLUMNS + ["extracted_text"],
     ].drop_duplicates(subset=DOC_KEY_COLUMNS)
     if cleanup_docs.empty:
-        raise ValueError("No Stage 1e documents survived document-quality filtering.")
+        raise ValueError(f"No {display_label} documents survived document-quality filtering.")
 
     classify = _load_language_identifier()
     language_rows: List[Dict[str, object]] = []
@@ -756,8 +759,8 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     filtered_path = out_dir / f"cc_document_quality_hits_{runid}.parquet"
     corpus_path = out_dir / f"cc_corpus_texts_document_quality_{runid}.parquet"
     sample_path = out_dir / f"cc_val_sample{sample_n}_{runid}.csv"
-    summary_path = out_dir / f"cc_stage1e_summary_{runid}.csv"
-    term_summary_path = out_dir / f"cc_stage1e_term_summary_{runid}.csv"
+    summary_path = out_dir / f"cc_{label}_summary_{runid}.csv"
+    term_summary_path = out_dir / f"cc_{label}_term_summary_{runid}.csv"
 
     filtered_df.to_parquet(filtered_path, index=False)
     corpus_df.to_parquet(corpus_path, index=False)
@@ -819,7 +822,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
             "validated_hits_warc": int(role_df["is_validated_hits_warc"].sum()),
         }
 
-    summary_in_path = enrich_dir / f"cc_stage1e_summary_{enrich_runid}.csv"
+    summary_in_path = enrich_dir / f"cc_{label}_summary_{enrich_runid}.csv"
     summary_in = _load_metric_map(summary_in_path) if summary_in_path.exists() else {}
     docs_scanned = _metric_int(summary_in, "docs_scanned", 0)
     candidate_hits = _metric_int(summary_in, "candidate_hits", 0)
@@ -1014,7 +1017,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         doc_metrics=doc_metrics,
         publication_metrics=publication_metrics,
         notes=(
-            "Stage 1e document-quality outputs after schema guardrails, DataTrove "
+            f"{display_label} document-quality outputs after schema guardrails, DataTrove "
             "Gopher/FineWeb quality filtering, substantiveness checks, English gating, "
             "and local dedup."
         ),
@@ -1023,7 +1026,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     document_quality_elapsed_sec = time.perf_counter() - filter_start
     metrics_dir = stage1e_metrics_dir(config)
     metrics_dir.mkdir(parents=True, exist_ok=True)
-    throughput_summary_path = metrics_dir / f"cc_stage1e_throughput_summary_{runid}.csv"
+    throughput_summary_path = metrics_dir / f"cc_{label}_throughput_summary_{runid}.csv"
     _write_stage1e_throughput_summary(
         throughput_summary_path,
         config=config,
@@ -1035,11 +1038,11 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     logger.info("Wrote filtered hits %s", filtered_path)
     logger.info("Wrote corpus texts %s", corpus_path)
     logger.info("Wrote validation sample %s", sample_path)
-    logger.info("Wrote Stage 1e summary %s", summary_path)
-    logger.info("Wrote Stage 1e term summary %s", term_summary_path)
-    logger.info("Wrote Stage 1e throughput summary %s", throughput_summary_path)
+    logger.info("Wrote %s summary %s", display_label, summary_path)
+    logger.info("Wrote %s term summary %s", display_label, term_summary_path)
+    logger.info("Wrote %s throughput summary %s", display_label, throughput_summary_path)
     print(
-        "Stage 1e document quality complete: "
+        f"{display_label} document quality complete: "
         f"validated_hits_warc={validated_hits_warc_total}, "
         f"document_quality_kept_hits={quality_kept_hits_total}, "
         f"english_hits={english_hits_total}, "

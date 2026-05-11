@@ -1,3 +1,8 @@
+CONFIG ?= configs/commoncrawl_collection.yaml
+YEAR ?=
+TRACK ?= corpus
+BATCH ?= 1
+
 env:
 	@echo "Activate env: conda activate msc-nlp"
 
@@ -14,190 +19,86 @@ format:
 paper:
 	cd paper && latexmk -pdf main.tex || true
 
-# Historical Stage 1b freeze reproduction (`configs/stage1b_freeze.yaml`)
-cc_stage1b_freeze_sample:
-	python -m src.cli cc-sample --config configs/stage1b_freeze.yaml
+collection_select_crawls:
+	python -m src.cli cc-collection-select-crawls --config $(CONFIG)
 
-cc_stage1b_freeze_download:
-	python -m src.cli cc-download --config configs/stage1b_freeze.yaml
+collection_sample:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-sample-wet --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
-cc_stage1b_freeze_acquire:
-	$(MAKE) cc_stage1b_freeze_sample
-	$(MAKE) cc_stage1b_freeze_download
+collection_download:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-download-wet --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
-cc_stage1b_freeze_scan:
-	python -m src.cli cc-scan --config configs/stage1b_freeze.yaml
+collection_acquire:
+	$(MAKE) collection_sample YEAR=$(YEAR) TRACK=$(TRACK) BATCH=$(BATCH) CONFIG=$(CONFIG)
+	$(MAKE) collection_download YEAR=$(YEAR) TRACK=$(TRACK) BATCH=$(BATCH) CONFIG=$(CONFIG)
 
-cc_stage1b_freeze_validate:
-	python -m src.cli cc-validate --config configs/stage1b_freeze.yaml
+collection_scan:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-scan --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
-cc_stage1b_freeze_process:
-	$(MAKE) cc_stage1b_freeze_scan
-	$(MAKE) cc_stage1b_freeze_validate
+collection_export_urls:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-export-urls --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
-cc_stage1b_freeze_run:
-	$(MAKE) cc_stage1b_freeze_acquire
-	$(MAKE) cc_stage1b_freeze_process
+collection_upload_urls:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-upload-urls --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
-# Active Stage 1c freeze workflow (`configs/stage1c_freeze.yaml`)
-cc_stage1c_freeze_sample:
-	python -m src.cli cc-sample --config configs/stage1c_freeze.yaml
+collection_install_indexes:
+	@if [ -z "$(URL_EXPORT_URI)" ]; then echo "Set URL_EXPORT_URI=s3://..."; exit 1; fi
+	python -m src.cli cc-collection-install-indexes --config $(CONFIG) --url-export-uri $(URL_EXPORT_URI)
 
-cc_stage1c_freeze_download:
-	python -m src.cli cc-download --config configs/stage1c_freeze.yaml
+collection_start_index_server:
+	python -m src.cli cc-collection-start-index-server --config $(CONFIG)
 
-cc_stage1c_freeze_acquire:
-	$(MAKE) cc_stage1c_freeze_sample
-	$(MAKE) cc_stage1c_freeze_download
+collection_resolve:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	@if [ -z "$(URL_EXPORT_URI)" ]; then echo "Set URL_EXPORT_URI=s3://..."; exit 1; fi
+	@if [ -z "$(RESOLVE_OUTPUT_PREFIX)" ]; then echo "Set RESOLVE_OUTPUT_PREFIX=s3://..."; exit 1; fi
+	python -m src.cli cc-collection-resolve --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH) --url-export-uri $(URL_EXPORT_URI) --s3-output-prefix $(RESOLVE_OUTPUT_PREFIX)
 
-cc_stage1c_freeze_scan:
-	python -m src.cli cc-scan --config configs/stage1c_freeze.yaml
+collection_extract:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	@if [ -z "$(POINTER_CACHE_URI)" ]; then echo "Set POINTER_CACHE_URI=s3://..."; exit 1; fi
+	@if [ -z "$(WARC_OUTPUT_PREFIX)" ]; then echo "Set WARC_OUTPUT_PREFIX=s3://..."; exit 1; fi
+	python -m src.cli cc-collection-extract --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH) --pointer-cache-uri $(POINTER_CACHE_URI) --s3-output-prefix $(WARC_OUTPUT_PREFIX)
 
-cc_stage1c_freeze_validate:
-	python -m src.cli cc-validate --config configs/stage1c_freeze.yaml
+collection_quality:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-quality --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
-cc_stage1c_freeze_process:
-	$(MAKE) cc_stage1c_freeze_scan
-	$(MAKE) cc_stage1c_freeze_validate
-
-cc_stage1c_freeze_run:
-	$(MAKE) cc_stage1c_freeze_acquire
-	$(MAKE) cc_stage1c_freeze_process
-
-# Active Stage 1d freeze workflow (`configs/stage1d_freeze.yaml`)
-cc_stage1d_freeze_sample:
-	python -m src.cli cc-sample --config configs/stage1d_freeze.yaml
-
-cc_stage1d_freeze_download:
-	python -m src.cli cc-download --config configs/stage1d_freeze.yaml
-
-cc_stage1d_freeze_acquire:
-	$(MAKE) cc_stage1d_freeze_sample
-	$(MAKE) cc_stage1d_freeze_download
-
-cc_stage1d_freeze_scan:
-	python -m src.cli cc-scan --config configs/stage1d_freeze.yaml
-
-cc_stage1d_freeze_validate:
-	python -m src.cli cc-validate --config configs/stage1d_freeze.yaml
-
-cc_stage1d_freeze_export_urls:
-	python -m src.cli cc-stage1d-export-urls --config configs/stage1d_freeze.yaml
-
-cc_stage1d_freeze_upload_urls:
-	python -m src.cli cc-stage1d-upload-urls --config configs/stage1d_freeze.yaml
-
-cc_stage1d_freeze_install_indexes_remote:
-	@if [ -z "$(URL_EXPORT_URI)" ]; then \
-		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1d_freeze_install_indexes_remote"; \
-		exit 1; \
+collection_build_processed:
+	@if [ "$(TRACK)" = "trend" ]; then \
+		python -m src.cli cc-collection-build-trend --config $(CONFIG); \
+	elif [ "$(TRACK)" = "corpus" ]; then \
+		python -m src.cli cc-collection-build-corpus --config $(CONFIG); \
+	else \
+		python -m src.cli cc-collection-build-trend --config $(CONFIG); \
+		python -m src.cli cc-collection-build-corpus --config $(CONFIG); \
 	fi
-	python -m src.cli cc-stage1d-install-indexes-remote \
-		--config configs/stage1d_freeze.yaml \
-		--url-export-uri $(URL_EXPORT_URI)
 
-cc_stage1d_freeze_start_index_server:
-	python -m src.cli cc-stage1d-start-index-server --config configs/stage1d_freeze.yaml
+trend_year:
+	$(MAKE) collection_acquire YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_scan YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_export_urls YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_upload_urls YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
 
-cc_stage1d_freeze_resolve:
-	@if [ -z "$(URL_EXPORT_URI)" ]; then \
-		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1d_freeze_resolve"; \
-		exit 1; \
-	fi
-	@if [ -z "$(RESOLVE_OUTPUT_PREFIX)" ]; then \
-		echo "Set RESOLVE_OUTPUT_PREFIX=s3://... before running cc_stage1d_freeze_resolve"; \
-		exit 1; \
-	fi
-	python -m src.cli cc-stage1d-resolve-remote \
-		--config configs/stage1d_freeze.yaml \
-		--url-export-uri $(URL_EXPORT_URI) \
-		--s3-output-prefix $(RESOLVE_OUTPUT_PREFIX)
+corpus_year:
+	$(MAKE) collection_acquire YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_scan YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_export_urls YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_upload_urls YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
 
-cc_stage1d_freeze_extract:
-	@if [ -z "$(POINTER_CACHE_URI)" ]; then \
-		echo "Set POINTER_CACHE_URI=s3://... before running cc_stage1d_freeze_extract"; \
-		exit 1; \
-	fi
-	@if [ -z "$(WARC_OUTPUT_PREFIX)" ]; then \
-		echo "Set WARC_OUTPUT_PREFIX=s3://... before running cc_stage1d_freeze_extract"; \
-		exit 1; \
-	fi
-	python -m src.cli cc-stage1d-extract-remote \
-		--config configs/stage1d_freeze.yaml \
-		--pointer-cache-uri $(POINTER_CACHE_URI) \
-		--s3-output-prefix $(WARC_OUTPUT_PREFIX)
+corpus_expand:
+	$(MAKE) collection_acquire YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
+	$(MAKE) collection_scan YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
+	$(MAKE) collection_export_urls YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
+	$(MAKE) collection_upload_urls YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
 
-cc_stage1d_freeze_filter_en_dedup:
-	python -m src.cli cc-filter-en-dedup --config configs/stage1d_freeze.yaml
+trend:
+	python -m src.cli cc-collection-run --config $(CONFIG) --track trend
 
-cc_stage1d_freeze_process:
-	$(MAKE) cc_stage1d_freeze_scan
-	$(MAKE) cc_stage1d_freeze_validate
-	$(MAKE) cc_stage1d_freeze_export_urls
-	$(MAKE) cc_stage1d_freeze_upload_urls
-
-cc_stage1d_freeze_run:
-	$(MAKE) cc_stage1d_freeze_acquire
-	$(MAKE) cc_stage1d_freeze_process
-
-# Frozen Stage 1e corpus-tightening workflow (`configs/stage1e_freeze.yaml`)
-cc_stage1e_freeze_scan:
-	python -m src.cli cc-scan --config configs/stage1e_freeze.yaml
-
-cc_stage1e_freeze_validate:
-	python -m src.cli cc-validate --config configs/stage1e_freeze.yaml
-
-cc_stage1e_freeze_export_urls:
-	python -m src.cli cc-stage1e-export-urls --config configs/stage1e_freeze.yaml
-
-cc_stage1e_freeze_upload_urls:
-	python -m src.cli cc-stage1e-upload-urls --config configs/stage1e_freeze.yaml
-
-cc_stage1e_freeze_install_indexes_remote:
-	@if [ -z "$(URL_EXPORT_URI)" ]; then \
-		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1e_freeze_install_indexes_remote"; \
-		exit 1; \
-	fi
-	python -m src.cli cc-stage1e-install-indexes-remote \
-		--config configs/stage1e_freeze.yaml \
-		--url-export-uri $(URL_EXPORT_URI)
-
-cc_stage1e_freeze_start_index_server:
-	python -m src.cli cc-stage1e-start-index-server --config configs/stage1e_freeze.yaml
-
-cc_stage1e_freeze_resolve:
-	@if [ -z "$(URL_EXPORT_URI)" ]; then \
-		echo "Set URL_EXPORT_URI=s3://... before running cc_stage1e_freeze_resolve"; \
-		exit 1; \
-	fi
-	@if [ -z "$(RESOLVE_OUTPUT_PREFIX)" ]; then \
-		echo "Set RESOLVE_OUTPUT_PREFIX=s3://... before running cc_stage1e_freeze_resolve"; \
-		exit 1; \
-	fi
-	python -m src.cli cc-stage1e-resolve-remote \
-		--config configs/stage1e_freeze.yaml \
-		--url-export-uri $(URL_EXPORT_URI) \
-		--s3-output-prefix $(RESOLVE_OUTPUT_PREFIX)
-
-cc_stage1e_freeze_extract:
-	@if [ -z "$(POINTER_CACHE_URI)" ]; then \
-		echo "Set POINTER_CACHE_URI=s3://... before running cc_stage1e_freeze_extract"; \
-		exit 1; \
-	fi
-	@if [ -z "$(WARC_OUTPUT_PREFIX)" ]; then \
-		echo "Set WARC_OUTPUT_PREFIX=s3://... before running cc_stage1e_freeze_extract"; \
-		exit 1; \
-	fi
-	python -m src.cli cc-stage1e-extract-remote \
-		--config configs/stage1e_freeze.yaml \
-		--pointer-cache-uri $(POINTER_CACHE_URI) \
-		--s3-output-prefix $(WARC_OUTPUT_PREFIX)
-
-cc_stage1e_freeze_document_quality:
-	python -m src.cli cc-stage1e-document-quality --config configs/stage1e_freeze.yaml
-
-cc_stage1e_freeze_process:
-	$(MAKE) cc_stage1e_freeze_scan
-	$(MAKE) cc_stage1e_freeze_validate
-	$(MAKE) cc_stage1e_freeze_export_urls
-	$(MAKE) cc_stage1e_freeze_upload_urls
+corpus:
+	python -m src.cli cc-collection-run --config $(CONFIG) --track corpus

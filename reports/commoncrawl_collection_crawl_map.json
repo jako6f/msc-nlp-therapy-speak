@@ -1,0 +1,389 @@
+{
+  "anchor_month_day": "04-15",
+  "availability_required": {
+    "cdx_index_api": true,
+    "remote_checks_performed": true,
+    "warc_paths_gz": true,
+    "wet_paths_gz": true
+  },
+  "crawl_map": [
+    {
+      "crawl_id": "CC-MAIN-2014-15",
+      "year": 2014
+    },
+    {
+      "crawl_id": "CC-MAIN-2015-18",
+      "year": 2015
+    },
+    {
+      "crawl_id": "CC-MAIN-2016-18",
+      "year": 2016
+    },
+    {
+      "crawl_id": "CC-MAIN-2017-17",
+      "year": 2017
+    },
+    {
+      "crawl_id": "CC-MAIN-2018-17",
+      "year": 2018
+    },
+    {
+      "crawl_id": "CC-MAIN-2019-18",
+      "year": 2019
+    },
+    {
+      "crawl_id": "CC-MAIN-2020-16",
+      "year": 2020
+    },
+    {
+      "crawl_id": "CC-MAIN-2021-17",
+      "year": 2021
+    },
+    {
+      "crawl_id": "CC-MAIN-2022-21",
+      "year": 2022
+    },
+    {
+      "crawl_id": "CC-MAIN-2023-14",
+      "year": 2023
+    },
+    {
+      "crawl_id": "CC-MAIN-2024-18",
+      "year": 2024
+    },
+    {
+      "crawl_id": "CC-MAIN-2025-18",
+      "year": 2025
+    },
+    {
+      "crawl_id": "CC-MAIN-2026-17",
+      "year": 2026
+    }
+  ],
+  "created_at_utc": "2026-05-11T16:00:31Z",
+  "fallback_window": {
+    "end_year": 2026,
+    "start_year": 2016
+  },
+  "primary_window": {
+    "end_year": 2026,
+    "start_year": 2014
+  },
+  "rejected_unavailable_candidates": [],
+  "selected_crawls": [
+    {
+      "anchor_date": "2014-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2014-15-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2014-15/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2014-15/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2014-15-index",
+      "crawl_id": "CC-MAIN-2014-15",
+      "distance_days": 5.795017,
+      "from": "2014-04-16T04:08:36",
+      "name": "April 2014 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2014-04-20T19:04:49",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2014-04-25T10:01:03",
+      "year": 2014
+    },
+    {
+      "anchor_date": "2015-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2015-18-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2015-18/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2015-18/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2015-18-index",
+      "crawl_id": "CC-MAIN-2015-18",
+      "distance_days": 12.78919,
+      "from": "2015-04-18T03:17:22",
+      "name": "April 2015 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2015-04-27T18:56:26",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2015-05-07T10:35:30",
+      "year": 2015
+    },
+    {
+      "anchor_date": "2016-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2016-18-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2016-18/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2016-18/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2016-18-index",
+      "crawl_id": "CC-MAIN-2016-18",
+      "distance_days": 17.959531,
+      "from": "2016-04-28T19:43:41",
+      "name": "April 2016 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2016-05-02T23:01:43",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2016-05-07T02:19:46",
+      "year": 2016
+    },
+    {
+      "anchor_date": "2017-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2017-17-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2017-17/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2017-17/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2017-17-index",
+      "crawl_id": "CC-MAIN-2017-17",
+      "distance_days": 12.277969,
+      "from": "2017-04-23T05:18:57",
+      "name": "April 2017 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2017-04-27T06:40:16",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2017-05-01T08:01:36",
+      "year": 2017
+    },
+    {
+      "anchor_date": "2018-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2018-17-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2018-17/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2018-17/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2018-17-index",
+      "crawl_id": "CC-MAIN-2018-17",
+      "distance_days": 8.401175,
+      "from": "2018-04-19T09:15:46",
+      "name": "April 2018 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2018-04-23T09:37:41",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2018-04-27T09:59:37",
+      "year": 2018
+    },
+    {
+      "anchor_date": "2019-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2019-18-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2019-18/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2019-18/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2019-18-index",
+      "crawl_id": "CC-MAIN-2019-18",
+      "distance_days": 7.585799,
+      "from": "2019-04-18T10:12:43",
+      "name": "April 2019 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2019-04-22T14:03:33",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2019-04-26T17:54:23",
+      "year": 2019
+    },
+    {
+      "anchor_date": "2020-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2020-16-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2020-16/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2020-16/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2020-16-index",
+      "crawl_id": "CC-MAIN-2020-16",
+      "distance_days": 10.910787,
+      "from": "2020-03-28T07:40:47",
+      "name": "March/April 2020 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2020-04-04T02:08:28",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2020-04-10T20:36:09",
+      "year": 2020
+    },
+    {
+      "anchor_date": "2021-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2021-17-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2021-17/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2021-17/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2021-17-index",
+      "crawl_id": "CC-MAIN-2021-17",
+      "distance_days": 2.130463,
+      "from": "2021-04-10T10:58:31",
+      "name": "April 2021 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2021-04-17T03:07:52",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2021-04-23T19:17:13",
+      "year": 2021
+    },
+    {
+      "anchor_date": "2022-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2022-21-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2022-21/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2022-21/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2022-21-index",
+      "crawl_id": "CC-MAIN-2022-21",
+      "distance_days": 37.872402,
+      "from": "2022-05-16T04:13:37",
+      "name": "May 2022 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2022-05-22T20:56:15",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2022-05-29T13:38:54",
+      "year": 2022
+    },
+    {
+      "anchor_date": "2023-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2023-14-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2023-14/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2023-14/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2023-14-index",
+      "crawl_id": "CC-MAIN-2023-14",
+      "distance_days": 19.032598,
+      "from": "2023-03-20T08:35:13",
+      "name": "March/April 2023 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2023-03-26T23:13:03",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2023-04-02T13:50:54",
+      "year": 2023
+    },
+    {
+      "anchor_date": "2024-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2024-18-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2024-18/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2024-18/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2024-18-index",
+      "crawl_id": "CC-MAIN-2024-18",
+      "distance_days": 4.04728,
+      "from": "2024-04-12T10:13:54",
+      "name": "April 2024 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2024-04-19T01:08:05",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2024-04-25T16:02:16",
+      "year": 2024
+    },
+    {
+      "anchor_date": "2025-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2025-18-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2025-18/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2025-18/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2025-18-index",
+      "crawl_id": "CC-MAIN-2025-18",
+      "distance_days": 9.31099,
+      "from": "2025-04-17T13:50:10",
+      "name": "April 2025 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2025-04-24T07:27:49",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2025-05-01T01:05:29",
+      "year": 2025
+    },
+    {
+      "anchor_date": "2026-04-15",
+      "availability": {
+        "all_required_available": true,
+        "index_api_url": "https://index.commoncrawl.org/CC-MAIN-2026-17-index",
+        "index_available": true,
+        "remote_checks_performed": true,
+        "warc_paths_available": true,
+        "warc_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2026-17/warc.paths.gz",
+        "wet_paths_available": true,
+        "wet_paths_url": "https://data.commoncrawl.org/crawl-data/CC-MAIN-2026-17/wet.paths.gz"
+      },
+      "cdx_api": "https://index.commoncrawl.org/CC-MAIN-2026-17-index",
+      "crawl_id": "CC-MAIN-2026-17",
+      "distance_days": 1.713947,
+      "from": "2026-04-10T08:11:53",
+      "name": "April 2026 Index",
+      "reference_date_source": "crawl_midpoint",
+      "reference_datetime": "2026-04-16T17:08:05",
+      "selection_rank": 1,
+      "selection_reason": "nearest available CC-MAIN crawl to annual April anchor by crawl midpoint",
+      "to": "2026-04-23T02:04:17",
+      "year": 2026
+    }
+  ],
+  "selection_rule": "For each year, select the available CC-MAIN crawl whose from/to midpoint is closest to the configured annual anchor date.",
+  "source_url": "https://index.commoncrawl.org/collinfo.json"
+}

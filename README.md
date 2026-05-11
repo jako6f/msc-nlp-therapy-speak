@@ -1,62 +1,103 @@
 # msc-nlp-therapy-speak
 
-Research repo for building a pilot NLP pipeline that samples and filters Common Crawl text related to mental‑health terms (e.g., ADHD/autism) for downstream analysis. The active workflow now covers Stage 1 WET scanning plus a rebooted Stage 1d WARC pipeline that uses a remote EC2 local-index-server resolver and remote WARC extraction in `us-east-1`.
+Research repository for collecting a Common Crawl corpus of ADHD/autism discourse and matched baseline terms for diachronic NLP analysis.
 
-**Status**: early pilot / scaffolding.
+**Status:** final collection pipeline after pilot-dev validation. Pilot-dev artifacts are archived under `data/interim/pilot-dev/` and the pilot-dev code/data checkpoint is tagged as `v0.3-pilot-dev`.
 
 ## Quickstart
 
 ```bash
 conda env create -f environment.yml
 conda activate msc-nlp
-python -m src.cli cc-scan --config configs/stage1c_freeze.yaml
-python -m src.cli cc-stage1d-export-urls --config configs/stage1d_freeze.yaml
-python -m src.cli cc-stage1d-upload-urls --config configs/stage1d_freeze.yaml
+make sanity
+make collection_select_crawls
 ```
 
-For the frozen Stage 1d workflow summary, see:
+Process one yearly Trend batch:
 
-- [data/interim/stage1_pilot-dev/stage1d/README_stage1d_freeze.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/data/interim/stage1_pilot-dev/stage1d/README_stage1d_freeze.md)
+```bash
+make trend_year YEAR=2020
+```
 
-## Configuration
+Process one yearly Corpus batch:
 
-Stage-scoped configs are kept separately. The current repo state includes:
+```bash
+make corpus_year YEAR=2020 BATCH=1
+```
 
-- `configs/stage1b_freeze.yaml` — historical Stage 1b freeze reproduction
-- `configs/stage1c_freeze.yaml` — active Stage 1c freeze workflow
-- `configs/stage1d_freeze.yaml` — active Stage 1d freeze workflow
+See [reports/commoncrawl_collection_runbook.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/reports/commoncrawl_collection_runbook.md) for the full local/EC2 execution sequence.
 
-All stage configs define:
+## Active Configuration
 
-- Common Crawl IDs to sample (e.g., `CC-MAIN-YYYY-WW`)
-- Sampling volume (WET files per crawl)
-- Simple filters (minimum chars, per-domain cap, disambiguation window)
-- Term patterns for ADHD/autism matching
-- Baseline term patterns for the current selected baseline set (`frustration`, `sadness`, `loneliness`)
-- Output routing for Stage-1 pilot/dev artifacts via:
-  - `paths.interim_base`
-  - `paths.stage1_base`
-  - `run_context.stage` / `run_context.track`
+The active collection config is:
 
-## Project Layout
+- `configs/commoncrawl_collection.yaml`
 
-- `src/cli.py` — stage-scoped CLI entrypoints for sampling, download, scan, validation, remote URL export/upload, remote index setup, remote pointer resolution, remote extraction, and English-only dedup filtering
-- `src/data_sources/commoncrawl/` — Common Crawl sampling, scanning, remote pointer-resolution helpers, and Stage 1d WARC-processing logic
-- `configs/` — stage-scoped YAML configs plus small historical notes
-- `notebooks/` — exploratory notebooks
-- `data/` — data outputs (not committed)
+It defines:
 
-Stage-1 outputs now live under `data/interim/stage1_pilot-dev/{stage1a,stage1b,stage1c,stage1d}`.
-Within scan summaries, `validated_hits_wet` and `validated_hits_wet_per_10k` are the canonical WET-validated metrics. Historical Stage 1b summaries may still contain legacy aliases such as `final_hits`, `hits_total`, and `final_per_10k`, but new runs do not emit them.
-Stage 1c scan outputs also persist row-level `candidate_hits` and `validated_hits_wet` parquet tables plus a per-term diagnostics CSV.
-Stage 1d adds:
+- the frozen 2014-2026 year-to-crawl map
+- the 2016-2026 conservative fallback window
+- Trend and Corpus sampling settings
+- target and baseline term patterns
+- WET triage rules
+- WARC extraction settings
+- publication-date extraction settings
+- document-quality, English filtering, and dedup settings
+- generic AWS/S3/EC2 resolver defaults; personal account values belong in untracked `configs/local/aws.yaml`
 
-- URL-export and pointer-cache artifacts under `data/interim/stage1_pilot-dev/stage1d/{url_exports,pointer_cache}/`
-- row-level `cc_enriched_hits`, `cc_validated_hits_warc`, `cc_filtered_hits_en_dedup`, and `cc_corpus_texts_en_dedup` parquet outputs
-- post-filter `cc_val_sample30` validation sample under `data/interim/stage1_pilot-dev/stage1d/filter_en_dedup/`
-- Stage 1d summary CSVs
+Optional local override:
 
-## Notes
+```bash
+cp configs/local/aws.example.yaml configs/local/aws.yaml
+```
 
-- This is a research prototype. Expect breaking changes.
-- No code behavior has been altered by this README.
+`configs/local/aws.yaml` is ignored by git and is merged automatically when present. You can also point to another local override with `MSC_NLP_LOCAL_CONFIG=/path/to/local.yaml`.
+
+## Active Commands
+
+Individual steps:
+
+- `make collection_sample`
+- `make collection_download`
+- `make collection_scan`
+- `make collection_export_urls`
+- `make collection_upload_urls`
+- `make collection_install_indexes`
+- `make collection_start_index_server`
+- `make collection_resolve`
+- `make collection_extract`
+- `make collection_quality`
+- `make collection_build_processed`
+
+Convenience targets:
+
+- `make trend_year YEAR=YYYY`
+- `make corpus_year YEAR=YYYY BATCH=N`
+- `make corpus_expand YEAR=YYYY BATCH=N`
+- `make trend`
+- `make corpus`
+
+Remote pointer resolution and WARC extraction require explicit S3 URIs and should be run on the EC2 host in `us-east-1`; see the runbook.
+
+## Data Layout
+
+Working outputs:
+
+- `data/interim/collection/trend_working/`
+- `data/interim/collection/corpus_working/`
+
+Final processed outputs:
+
+- `data/processed/trend/`
+- `data/processed/corpus/`
+- `data/processed/manifests/`
+
+Archived pilot-dev outputs:
+
+- `data/interim/pilot-dev/`
+
+## Strategy
+
+The collection strategy is documented in:
+
+- [reports/data_collection_strategy_common_crawl_therapy_speak_adhd_autism_v2026-05-01.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/reports/data_collection_strategy_common_crawl_therapy_speak_adhd_autism_v2026-05-01.md)

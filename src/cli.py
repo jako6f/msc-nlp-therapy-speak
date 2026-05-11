@@ -1,340 +1,256 @@
 import argparse
+import os
 import sys
 from pathlib import Path
+from typing import Any
 
 import yaml
 
-from src.analysis.cc_validate import validate_corpus_outputs
 from src.data_sources.commoncrawl import (
-    document_quality_stage1e_hits,
-    download_from_manifest,
-    export_stage1d_urls,
-    export_stage1e_urls,
-    extract_stage1d_pointer_cache,
-    extract_stage1e_pointer_cache,
-    filter_en_dedup_hits,
-    find_latest_manifest,
-    install_stage1d_indexes_remote,
-    install_stage1e_indexes_remote,
-    resolve_stage1d_urls_remote,
-    resolve_stage1e_urls_remote,
-    sample_and_write_manifest,
-    scan_wet_files,
-    start_stage1d_index_server_remote,
-    start_stage1e_index_server_remote,
-    upload_stage1d_urls_to_s3,
-    upload_stage1e_urls_to_s3,
-    validate_counts,
+    build_processed_corpus,
+    build_processed_trend,
+    download_collection_wet,
+    export_collection_urls,
+    extract_collection,
+    install_collection_indexes,
+    quality_collection,
+    resolve_collection_urls,
+    run_collection_track,
+    sample_collection_wet,
+    scan_collection,
+    select_collection_crawls,
+    start_collection_index_server,
+    upload_collection_urls,
 )
 from src.pathing import (
-    stage1_base,
-    stage1d_filter_en_dedup_dir,
-    stage1d_pointer_cache_dir,
-    stage1d_url_export_dir,
-    stage1d_warc_dir,
-    stage1e_document_quality_dir,
-    stage1e_metrics_dir,
-    stage1e_pointer_cache_dir,
-    stage1e_url_export_dir,
-    stage1e_warc_dir,
+    collection_interim_dir,
+    processed_corpus_dir,
+    processed_manifest_dir,
+    processed_trend_dir,
 )
+
+
+def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, override_value in override.items():
+        base_value = merged.get(key)
+        if isinstance(base_value, dict) and isinstance(override_value, dict):
+            merged[key] = _deep_merge(base_value, override_value)
+        else:
+            merged[key] = override_value
+    return merged
 
 
 def load_config(path: Path) -> dict:
-    return yaml.safe_load(path.read_text())
-
-
-def _ensure_stage1_dirs(cfg: dict) -> None:
-    base = stage1_base(cfg)
-    for stage in ("stage1a", "stage1b", "stage1c", "stage1d", "stage1e"):
-        (base / stage).mkdir(parents=True, exist_ok=True)
-    if cfg.get("run_context", {}).get("stage") == "stage1d":
-        stage1d_url_export_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1d_pointer_cache_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1d_warc_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1d_filter_en_dedup_dir(cfg).mkdir(parents=True, exist_ok=True)
-    if cfg.get("run_context", {}).get("stage") == "stage1e":
-        stage1e_url_export_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1e_pointer_cache_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1e_warc_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1e_document_quality_dir(cfg).mkdir(parents=True, exist_ok=True)
-        stage1e_metrics_dir(cfg).mkdir(parents=True, exist_ok=True)
+    config = yaml.safe_load(path.read_text()) or {}
+    local_config_path = Path(os.environ.get("MSC_NLP_LOCAL_CONFIG", "configs/local/aws.yaml"))
+    if local_config_path.exists():
+        local_config = yaml.safe_load(local_config_path.read_text()) or {}
+        config = _deep_merge(config, local_config)
+    return config
 
 
 def _add_config_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--config",
-        required=True,
-        help="Path to the stage-scoped YAML config for this run.",
+        default="configs/commoncrawl_collection.yaml",
+        help="Path to the final Common Crawl collection config.",
     )
+
+
+def _add_year_track_batch_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--year", required=True, help="Collection year, e.g. 2020.")
+    parser.add_argument(
+        "--track",
+        required=True,
+        choices=["trend", "corpus"],
+        help="Collection track to process.",
+    )
+    parser.add_argument("--batch", default="1", help="Deterministic corpus/trend batch number.")
+
+
+def _ensure_collection_dirs(cfg: dict) -> None:
+    collection_interim_dir(cfg).mkdir(parents=True, exist_ok=True)
+    processed_trend_dir(cfg).mkdir(parents=True, exist_ok=True)
+    processed_corpus_dir(cfg).mkdir(parents=True, exist_ok=True)
+    processed_manifest_dir(cfg).mkdir(parents=True, exist_ok=True)
+    Path("reports/logs").mkdir(parents=True, exist_ok=True)
+    Path("data/manifests").mkdir(parents=True, exist_ok=True)
+    Path("data/raw/wet").mkdir(parents=True, exist_ok=True)
 
 
 def main() -> None:
-    p = argparse.ArgumentParser()
-    sub = p.add_subparsers(dest="command", required=True)
+    parser = argparse.ArgumentParser()
+    sub = parser.add_subparsers(dest="command", required=True)
 
-    p_sample = sub.add_parser("cc-sample", help="Sample WET paths per crawl")
+    p_select = sub.add_parser(
+        "cc-collection-select-crawls",
+        help="Write the frozen year-to-crawl map manifest for the final collection.",
+    )
+    _add_config_arg(p_select)
+
+    p_sample = sub.add_parser(
+        "cc-collection-sample-wet",
+        help="Sample deterministic WET file batches for one collection year.",
+    )
     _add_config_arg(p_sample)
+    _add_year_track_batch_args(p_sample)
 
-    p_download = sub.add_parser("cc-download", help="Download sampled WET files")
+    p_download = sub.add_parser(
+        "cc-collection-download-wet",
+        help="Download the latest sampled WET batch for one collection year.",
+    )
     _add_config_arg(p_download)
-    p_download.add_argument(
-        "--manifest",
-        help="Path to manifest JSONL (defaults to latest in data/manifests)",
-        default=None,
-    )
+    _add_year_track_batch_args(p_download)
+    p_download.add_argument("--manifest", default=None, help="Optional explicit WET manifest path.")
 
-    p_scan = sub.add_parser("cc-scan", help="Scan downloaded WET files")
+    p_scan = sub.add_parser(
+        "cc-collection-scan",
+        help="Scan downloaded WET files for one collection year/track/batch.",
+    )
     _add_config_arg(p_scan)
+    _add_year_track_batch_args(p_scan)
 
-    p_validate = sub.add_parser("cc-validate", help="Validate latest scan outputs")
-    _add_config_arg(p_validate)
+    p_export = sub.add_parser(
+        "cc-collection-export-urls",
+        help="Export unique WARC URL candidates for one collection year/track/batch.",
+    )
+    _add_config_arg(p_export)
+    _add_year_track_batch_args(p_export)
 
-    p_filter_en_dedup = sub.add_parser(
-        "cc-filter-en-dedup",
-        help="Run English-only gating plus deduplication for WARC-validated hits",
+    p_upload = sub.add_parser(
+        "cc-collection-upload-urls",
+        help="Upload the latest collection URL export for remote resolution.",
     )
-    _add_config_arg(p_filter_en_dedup)
+    _add_config_arg(p_upload)
+    _add_year_track_batch_args(p_upload)
 
-    p_export_urls = sub.add_parser(
-        "cc-stage1d-export-urls",
-        help=(
-            "Export unique Stage 1d WARC URL candidates for remote Common Crawl pointer resolution"
-        ),
+    p_install = sub.add_parser(
+        "cc-collection-install-indexes",
+        help="Install Common Crawl secondary indexes on the EC2 resolver host.",
     )
-    _add_config_arg(p_export_urls)
+    _add_config_arg(p_install)
+    p_install.add_argument("--url-export-uri", default=None)
 
-    p_upload_urls = sub.add_parser(
-        "cc-stage1d-upload-urls",
-        help="Upload the latest Stage 1d URL export to S3 for the remote resolver",
+    p_start = sub.add_parser(
+        "cc-collection-start-index-server",
+        help="Start the local Common Crawl index server on the EC2 resolver host.",
     )
-    _add_config_arg(p_upload_urls)
+    _add_config_arg(p_start)
 
-    p_install_indexes = sub.add_parser(
-        "cc-stage1d-install-indexes-remote",
-        help="Install Common Crawl secondary indexes locally on the remote EC2 resolver host",
+    p_resolve = sub.add_parser(
+        "cc-collection-resolve",
+        help="Resolve WARC pointers for one collection year/track/batch.",
     )
-    _add_config_arg(p_install_indexes)
-    p_install_indexes.add_argument(
-        "--url-export-uri",
-        default=None,
-        help="Optional local path or s3:// URI for the Stage 1d URL export CSV/parquet/manifest.",
-    )
+    _add_config_arg(p_resolve)
+    _add_year_track_batch_args(p_resolve)
+    p_resolve.add_argument("--url-export-uri", default=None)
+    p_resolve.add_argument("--s3-output-prefix", default=None)
 
-    p_start_index_server = sub.add_parser(
-        "cc-stage1d-start-index-server",
-        help="Start the local pywb/Common Crawl index server on the remote EC2 resolver host",
+    p_extract = sub.add_parser(
+        "cc-collection-extract",
+        help="Fetch WARC records and extract main text for one collection year/track/batch.",
     )
-    _add_config_arg(p_start_index_server)
+    _add_config_arg(p_extract)
+    _add_year_track_batch_args(p_extract)
+    p_extract.add_argument("--pointer-cache-uri", default=None)
+    p_extract.add_argument("--s3-output-prefix", default=None)
 
-    p_resolve_remote = sub.add_parser(
-        "cc-stage1d-resolve-remote",
-        help=(
-            "Resolve Stage 1d WARC pointers by querying the local Common Crawl "
-            "index server on a remote EC2 instance"
-        ),
+    p_quality = sub.add_parser(
+        "cc-collection-quality",
+        help="Run document quality, English filtering, dedup, and sample export.",
     )
-    _add_config_arg(p_resolve_remote)
-    p_resolve_remote.add_argument(
-        "--url-export-uri",
-        default=None,
-        help="Optional local path or s3:// URI for the Stage 1d URL export CSV/parquet/manifest.",
-    )
-    p_resolve_remote.add_argument(
-        "--s3-output-prefix",
-        default=None,
-        help="Optional s3:// prefix to upload the pointer cache outputs to after the run finishes.",
-    )
+    _add_config_arg(p_quality)
+    _add_year_track_batch_args(p_quality)
 
-    p_extract_remote = sub.add_parser(
-        "cc-stage1d-extract-remote",
-        help="Run Stage 1d WARC extraction from a resolver-produced pointer cache",
+    p_build_trend = sub.add_parser(
+        "cc-collection-build-trend",
+        help="Build processed trend outputs from collection working artifacts.",
     )
-    _add_config_arg(p_extract_remote)
-    p_extract_remote.add_argument(
-        "--pointer-cache-uri",
-        default=None,
-        help="Optional local parquet path, local directory, or s3:// URI for the pointer cache.",
-    )
-    p_extract_remote.add_argument(
-        "--s3-output-prefix",
-        default=None,
-        help="Optional s3:// prefix to upload the extraction outputs to after the run finishes.",
-    )
+    _add_config_arg(p_build_trend)
 
-    p_export_urls_stage1e = sub.add_parser(
-        "cc-stage1e-export-urls",
-        help=(
-            "Export unique Stage 1e WARC URL candidates for remote Common Crawl pointer resolution"
-        ),
+    p_build_corpus = sub.add_parser(
+        "cc-collection-build-corpus",
+        help="Build processed corpus outputs from collection working artifacts.",
     )
-    _add_config_arg(p_export_urls_stage1e)
+    _add_config_arg(p_build_corpus)
 
-    p_upload_urls_stage1e = sub.add_parser(
-        "cc-stage1e-upload-urls",
-        help="Upload the latest Stage 1e URL export to S3 for the remote resolver",
+    p_run_track = sub.add_parser(
+        "cc-collection-run",
+        help="Run acquire, scan, URL export, and URL upload for all configured years in one track.",
     )
-    _add_config_arg(p_upload_urls_stage1e)
+    _add_config_arg(p_run_track)
+    p_run_track.add_argument("--track", required=True, choices=["trend", "corpus"])
 
-    p_install_indexes_stage1e = sub.add_parser(
-        "cc-stage1e-install-indexes-remote",
-        help="Install Common Crawl secondary indexes locally on the remote EC2 resolver host",
-    )
-    _add_config_arg(p_install_indexes_stage1e)
-    p_install_indexes_stage1e.add_argument(
-        "--url-export-uri",
-        default=None,
-        help="Optional local path or s3:// URI for the Stage 1e URL export CSV/parquet/manifest.",
-    )
-
-    p_start_index_server_stage1e = sub.add_parser(
-        "cc-stage1e-start-index-server",
-        help="Start the local pywb/Common Crawl index server on the remote EC2 resolver host",
-    )
-    _add_config_arg(p_start_index_server_stage1e)
-
-    p_resolve_remote_stage1e = sub.add_parser(
-        "cc-stage1e-resolve-remote",
-        help=(
-            "Resolve Stage 1e WARC pointers by querying the local Common Crawl "
-            "index server on a remote EC2 instance"
-        ),
-    )
-    _add_config_arg(p_resolve_remote_stage1e)
-    p_resolve_remote_stage1e.add_argument(
-        "--url-export-uri",
-        default=None,
-        help="Optional local path or s3:// URI for the Stage 1e URL export CSV/parquet/manifest.",
-    )
-    p_resolve_remote_stage1e.add_argument(
-        "--s3-output-prefix",
-        default=None,
-        help="Optional s3:// prefix to upload the pointer cache outputs to after the run finishes.",
-    )
-
-    p_extract_remote_stage1e = sub.add_parser(
-        "cc-stage1e-extract-remote",
-        help="Run Stage 1e WARC extraction from a resolver-produced pointer cache",
-    )
-    _add_config_arg(p_extract_remote_stage1e)
-    p_extract_remote_stage1e.add_argument(
-        "--pointer-cache-uri",
-        default=None,
-        help="Optional local parquet path, local directory, or s3:// URI for the pointer cache.",
-    )
-    p_extract_remote_stage1e.add_argument(
-        "--s3-output-prefix",
-        default=None,
-        help="Optional s3:// prefix to upload the extraction outputs to after the run finishes.",
-    )
-
-    p_document_quality_stage1e = sub.add_parser(
-        "cc-stage1e-document-quality",
-        help=(
-            "Run Stage 1e document-quality filtering, English gating, deduplication, "
-            "and validation sample export"
-        ),
-    )
-    _add_config_arg(p_document_quality_stage1e)
-
-    args = p.parse_args()
+    args = parser.parse_args()
     cfg_path = Path(args.config)
+    if not cfg_path.exists():
+        print(f"Config not found: {cfg_path}", file=sys.stderr)
+        sys.exit(1)
     cfg = load_config(cfg_path)
-    _ensure_stage1_dirs(cfg)
+    _ensure_collection_dirs(cfg)
 
-    if args.command == "cc-sample":
-        sample_and_write_manifest(cfg, cfg_path)
+    if args.command == "cc-collection-select-crawls":
+        select_collection_crawls(cfg)
         return
-
-    if args.command == "cc-download":
-        manifest_path = Path(args.manifest) if args.manifest else None
-        if manifest_path is None:
-            manifest_path = find_latest_manifest(Path("data/manifests"))
-        if manifest_path is None:
-            print("No manifest found in data/manifests. Run cc-sample first.")
-            sys.exit(1)
-        downloaded = download_from_manifest(manifest_path)
-        validate_counts(manifest_path, downloaded)
+    if args.command == "cc-collection-sample-wet":
+        sample_collection_wet(cfg, year=args.year, track=args.track, batch=args.batch)
         return
-
-    if args.command == "cc-scan":
-        scan_wet_files(cfg, cfg_path)
-        return
-
-    if args.command == "cc-validate":
-        validate_corpus_outputs(cfg)
-        return
-
-    if args.command == "cc-filter-en-dedup":
-        filter_en_dedup_hits(cfg)
-        return
-
-    if args.command == "cc-stage1d-export-urls":
-        export_stage1d_urls(cfg)
-        return
-
-    if args.command == "cc-stage1d-upload-urls":
-        upload_stage1d_urls_to_s3(cfg)
-        return
-
-    if args.command == "cc-stage1d-install-indexes-remote":
-        install_stage1d_indexes_remote(cfg, url_export_uri=args.url_export_uri)
-        return
-
-    if args.command == "cc-stage1d-start-index-server":
-        start_stage1d_index_server_remote(cfg)
-        return
-
-    if args.command == "cc-stage1d-resolve-remote":
-        resolve_stage1d_urls_remote(
+    if args.command == "cc-collection-download-wet":
+        download_collection_wet(
             cfg,
+            year=args.year,
+            track=args.track,
+            batch=args.batch,
+            manifest=args.manifest,
+        )
+        return
+    if args.command == "cc-collection-scan":
+        scan_collection(cfg, year=args.year, track=args.track, batch=args.batch)
+        return
+    if args.command == "cc-collection-export-urls":
+        export_collection_urls(cfg, year=args.year, track=args.track, batch=args.batch)
+        return
+    if args.command == "cc-collection-upload-urls":
+        upload_collection_urls(cfg, year=args.year, track=args.track, batch=args.batch)
+        return
+    if args.command == "cc-collection-install-indexes":
+        install_collection_indexes(cfg, url_export_uri=args.url_export_uri)
+        return
+    if args.command == "cc-collection-start-index-server":
+        start_collection_index_server(cfg)
+        return
+    if args.command == "cc-collection-resolve":
+        resolve_collection_urls(
+            cfg,
+            year=args.year,
+            track=args.track,
+            batch=args.batch,
             url_export_uri=args.url_export_uri,
             s3_output_prefix=args.s3_output_prefix,
         )
         return
-
-    if args.command == "cc-stage1d-extract-remote":
-        extract_stage1d_pointer_cache(
+    if args.command == "cc-collection-extract":
+        extract_collection(
             cfg,
+            year=args.year,
+            track=args.track,
+            batch=args.batch,
             pointer_cache_uri=args.pointer_cache_uri,
             s3_output_prefix=args.s3_output_prefix,
         )
         return
-
-    if args.command == "cc-stage1e-export-urls":
-        export_stage1e_urls(cfg)
+    if args.command == "cc-collection-quality":
+        quality_collection(cfg, year=args.year, track=args.track, batch=args.batch)
         return
-
-    if args.command == "cc-stage1e-upload-urls":
-        upload_stage1e_urls_to_s3(cfg)
+    if args.command == "cc-collection-build-trend":
+        build_processed_trend(cfg)
         return
-
-    if args.command == "cc-stage1e-install-indexes-remote":
-        install_stage1e_indexes_remote(cfg, url_export_uri=args.url_export_uri)
+    if args.command == "cc-collection-build-corpus":
+        build_processed_corpus(cfg)
         return
-
-    if args.command == "cc-stage1e-start-index-server":
-        start_stage1e_index_server_remote(cfg)
-        return
-
-    if args.command == "cc-stage1e-resolve-remote":
-        resolve_stage1e_urls_remote(
-            cfg,
-            url_export_uri=args.url_export_uri,
-            s3_output_prefix=args.s3_output_prefix,
-        )
-        return
-
-    if args.command == "cc-stage1e-extract-remote":
-        extract_stage1e_pointer_cache(
-            cfg,
-            pointer_cache_uri=args.pointer_cache_uri,
-            s3_output_prefix=args.s3_output_prefix,
-        )
-        return
-
-    if args.command == "cc-stage1e-document-quality":
-        document_quality_stage1e_hits(cfg)
+    if args.command == "cc-collection-run":
+        run_collection_track(cfg, track=args.track)
         return
 
 

@@ -94,7 +94,7 @@ def _aws_config(config: Dict, stage_key: str = "stage1d") -> Stage1dAwsConfig:
     if not bucket:
         raise ValueError(
             f"{stage_key}.aws.s3.bucket is required. Create an S3 bucket in us-east-1 "
-            f"and add its name to the {stage_key} config."
+            "and add its name to configs/local/aws.yaml or MSC_NLP_LOCAL_CONFIG."
         )
     return Stage1dAwsConfig(
         region=str(aws_cfg.get("region", "us-east-1")).strip() or "us-east-1",
@@ -201,6 +201,20 @@ def _pointer_cache_s3_prefix(aws_cfg: Stage1dAwsConfig, runid: str) -> str:
     return _stage1d_prefix(aws_cfg, "pointer_cache", runid)
 
 
+def _collection_s3_prefix(
+    config: Dict, aws_cfg: Stage1dAwsConfig, artifact: str, runid: str
+) -> str:
+    run_context = config.get("run_context", {})
+    label = str(run_context.get("label", "")).strip()
+    if label != "collection":
+        return _stage1d_prefix(aws_cfg, artifact, runid)
+
+    track = str(run_context.get("track", "corpus")).strip()
+    year = str(run_context.get("collection_year", "")).strip()
+    batch = f"batch_{int(run_context.get('batch', 1)):03d}"
+    return _stage1d_prefix(aws_cfg, artifact, track, year, batch, runid)
+
+
 def _load_json(path: Path) -> Dict[str, object]:
     return json.loads(path.read_text())
 
@@ -295,23 +309,26 @@ def export_stage1d_urls(config: Dict) -> Path:
 def export_stage1e_urls(config: Dict) -> Path:
     _require_stage(config, "stage1e")
     runid = _utc_runid()
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-export-urls", runid)
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
+    file_prefix = f"cc_{label}_urls"
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-export-urls", runid)
     input_dir = stage1_output_dir(config, default_stage="stage1e")
     source_runid, hits_path = _latest_validated_hits_wet(input_dir)
     hits_df = pd.read_parquet(hits_path).copy()
     if hits_df.empty:
         raise ValueError("No validated WET hits available for Stage 1e URL export.")
-    hits_df["source_stage"] = "stage1e"
+    hits_df["source_stage"] = label
     hits_df["source_scope"] = "combined"
     hits_df["source_runid"] = source_runid
     export_df = _build_url_export_df(hits_df)
 
     out_dir = stage1e_url_export_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
-    parquet_path = out_dir / f"cc_stage1e_urls_{runid}.parquet"
-    csv_path = out_dir / f"cc_stage1e_urls_{runid}.csv"
-    summary_path = out_dir / f"cc_stage1e_urls_summary_{runid}.csv"
-    manifest_path = _manifest_path(out_dir, "cc_stage1e_urls_manifest", runid)
+    parquet_path = out_dir / f"{file_prefix}_{runid}.parquet"
+    csv_path = out_dir / f"{file_prefix}_{runid}.csv"
+    summary_path = out_dir / f"{file_prefix}_summary_{runid}.csv"
+    manifest_path = _manifest_path(out_dir, f"{file_prefix}_manifest", runid)
 
     export_df.to_parquet(parquet_path, index=False)
     export_df.to_csv(csv_path, index=False)
@@ -320,7 +337,7 @@ def export_stage1e_urls(config: Dict) -> Path:
     _write_summary_csv(
         summary_path,
         [
-            ["doc_count_total", int(len(export_df)), "Unique Stage 1e URL candidates."],
+            ["doc_count_total", int(len(export_df)), f"Unique {display_label} URL candidates."],
             [
                 "crawl_count",
                 int(len(crawl_counts)),
@@ -348,9 +365,9 @@ def export_stage1e_urls(config: Dict) -> Path:
         "summary_path": str(summary_path),
     }
     _write_json(manifest_path, manifest)
-    logger.info("Wrote Stage 1e URL export %s", parquet_path)
-    logger.info("Wrote Stage 1e URL CSV %s", csv_path)
-    logger.info("Wrote Stage 1e URL manifest %s", manifest_path)
+    logger.info("Wrote %s URL export %s", display_label, parquet_path)
+    logger.info("Wrote %s URL CSV %s", display_label, csv_path)
+    logger.info("Wrote %s URL manifest %s", display_label, manifest_path)
     return parquet_path
 
 
@@ -399,18 +416,22 @@ def upload_stage1d_urls_to_s3(config: Dict) -> Path:
 
 def upload_stage1e_urls_to_s3(config: Dict) -> Path:
     _require_stage(config, "stage1e")
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
+    file_prefix = f"cc_{label}_urls"
     runid, manifest_path = _latest_manifest(
-        stage1e_url_export_dir(config), "cc_stage1e_urls_manifest"
+        stage1e_url_export_dir(config), f"{file_prefix}_manifest"
     )
     manifest = _load_json(manifest_path)
     aws_cfg = _aws_config(config, stage_key="stage1e")
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-upload-urls", runid)
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-upload-urls", runid)
     boto3 = _load_boto3()
     s3_client = boto3.client("s3", region_name=aws_cfg.region)
 
     csv_path = Path(str(manifest["csv_path"]))
-    csv_key = f"{_stage1d_prefix(aws_cfg, 'url_exports', runid)}/{csv_path.name}"
-    manifest_key = f"{_stage1d_prefix(aws_cfg, 'url_exports', runid)}/{manifest_path.name}"
+    upload_prefix = _collection_s3_prefix(config, aws_cfg, "url_exports", runid)
+    csv_key = f"{upload_prefix}/{csv_path.name}"
+    manifest_key = f"{upload_prefix}/{manifest_path.name}"
     csv_uri = _upload_file_to_s3(s3_client, csv_path, aws_cfg.s3_bucket, csv_key)
     manifest_uri = _upload_file_to_s3(s3_client, manifest_path, aws_cfg.s3_bucket, manifest_key)
 
@@ -427,10 +448,10 @@ def upload_stage1e_urls_to_s3(config: Dict) -> Path:
         "crawl_ids": manifest["crawl_ids"],
     }
     upload_manifest_path = _manifest_path(
-        stage1e_url_export_dir(config), "cc_stage1e_url_upload_manifest", runid
+        stage1e_url_export_dir(config), f"cc_{label}_url_upload_manifest", runid
     )
     _write_json(upload_manifest_path, upload_manifest)
-    logger.info("Uploaded Stage 1e URL CSV to %s", csv_uri)
+    logger.info("Uploaded %s URL CSV to %s", display_label, csv_uri)
     logger.info("Wrote URL upload manifest %s", upload_manifest_path)
     return upload_manifest_path
 
@@ -618,17 +639,19 @@ def install_stage1d_indexes_remote(config: Dict, url_export_uri: Optional[str] =
 
 def install_stage1e_indexes_remote(config: Dict, url_export_uri: Optional[str] = None) -> Path:
     _require_stage(config, "stage1e")
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
     runid, export_df, export_source = _load_export_df(
         url_export_dir=stage1e_url_export_dir(config),
-        url_prefix="cc_stage1e_urls_",
-        upload_manifest_prefix="cc_stage1e_url_upload_manifest",
+        url_prefix=f"cc_{label}_urls_",
+        upload_manifest_prefix=f"cc_{label}_url_upload_manifest",
         url_export_uri=url_export_uri,
     )
     if export_df.empty:
-        raise ValueError("Stage 1e URL export is empty.")
+        raise ValueError(f"{display_label} URL export is empty.")
 
     resolve_cfg = _resolve_remote_config(config, stage_key="stage1e")
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-install-indexes-remote", runid)
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-install-indexes", runid)
 
     crawl_ids = sorted({str(crawl_id) for crawl_id in export_df["crawl_id"].tolist()})
     resolve_cfg.server_collections_dir.mkdir(parents=True, exist_ok=True)
@@ -858,14 +881,16 @@ def start_stage1d_index_server_remote(config: Dict) -> Path:
 def start_stage1e_index_server_remote(config: Dict) -> Path:
     _require_stage(config, "stage1e")
     runid = _utc_runid()
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
     resolve_cfg = _resolve_remote_config(config, stage_key="stage1e")
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-start-index-server", runid)
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-start-index-server", runid)
 
     crawl_ids = _installed_crawl_ids(resolve_cfg)
     if not crawl_ids:
         raise FileNotFoundError(
             "No local Common Crawl secondary indexes found. Run "
-            "`cc-stage1e-install-indexes-remote` first."
+            f"`cc-{label}-install-indexes` first."
         )
 
     config_path = _write_index_server_config(resolve_cfg, crawl_ids)
@@ -876,7 +901,8 @@ def start_stage1e_index_server_remote(config: Dict) -> Path:
         if resolve_cfg.server_pid_path.exists():
             existing_pid = resolve_cfg.server_pid_path.read_text().strip()
         logger.info(
-            "Stage 1e local index server already responding on %s:%d%s",
+            "%s local index server already responding on %s:%d%s",
+            display_label,
             resolve_cfg.server_host,
             resolve_cfg.server_port,
             f" (pid={existing_pid})" if existing_pid else "",
@@ -890,7 +916,8 @@ def start_stage1e_index_server_remote(config: Dict) -> Path:
             pid = 0
         if pid and _pid_is_alive(pid) and _local_index_server_healthcheck(resolve_cfg, crawl_ids):
             logger.info(
-                "Stage 1e local index server already running on %s:%d (pid=%d)",
+                "%s local index server already running on %s:%d (pid=%d)",
+                display_label,
                 resolve_cfg.server_host,
                 resolve_cfg.server_port,
                 pid,
@@ -920,7 +947,8 @@ def start_stage1e_index_server_remote(config: Dict) -> Path:
             )
         if _local_index_server_healthcheck(resolve_cfg, crawl_ids):
             logger.info(
-                "Stage 1e local index server ready on %s:%d (pid=%d)",
+                "%s local index server ready on %s:%d (pid=%d)",
+                display_label,
                 resolve_cfg.server_host,
                 resolve_cfg.server_port,
                 proc.pid,
@@ -1529,17 +1557,19 @@ def resolve_stage1e_urls_remote(
 ) -> Path:
     _require_stage(config, "stage1e")
     resolve_start = time.perf_counter()
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
     runid, export_df, export_source = _load_export_df(
         url_export_dir=stage1e_url_export_dir(config),
-        url_prefix="cc_stage1e_urls_",
-        upload_manifest_prefix="cc_stage1e_url_upload_manifest",
+        url_prefix=f"cc_{label}_urls_",
+        upload_manifest_prefix=f"cc_{label}_url_upload_manifest",
         url_export_uri=url_export_uri,
     )
     if export_df.empty:
-        raise ValueError("Stage 1e URL export is empty.")
+        raise ValueError(f"{display_label} URL export is empty.")
 
     resolve_cfg = _resolve_remote_config(config, stage_key="stage1e")
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-resolve-remote", runid)
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-resolve", runid)
 
     export_df = export_df.copy()
     export_df["crawl_id"] = export_df["crawl_id"].astype(str)
@@ -1549,7 +1579,7 @@ def resolve_stage1e_urls_remote(
     )
     crawl_ids = sorted(export_df["crawl_id"].unique().tolist())
 
-    logger.info("Loaded Stage 1e URL export rows=%d", len(export_df))
+    logger.info("Loaded %s URL export rows=%d", display_label, len(export_df))
     logger.info("URL export source: %s", export_source)
     logger.info(
         "Remote resolve config: provider=%s host=%s port=%d url_workers=%d timeout_s=%d",
@@ -1563,14 +1593,14 @@ def resolve_stage1e_urls_remote(
     if resolve_cfg.provider == "local_index_server":
         if not _local_index_server_healthcheck(resolve_cfg, crawl_ids):
             raise RuntimeError(
-                "Local Stage 1e index server is not reachable. Run "
-                "`cc-stage1e-install-indexes-remote` and "
-                "`cc-stage1e-start-index-server` on the EC2 instance first."
+                f"Local {display_label} index server is not reachable. Run "
+                f"`cc-{label}-install-indexes` and "
+                f"`cc-{label}-start-index-server` on the EC2 instance first."
             )
 
     crawl_frames: List[pd.DataFrame] = []
     summary_rows: List[List[object]] = [
-        ["doc_count_total", int(len(export_df)), "Unique Stage 1e URL candidates."],
+        ["doc_count_total", int(len(export_df)), f"Unique {display_label} URL candidates."],
         [
             "crawl_count",
             int(export_df["crawl_id"].nunique()),
@@ -1579,7 +1609,7 @@ def resolve_stage1e_urls_remote(
         [
             "lookup_provider",
             resolve_cfg.provider,
-            "Active Stage 1e pointer-resolution backend.",
+            f"Active {display_label} pointer-resolution backend.",
         ],
     ]
     failure_examples: Dict[str, List[str]] = {}
@@ -1598,7 +1628,7 @@ def resolve_stage1e_urls_remote(
                     [
                         f"crawl.{crawl_id}.doc_count",
                         crawl_metrics["doc_count"],
-                        "Unique URLs sent to the local Stage 1e index server.",
+                        f"Unique URLs sent to the local {display_label} index server.",
                     ],
                     [
                         f"crawl.{crawl_id}.url_worker_count",
@@ -1660,7 +1690,7 @@ def resolve_stage1e_urls_remote(
             )
         else:
             raise ValueError(
-                f"Unsupported stage1e.resolve_remote.provider value: {resolve_cfg.provider}"
+                f"Unsupported collection.resolve_remote.provider value: {resolve_cfg.provider}"
             )
 
         crawl_frames.append(resolved_df)
@@ -1679,12 +1709,12 @@ def resolve_stage1e_urls_remote(
             [
                 "pointer_cache_rows",
                 int(len(pointer_df)),
-                "Rows in the Stage 1e pointer cache.",
+                f"Rows in the {display_label} pointer cache.",
             ],
             [
                 "pointer_cache_resolved_rows",
                 resolved_count,
-                "Rows with non-empty WARC pointer fields after Stage 1e resolution.",
+                f"Rows with non-empty WARC pointer fields after {display_label} resolution.",
             ],
             [
                 "pointer_cache_unresolved_rows",
@@ -1694,12 +1724,12 @@ def resolve_stage1e_urls_remote(
             [
                 "total_elapsed_sec",
                 round(total_elapsed_sec, 6),
-                "Total wall-clock time for Stage 1e pointer resolution in seconds.",
+                f"Total wall-clock time for {display_label} pointer resolution in seconds.",
             ],
             [
                 "urls_per_sec",
                 round(len(pointer_df) / total_elapsed_sec, 6) if total_elapsed_sec > 0 else 0.0,
-                "Stage 1e pointer-resolution throughput in URLs per second.",
+                f"{display_label} pointer-resolution throughput in URLs per second.",
             ],
         ]
     )
@@ -1708,7 +1738,7 @@ def resolve_stage1e_urls_remote(
     out_dir.mkdir(parents=True, exist_ok=True)
     parquet_path = out_dir / f"cc_pointer_cache_{runid}.parquet"
     summary_path = out_dir / f"cc_pointer_cache_summary_{runid}.csv"
-    manifest_path = out_dir / f"cc_stage1e_resolve_manifest_{runid}.json"
+    manifest_path = out_dir / f"cc_{label}_resolve_manifest_{runid}.json"
 
     pointer_df.to_parquet(parquet_path, index=False)
     _write_summary_csv(summary_path, summary_rows)
@@ -1735,13 +1765,14 @@ def resolve_stage1e_urls_remote(
             [parquet_path, summary_path, manifest_path],
             s3_output_prefix,
         )
-        logger.info("Uploaded Stage 1e pointer cache outputs to %s", s3_output_prefix)
+        logger.info("Uploaded %s pointer cache outputs to %s", display_label, s3_output_prefix)
         for uri in uploaded_uris:
             logger.info("Uploaded %s", uri)
 
-    logger.info("Wrote Stage 1e pointer cache %s", parquet_path)
+    logger.info("Wrote %s pointer cache %s", display_label, parquet_path)
     logger.info(
-        "Stage 1e remote resolve complete: pointer_cache_rows=%d resolved_rows=%d",
+        "%s remote resolve complete: pointer_cache_rows=%d resolved_rows=%d",
+        display_label,
         len(pointer_df),
         resolved_count,
     )

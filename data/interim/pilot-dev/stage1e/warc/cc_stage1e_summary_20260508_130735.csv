@@ -6,7 +6,7 @@ validated_hits_warc,882,Combined row-level hits that survived Stage 1e WARC vali
 validated_hits_wet_per_10k,64.33782,"Combined WET-validated hit rate per 10,000 scanned documents."
 validated_hits_warc_per_10k,28.444089,"Combined WARC-validated hit rate per 10,000 scanned documents."
 warc_validation_attempted,True,Indicates that Stage 1e WARC validation ran for this summary.
-warc_validation_notes,Stage 1e WARC validation over the frozen Stage 1 rerun input WET files. pointer_cache_source=s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/stage1e/pointer_cache/20260508_124713/cc_pointer_cache_20260508_124713.parquet.,Short note describing the Stage 1e WARC validation scope.
+warc_validation_notes,Stage 1e WARC validation over the frozen Stage 1 rerun input WET files. pointer_cache_source=s3://REDACTED_BUCKET/msc-nlp-therapy-speak/stage1e/pointer_cache/20260508_124713/cc_pointer_cache_20260508_124713.parquet.,Short note describing the Stage 1e WARC validation scope.
 term_role.target.validated_hits_wet,1038,Input WET-validated hits attributed to term_role=target.
 term_role.target.validated_hits_warc,311,WARC-validated hits attributed to term_role=target.
 term_role.baseline.validated_hits_wet,957,Input WET-validated hits attributed to term_role=baseline.

@@ -6,9 +6,92 @@ def interim_base(config: Dict) -> Path:
     return Path(config.get("paths", {}).get("interim_base", "data/interim"))
 
 
+def processed_base(config: Dict) -> Path:
+    return Path(config.get("paths", {}).get("processed_base", "data/processed"))
+
+
+def collection_config(config: Dict) -> Dict:
+    return config.get("collection", {})
+
+
+def collection_interim_dir(config: Dict) -> Path:
+    configured = collection_config(config).get("interim_dir")
+    return Path(configured) if configured else interim_base(config) / "collection"
+
+
+def collection_processed_dir(config: Dict) -> Path:
+    configured = collection_config(config).get("processed_dir")
+    return Path(configured) if configured else processed_base(config)
+
+
+def collection_track_working_dir(
+    config: Dict,
+    *,
+    track: str,
+    year: int | str,
+    batch: int | str = 1,
+) -> Path:
+    track = str(track).strip()
+    year = str(year).strip()
+    batch_int = int(batch)
+    if track == "trend":
+        return collection_interim_dir(config) / "trend_working" / year
+    return (
+        collection_interim_dir(config)
+        / "corpus_working"
+        / year
+        / f"batch_{batch_int:03d}"
+    )
+
+
+def collection_url_export_dir(
+    config: Dict, *, track: str, year: int | str, batch: int | str = 1
+) -> Path:
+    return collection_track_working_dir(config, track=track, year=year, batch=batch) / "url_exports"
+
+
+def collection_pointer_cache_dir(
+    config: Dict, *, track: str, year: int | str, batch: int | str = 1
+) -> Path:
+    return (
+        collection_track_working_dir(config, track=track, year=year, batch=batch)
+        / "pointer_cache"
+    )
+
+
+def collection_warc_dir(
+    config: Dict, *, track: str, year: int | str, batch: int | str = 1
+) -> Path:
+    return collection_track_working_dir(config, track=track, year=year, batch=batch) / "warc"
+
+
+def collection_quality_dir(
+    config: Dict, *, track: str, year: int | str, batch: int | str = 1
+) -> Path:
+    return collection_track_working_dir(config, track=track, year=year, batch=batch) / "quality"
+
+
+def collection_metrics_dir(
+    config: Dict, *, track: str, year: int | str, batch: int | str = 1
+) -> Path:
+    return collection_track_working_dir(config, track=track, year=year, batch=batch) / "metrics"
+
+
+def processed_trend_dir(config: Dict) -> Path:
+    return collection_processed_dir(config) / "trend"
+
+
+def processed_corpus_dir(config: Dict) -> Path:
+    return collection_processed_dir(config) / "corpus"
+
+
+def processed_manifest_dir(config: Dict) -> Path:
+    return collection_processed_dir(config) / "manifests"
+
+
 def stage1_base(config: Dict) -> Path:
     return Path(
-        config.get("paths", {}).get("stage1_base", str(interim_base(config) / "stage1_pilot-dev"))
+        config.get("paths", {}).get("stage1_base", str(interim_base(config) / "pilot-dev"))
     )
 
 

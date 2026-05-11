@@ -1,10 +1,23 @@
 # data (never commit raw crawl data)
 data/raw/
 data/interim/*
-!data/interim/stage1_pilot-dev/
-!data/interim/stage1_pilot-dev/**
+!data/interim/pilot-dev/
+!data/interim/pilot-dev/**
+!data/interim/collection/
+data/interim/collection/*
+!data/interim/collection/.gitkeep
 data/interim/**/*.parquet
 data/processed/
+!data/processed/
+!data/processed/trend/
+data/processed/trend/*
+!data/processed/trend/.gitkeep
+!data/processed/corpus/
+data/processed/corpus/*
+!data/processed/corpus/.gitkeep
+!data/processed/manifests/
+data/processed/manifests/*
+!data/processed/manifests/.gitkeep
 
 # logs / run outputs
 reports/logs/
@@ -21,3 +34,5 @@ __pycache__/
 
 # secrets
 .env
+configs/local/*.yaml
+!configs/local/*.example.yaml

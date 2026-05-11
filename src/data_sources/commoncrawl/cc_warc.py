@@ -1277,13 +1277,14 @@ def extract_stage1d_pointer_cache(
 def _latest_stage_hits_source(
     config: Dict, stage_name: str
 ) -> Tuple[str, Path, Path, pd.DataFrame]:
+    source_label = str(config.get("run_context", {}).get("label", stage_name)).strip() or stage_name
     output_dir = stage1_output_dir(config, default_stage=stage_name)
     runid, hits_path = _latest_validated_hits_wet(output_dir)
     summary_path = output_dir / f"cc_scan_summary_{runid}.csv"
     if not summary_path.exists():
         raise FileNotFoundError(f"Missing scan summary for {stage_name}: {summary_path}")
     hits_df = pd.read_parquet(hits_path).copy()
-    hits_df["source_stage"] = stage_name
+    hits_df["source_stage"] = source_label
     hits_df["source_scope"] = "combined"
     hits_df["source_runid"] = runid
     return runid, hits_path, summary_path, hits_df
@@ -1297,13 +1298,15 @@ def extract_stage1e_pointer_cache(
     _require_stage1e(config)
     extraction_start = time.perf_counter()
     runid = _utc_runid()
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-extract-remote", runid)
+    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    display_label = "collection" if label == "collection" else "Stage 1e"
+    logger = _setup_logger(Path("reports/logs"), f"cc-{label}-extract", runid)
 
     source_runid, _, input_summary_path, combined_hits_df = _latest_stage_hits_source(
         config, "stage1e"
     )
     if combined_hits_df.empty:
-        raise ValueError("No validated WET hits available for Stage 1e extraction.")
+        raise ValueError(f"No validated WET hits available for {display_label} extraction.")
     combined_hits_df, sample_metadata = _sample_enrich_inputs(combined_hits_df, config)
 
     extraction_cfg = _warc_extraction_config(config, "stage1e")
@@ -1324,15 +1327,16 @@ def extract_stage1e_pointer_cache(
         .reset_index(drop=True)
     )
 
-    logger.info("Loaded %d Stage 1e input hits", len(combined_hits_df))
-    logger.info("Stage 1e source runid: %s", source_runid)
+    logger.info("Loaded %d %s input hits", len(combined_hits_df), display_label)
+    logger.info("%s source runid: %s", display_label, source_runid)
     logger.info("Loaded pointer cache rows=%d", len(pointer_df))
     if pointer_cache_uri:
         logger.info("Pointer cache source: %s", pointer_cache_uri)
     if bool(sample_metadata.get("doc_sample_enabled", False)):
         logger.info(
-            "Sampling Stage 1e extraction input: max_docs_per_crawl=%d "
+            "Sampling %s extraction input: max_docs_per_crawl=%d "
             "sampled_docs=%d sampled_hits=%d",
+            display_label,
             int(sample_metadata.get("doc_sample_max_docs_per_crawl", 0)),
             int(sample_metadata.get("doc_sampled_input_docs", 0)),
             int(sample_metadata.get("doc_sampled_input_hits", 0)),
@@ -1463,8 +1467,9 @@ def extract_stage1e_pointer_cache(
 
         if doc_idx % 25 == 0:
             logger.info(
-                "Stage 1e remote extraction progress %d/%d docs | lookup_success=%d "
+                "%s remote extraction progress %d/%d docs | lookup_success=%d "
                 "fetch_success=%d extract_success=%d",
+                display_label,
                 doc_idx,
                 len(unique_docs),
                 lookup_success_docs,
@@ -1544,7 +1549,7 @@ def extract_stage1e_pointer_cache(
             }
         )
 
-    notes = "Stage 1e WARC validation over the frozen Stage 1 rerun input WET files."
+    notes = f"{display_label} WARC validation over the frozen collection input WET files."
     if pointer_cache_uri:
         notes += f" pointer_cache_source={pointer_cache_uri}."
 
@@ -1552,9 +1557,9 @@ def extract_stage1e_pointer_cache(
     out_dir.mkdir(parents=True, exist_ok=True)
     enriched_path = out_dir / f"cc_enriched_hits_{runid}.parquet"
     validated_warc_path = out_dir / f"cc_validated_hits_warc_{runid}.parquet"
-    summary_path = out_dir / f"cc_stage1e_summary_{runid}.csv"
-    term_summary_path = out_dir / f"cc_stage1e_term_summary_{runid}.csv"
-    manifest_path = out_dir / f"cc_stage1e_remote_extract_manifest_{runid}.json"
+    summary_path = out_dir / f"cc_{label}_summary_{runid}.csv"
+    term_summary_path = out_dir / f"cc_{label}_term_summary_{runid}.csv"
+    manifest_path = out_dir / f"cc_{label}_extract_manifest_{runid}.json"
 
     enriched_df.to_parquet(enriched_path, index=False)
     validated_warc_df.to_parquet(validated_warc_path, index=False)
@@ -1598,11 +1603,11 @@ def extract_stage1e_pointer_cache(
             ],
             s3_output_prefix,
         )
-        logger.info("Uploaded Stage 1e remote extraction outputs to %s", s3_output_prefix)
+        logger.info("Uploaded %s remote extraction outputs to %s", display_label, s3_output_prefix)
         for uri in uploaded_uris:
             logger.info("Uploaded %s", uri)
 
     logger.info("Wrote enriched hits %s", enriched_path)
     logger.info("Wrote WARC-validated hits %s", validated_warc_path)
-    logger.info("Wrote Stage 1e summary %s", summary_path)
+    logger.info("Wrote %s summary %s", display_label, summary_path)
     return enriched_path

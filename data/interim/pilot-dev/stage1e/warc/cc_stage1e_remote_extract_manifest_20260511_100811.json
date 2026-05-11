@@ -1,9 +1,9 @@
 {
   "created_at_utc": "2026-05-11T10:16:41Z",
   "enriched_path": "data/interim/stage1_pilot-dev/stage1e/warc/cc_enriched_hits_20260511_100811.parquet",
-  "pointer_cache_uri": "s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/stage1e/pointer_cache/20260511_093546/cc_pointer_cache_20260511_093546.parquet",
+  "pointer_cache_uri": "s3://REDACTED_BUCKET/msc-nlp-therapy-speak/stage1e/pointer_cache/20260511_093546/cc_pointer_cache_20260511_093546.parquet",
   "runid": "20260511_100811",
-  "s3_output_prefix": "s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/stage1e/warc_output/20260511_093546/",
+  "s3_output_prefix": "s3://REDACTED_BUCKET/msc-nlp-therapy-speak/stage1e/warc_output/20260511_093546/",
   "source_runid": "20260511_092845",
   "summary_path": "data/interim/stage1_pilot-dev/stage1e/warc/cc_stage1e_summary_20260511_100811.csv",
   "term_summary_path": "data/interim/stage1_pilot-dev/stage1e/warc/cc_stage1e_term_summary_20260511_100811.csv",

@@ -1,0 +1,10 @@
+collection:
+  aws:
+    region: "us-east-1"
+    s3:
+      bucket: "YOUR_BUCKET_NAME"
+      prefix: "msc-nlp-therapy-speak/collection"
+    ec2:
+      instance_type: "m7i-flex.large"
+      ssh_key_name: "YOUR_EC2_KEY_NAME"
+      instance_profile: "YOUR_EC2_INSTANCE_PROFILE"
