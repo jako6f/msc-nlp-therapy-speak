@@ -11,6 +11,18 @@ term_role.target.validated_hits_wet,1215,Input WET-validated hits attributed to 
 term_role.target.validated_hits_warc,448,WARC-validated hits attributed to term_role=target.
 term_role.baseline.validated_hits_wet,1084,Input WET-validated hits attributed to term_role=baseline.
 term_role.baseline.validated_hits_warc,678,WARC-validated hits attributed to term_role=baseline.
+doc_count_published_ts_found,712,Fetch-success documents with a candidate published timestamp.
+doc_count_published_ts_missing,1183,Fetch-success documents without a candidate published timestamp.
+pct_fetch_success_docs_with_published_ts,37.572559,Share of fetch-success documents with a candidate published timestamp.
+doc_count_warc_validated_with_published_ts,343,WARC-validated documents with a candidate published timestamp.
+pct_warc_validated_docs_with_published_ts,36.567164,Share of WARC-validated documents with a candidate published timestamp.
+published_ts_confidence.high.doc_count,521,Fetch-success documents with published_ts_confidence=high.
+published_ts_confidence.low.doc_count,49,Fetch-success documents with published_ts_confidence=low.
+published_ts_confidence.medium.doc_count,142,Fetch-success documents with published_ts_confidence=medium.
+published_ts_source.json_ld.doc_count,272,Fetch-success documents with published_ts_source=json_ld.
+published_ts_source.meta.doc_count,249,Fetch-success documents with published_ts_source=meta.
+published_ts_source.time_tag.doc_count,142,Fetch-success documents with published_ts_source=time_tag.
+published_ts_source.url_date.doc_count,49,Fetch-success documents with published_ts_source=url_date.
 doc_count_dedup_representatives,818,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
 doc_count_english,832,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."
 doc_count_warc_validated,938,"Stage 1d document-level lookup, fetch, extraction, or filtering metric."

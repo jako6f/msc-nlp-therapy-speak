@@ -3,11 +3,10 @@ import gzip
 import io
 import json
 import logging
-import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -19,10 +18,23 @@ from src.pathing import (
     stage1_stage_dir,
     stage1d_pointer_cache_dir,
     stage1d_warc_dir,
+    stage1e_pointer_cache_dir,
+    stage1e_warc_dir,
 )
 
 COMMONCRAWL_DATA_BASE_URL = "https://data.commoncrawl.org"
 DOC_KEY_COLUMNS = ["crawl_id", "url"]
+STAGE1E_SCHEMA_NEGATIVE_TYPES = {
+    "searchresultspage",
+    "collectionpage",
+    "itemlist",
+    "offercatalog",
+    "musicalbum",
+    "musicrecording",
+    "product",
+    "jobposting",
+    "qapage",
+}
 
 
 @dataclass(frozen=True)
@@ -154,9 +166,7 @@ def _load_stage_source(config: Dict, stage_name: str, scope_name: str) -> StageS
     if not summary_path.exists():
         raise FileNotFoundError(f"Missing scan summary for {stage_name}: {summary_path}")
     if not term_summary_path.exists():
-        raise FileNotFoundError(
-            f"Missing term summary for {stage_name}: {term_summary_path}"
-        )
+        raise FileNotFoundError(f"Missing term summary for {stage_name}: {term_summary_path}")
     hits_df = pd.read_parquet(hits_path)
     hits_df = hits_df.copy()
     hits_df["source_stage"] = stage_name
@@ -221,10 +231,75 @@ def _sample_enrich_inputs(
     return sampled_hits_df, metadata
 
 
-def _require_stage1d(config: Dict) -> None:
+def _warc_extraction_config(config: Dict, stage_key: str) -> Dict[str, object]:
+    warc_cfg = config.get(stage_key, {}).get("warc_validation", {})
+    return {
+        "favor_recall": bool(warc_cfg.get("favor_recall", False)),
+        "favor_precision": bool(warc_cfg.get("favor_precision", False)),
+        "include_tables": bool(warc_cfg.get("include_tables", True)),
+        "resiliparse_comments": bool(warc_cfg.get("resiliparse_comments", True)),
+        "resiliparse_post_meta": bool(warc_cfg.get("resiliparse_post_meta", True)),
+    }
+
+
+def _require_stage(config: Dict, expected_stage: str) -> None:
     stage = str(config.get("run_context", {}).get("stage", "")).strip()
-    if stage != "stage1d":
-        raise ValueError("Stage 1d commands require run_context.stage=stage1d")
+    if stage != expected_stage:
+        stage_label = expected_stage.replace("stage", "Stage ")
+        raise ValueError(f"{stage_label} commands require run_context.stage={expected_stage}")
+
+
+def _require_stage1d(config: Dict) -> None:
+    _require_stage(config, "stage1d")
+
+
+def _require_stage1e(config: Dict) -> None:
+    _require_stage(config, "stage1e")
+
+
+def _http_get_bytes(url: str, timeout: int = 60) -> bytes:
+    request = Request(url, headers={"User-Agent": "msc-nlp-therapy-speak/0.2"})
+    with urlopen(request, timeout=timeout) as response:
+        return response.read()
+
+
+def _mime_is_html(mime: str) -> bool:
+    return "html" in (mime or "").lower()
+
+
+def _lookup_outcome_from_candidates(
+    candidates: List[LookupRecord],
+    note_ok: str,
+    note_fallback: str,
+    *,
+    attempts: int,
+    last_error: str,
+    retry_delay_total_s: float,
+    provider: str,
+) -> LookupOutcome:
+    match_count = len(candidates)
+    for candidate in candidates:
+        if candidate.status == "200" and (_mime_is_html(candidate.mime) or candidate.mime == ""):
+            return LookupOutcome(
+                record=candidate,
+                note=note_ok,
+                attempts=attempts,
+                last_error=last_error,
+                retry_delay_total_s=round(retry_delay_total_s, 3),
+                match_count=match_count,
+                provider=provider,
+            )
+    return LookupOutcome(
+        record=candidates[0],
+        note=note_fallback,
+        attempts=attempts,
+        last_error=last_error,
+        retry_delay_total_s=round(retry_delay_total_s, 3),
+        match_count=match_count,
+        provider=provider,
+    )
+
+
 def _fetch_warc_payload(record: LookupRecord) -> Tuple[Optional[dict], str]:
     end_offset = record.offset + record.length - 1
     warc_url = f"{COMMONCRAWL_DATA_BASE_URL}/{record.filename}"
@@ -254,9 +329,7 @@ def _fetch_warc_payload(record: LookupRecord) -> Tuple[Optional[dict], str]:
                     {
                         "warc_type": warc_record.rec_type,
                         "capture_ts": warc_record.rec_headers.get_header("WARC-Date") or "",
-                        "warc_target_uri": warc_record.rec_headers.get_header(
-                            "WARC-Target-URI"
-                        )
+                        "warc_target_uri": warc_record.rec_headers.get_header("WARC-Target-URI")
                         or "",
                         "http_status": (
                             warc_record.http_headers.get_statuscode()
@@ -285,8 +358,8 @@ def _load_boto3():
     return boto3
 
 
-def _latest_pointer_cache_path(config: Dict) -> Tuple[str, Path]:
-    out_dir = stage1d_pointer_cache_dir(config)
+def _latest_pointer_cache_path(pointer_cache_dir: Path) -> Tuple[str, Path]:
+    out_dir = pointer_cache_dir
     latest_runid = ""
     latest_path: Optional[Path] = None
     for path in out_dir.glob("cc_pointer_cache_*.parquet"):
@@ -338,7 +411,9 @@ def _load_pointer_cache_s3(uri: str) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True)
 
 
-def _load_pointer_cache_df(config: Dict, pointer_cache_uri: Optional[str]) -> pd.DataFrame:
+def _load_pointer_cache_df(
+    pointer_cache_dir: Path, pointer_cache_uri: Optional[str]
+) -> pd.DataFrame:
     if pointer_cache_uri:
         if pointer_cache_uri.startswith("s3://"):
             return _load_pointer_cache_s3(pointer_cache_uri)
@@ -349,7 +424,7 @@ def _load_pointer_cache_df(config: Dict, pointer_cache_uri: Optional[str]) -> pd
                 raise FileNotFoundError(f"No parquet files found in {pointer_path}")
             return pd.concat([pd.read_parquet(path) for path in parquet_paths], ignore_index=True)
         return pd.read_parquet(pointer_path)
-    _, latest_path = _latest_pointer_cache_path(config)
+    _, latest_path = _latest_pointer_cache_path(pointer_cache_dir)
     return pd.read_parquet(latest_path)
 
 
@@ -363,32 +438,6 @@ def _normalize_timestamp(raw_value: object) -> Optional[str]:
     if pd.isna(ts):
         return None
     return ts.isoformat().replace("+00:00", "Z")
-
-
-def _url_date_candidate(url: str) -> Optional[str]:
-    patterns = [
-        r"(20\d{2})/(0[1-9]|1[0-2])/(0[1-9]|[12]\d|3[01])",
-        r"(20\d{2})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])",
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, url)
-        if match:
-            year, month, day = match.groups()
-            return f"{year}-{month}-{day}"
-    return None
-
-
-def _iter_jsonld_dates(node: object) -> Iterable[str]:
-    target_keys = {"datepublished", "datecreated", "uploaddate"}
-    if isinstance(node, dict):
-        for key, value in node.items():
-            if key.lower() in target_keys and isinstance(value, (str, int, float)):
-                yield str(value)
-            else:
-                yield from _iter_jsonld_dates(value)
-    elif isinstance(node, list):
-        for item in node:
-            yield from _iter_jsonld_dates(item)
 
 
 def _candidate_before_capture(
@@ -407,72 +456,135 @@ def _candidate_before_capture(
     return candidate_dt <= capture_dt + pd.Timedelta(hours=tolerance_hours)
 
 
+def _capture_max_date(capture_ts: Optional[str]) -> Optional[str]:
+    if not capture_ts:
+        return None
+    capture_dt = pd.to_datetime(capture_ts, utc=True, errors="coerce")
+    if pd.isna(capture_dt):
+        return None
+    return capture_dt.strftime("%Y-%m-%d")
+
+
+def _published_ts_passes_sanity(
+    candidate_ts: Optional[str],
+    capture_ts: Optional[str],
+    tolerance_hours: int,
+    min_date: Optional[str],
+) -> bool:
+    if not candidate_ts:
+        return False
+    candidate_dt = pd.to_datetime(candidate_ts, utc=True, errors="coerce")
+    if pd.isna(candidate_dt):
+        return False
+
+    candidate_ymd = candidate_dt.strftime("%Y-%m-%d")
+    if candidate_dt.year <= 1 or candidate_ymd == "1970-01-01":
+        return False
+
+    if min_date:
+        min_dt = pd.to_datetime(min_date, utc=True, errors="coerce")
+        if not pd.isna(min_dt) and candidate_dt < min_dt:
+            return False
+
+    return _candidate_before_capture(candidate_ts, capture_ts, tolerance_hours)
+
+
 def _extract_published_timestamp(
     html_text: str,
     url: str,
     capture_ts: Optional[str],
     tolerance_hours: int,
-) -> Tuple[Optional[str], str, str]:
+    min_date: Optional[str],
+) -> Optional[str]:
     try:
-        from bs4 import BeautifulSoup
-    except ImportError:
-        url_candidate = _url_date_candidate(url)
-        normalized = _normalize_timestamp(url_candidate)
-        if _candidate_before_capture(normalized, capture_ts, tolerance_hours):
-            return normalized, "url_date", "low"
-        return None, "", "none"
+        from htmldate import find_date
+    except ImportError as exc:  # pragma: no cover - dependency dependent
+        raise RuntimeError(
+            "Missing dependency 'htmldate'. Install it before running Stage 1d WARC extraction."
+        ) from exc
 
-    soup = BeautifulSoup(html_text, "html.parser")
-
-    for script_tag in soup.find_all("script", attrs={"type": re.compile("ld\\+json", re.I)}):
-        raw_json = script_tag.string or script_tag.get_text(strip=True)
-        if not raw_json:
-            continue
+    capture_max_date = _capture_max_date(capture_ts)
+    for extensive_search in (False, True):
         try:
-            parsed = json.loads(raw_json)
-        except json.JSONDecodeError:
+            raw_candidate = find_date(
+                html_text,
+                extensive_search=extensive_search,
+                original_date=True,
+                outputformat="%Y-%m-%d",
+                url=url or None,
+                min_date=min_date,
+                max_date=capture_max_date,
+                deferred_url_extractor=True,
+            )
+        except Exception:  # pragma: no cover - extractor/runtime dependent
             continue
-        for raw_candidate in _iter_jsonld_dates(parsed):
-            normalized = _normalize_timestamp(raw_candidate)
-            if _candidate_before_capture(normalized, capture_ts, tolerance_hours):
-                return normalized, "json_ld", "high"
+        normalized = _normalize_timestamp(raw_candidate)
+        if _published_ts_passes_sanity(
+            normalized,
+            capture_ts=capture_ts,
+            tolerance_hours=tolerance_hours,
+            min_date=min_date,
+        ):
+            return normalized
 
-    meta_selectors = [
-        ("property", "article:published_time"),
-        ("property", "og:published_time"),
-        ("name", "pubdate"),
-        ("name", "publishdate"),
-        ("name", "timestamp"),
-        ("name", "date"),
-        ("itemprop", "datePublished"),
-        ("itemprop", "dateCreated"),
-    ]
-    for attr_name, attr_value in meta_selectors:
-        tag = soup.find(
-            "meta", attrs={attr_name: re.compile(f"^{re.escape(attr_value)}$", re.I)}
+    return None
+
+
+def _extract_schema_types(html_text: str, url: str) -> str:
+    try:
+        import extruct
+    except ImportError as exc:  # pragma: no cover - dependency dependent
+        raise RuntimeError(
+            "Missing dependency 'extruct'. Install it before running Stage 1e WARC extraction."
+        ) from exc
+
+    try:
+        metadata = extruct.extract(
+            html_text,
+            base_url=url or None,
+            syntaxes=["json-ld", "microdata", "opengraph", "rdfa", "dublincore"],
+            uniform=True,
         )
-        if not tag:
-            continue
-        normalized = _normalize_timestamp(tag.get("content"))
-        if _candidate_before_capture(normalized, capture_ts, tolerance_hours):
-            return normalized, "meta", "high"
+    except Exception:  # pragma: no cover - extractor/runtime dependent
+        return ""
 
-    for time_tag in soup.find_all("time"):
-        normalized = _normalize_timestamp(
-            time_tag.get("datetime") or time_tag.get_text(" ", strip=True)
-        )
-        if _candidate_before_capture(normalized, capture_ts, tolerance_hours):
-            return normalized, "time_tag", "medium"
+    def _normalize_type_name(raw_value: object) -> str:
+        raw_text = str(raw_value or "").strip()
+        if not raw_text:
+            return ""
+        normalized = raw_text.rstrip("/").split("/")[-1].split(":")[-1]
+        return normalized.strip()
 
-    url_candidate = _url_date_candidate(url)
-    normalized = _normalize_timestamp(url_candidate)
-    if _candidate_before_capture(normalized, capture_ts, tolerance_hours):
-        return normalized, "url_date", "low"
+    def _walk_types(node: Any) -> Iterable[str]:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                lowered = key.lower()
+                if lowered in {"@type", "type"}:
+                    if isinstance(value, list):
+                        for item in value:
+                            normalized = _normalize_type_name(item)
+                            if normalized:
+                                yield normalized
+                    else:
+                        normalized = _normalize_type_name(value)
+                        if normalized:
+                            yield normalized
+                yield from _walk_types(value)
+        elif isinstance(node, list):
+            for item in node:
+                yield from _walk_types(item)
 
-    return None, "", "none"
+    schema_types = sorted({value for value in _walk_types(metadata) if value})
+    return "|".join(schema_types)
 
 
-def _trafilatura_extract(html_text: str, favor_recall: bool) -> Tuple[Optional[str], str]:
+def _trafilatura_extract(
+    html_text: str,
+    *,
+    favor_recall: bool,
+    favor_precision: bool,
+    include_tables: bool,
+) -> Tuple[Optional[str], str]:
     try:
         import trafilatura
     except ImportError as exc:  # pragma: no cover - dependency dependent
@@ -483,8 +595,9 @@ def _trafilatura_extract(html_text: str, favor_recall: bool) -> Tuple[Optional[s
     extracted = trafilatura.extract(
         html_text,
         favor_recall=favor_recall,
+        favor_precision=favor_precision,
         include_comments=False,
-        include_tables=True,
+        include_tables=include_tables,
     )
     if not extracted:
         return None, "trafilatura_empty"
@@ -494,7 +607,9 @@ def _trafilatura_extract(html_text: str, favor_recall: bool) -> Tuple[Optional[s
     return normalized, "ok"
 
 
-def _resiliparse_extract(html_text: str) -> Tuple[Optional[str], str]:
+def _resiliparse_extract(
+    html_text: str, *, comments: bool, post_meta: bool
+) -> Tuple[Optional[str], str]:
     try:
         from resiliparse.extract.html2text import extract_plain_text  # type: ignore
         from resiliparse.parse.html import HTMLTree  # type: ignore
@@ -503,7 +618,13 @@ def _resiliparse_extract(html_text: str) -> Tuple[Optional[str], str]:
 
     try:
         tree = HTMLTree.parse(html_text)
-        extracted = extract_plain_text(tree, main_content=True, preserve_formatting=False)
+        extracted = extract_plain_text(
+            tree,
+            main_content=True,
+            preserve_formatting=False,
+            comments=comments,
+            post_meta=post_meta,
+        )
     except Exception as exc:  # pragma: no cover - dependency/runtime dependent
         return None, f"resiliparse_error:{type(exc).__name__}"
     normalized = " ".join(str(extracted or "").split())
@@ -513,17 +634,94 @@ def _resiliparse_extract(html_text: str) -> Tuple[Optional[str], str]:
 
 
 def _extract_main_content(
-    html_text: str, favor_recall: bool
+    html_text: str, extraction_cfg: Dict[str, object]
 ) -> Tuple[Optional[str], str, str]:
-    extracted_text, note = _trafilatura_extract(html_text, favor_recall=favor_recall)
+    extracted_text, note = _trafilatura_extract(
+        html_text,
+        favor_recall=bool(extraction_cfg.get("favor_recall", False)),
+        favor_precision=bool(extraction_cfg.get("favor_precision", False)),
+        include_tables=bool(extraction_cfg.get("include_tables", True)),
+    )
     if extracted_text:
         return extracted_text, note, "trafilatura"
 
-    fallback_text, fallback_note = _resiliparse_extract(html_text)
+    fallback_text, fallback_note = _resiliparse_extract(
+        html_text,
+        comments=bool(extraction_cfg.get("resiliparse_comments", True)),
+        post_meta=bool(extraction_cfg.get("resiliparse_post_meta", True)),
+    )
     if fallback_text:
         return fallback_text, fallback_note, "resiliparse"
 
     return None, note if note else fallback_note, ""
+
+
+def _compute_publication_date_metrics(doc_df: pd.DataFrame) -> Dict[str, object]:
+    required_columns = [
+        "warc_fetch_success",
+        "is_validated_hits_warc",
+        "published_ts",
+    ]
+    metrics: Dict[str, object] = {}
+    if doc_df.empty or any(column not in doc_df.columns for column in required_columns):
+        return metrics
+
+    working_df = doc_df.copy()
+    working_df["warc_fetch_success"] = working_df["warc_fetch_success"].fillna(False).astype(bool)
+    working_df["is_validated_hits_warc"] = (
+        working_df["is_validated_hits_warc"].fillna(False).astype(bool)
+    )
+    working_df["published_ts"] = working_df["published_ts"].fillna("").astype(str)
+
+    fetch_success_df = working_df.loc[working_df["warc_fetch_success"]].copy()
+    validated_df = working_df.loc[working_df["is_validated_hits_warc"]].copy()
+    fetch_success_found_mask = fetch_success_df["published_ts"].str.strip() != ""
+    validated_found_mask = validated_df["published_ts"].str.strip() != ""
+
+    found_fetch_docs = int(fetch_success_found_mask.sum())
+    metrics["doc_count_published_ts_found"] = found_fetch_docs
+    metrics["doc_count_published_ts_missing"] = int(len(fetch_success_df) - found_fetch_docs)
+    metrics["pct_fetch_success_docs_with_published_ts"] = round(
+        (found_fetch_docs / len(fetch_success_df) * 100.0 if len(fetch_success_df) else 0.0),
+        6,
+    )
+    metrics["doc_count_warc_validated_with_published_ts"] = int(validated_found_mask.sum())
+    metrics["pct_warc_validated_docs_with_published_ts"] = round(
+        (validated_found_mask.mean() * 100.0 if len(validated_df) else 0.0),
+        6,
+    )
+
+    return metrics
+
+
+def _build_publication_date_rows(publication_metrics: Dict[str, object]) -> List[List[object]]:
+    if not publication_metrics:
+        return []
+
+    rows: List[List[object]] = []
+    metric_descriptions = {
+        "doc_count_published_ts_found": (
+            "Fetch-success documents with a candidate published timestamp."
+        ),
+        "doc_count_published_ts_missing": (
+            "Fetch-success documents without a candidate published timestamp."
+        ),
+        "pct_fetch_success_docs_with_published_ts": (
+            "Share of fetch-success documents with a candidate published timestamp."
+        ),
+        "doc_count_warc_validated_with_published_ts": (
+            "WARC-validated documents with a candidate published timestamp."
+        ),
+        "pct_warc_validated_docs_with_published_ts": (
+            "Share of WARC-validated documents with a candidate published timestamp."
+        ),
+    }
+
+    for metric_name, description in metric_descriptions.items():
+        if metric_name in publication_metrics:
+            rows.append(_summary_row(metric_name, publication_metrics[metric_name], description))
+
+    return rows
 
 
 def _build_stage1d_summary_rows(
@@ -533,6 +731,7 @@ def _build_stage1d_summary_rows(
     validated_hits_warc: int,
     role_counts: Dict[str, Dict[str, int]],
     doc_metrics: Dict[str, object],
+    publication_metrics: Optional[Dict[str, object]],
     notes: str,
 ) -> List[List[object]]:
     rows = [
@@ -595,12 +794,93 @@ def _build_stage1d_summary_rows(
                 ),
             ]
         )
+    rows.extend(_build_publication_date_rows(publication_metrics or {}))
     for metric_name, metric_value in sorted(doc_metrics.items()):
         rows.append(
             _summary_row(
                 metric_name,
                 metric_value,
                 "Stage 1d document-level lookup, fetch, extraction, or filtering metric.",
+            )
+        )
+    return rows
+
+
+def _build_stage1e_summary_rows(
+    docs_scanned: int,
+    candidate_hits: int,
+    validated_hits_wet: int,
+    validated_hits_warc: int,
+    role_counts: Dict[str, Dict[str, int]],
+    doc_metrics: Dict[str, object],
+    publication_metrics: Optional[Dict[str, object]],
+    notes: str,
+) -> List[List[object]]:
+    rows = [
+        _summary_row(
+            "docs_scanned",
+            docs_scanned,
+            "Combined scanned documents across the frozen Stage 1e rerun input WET files.",
+        ),
+        _summary_row(
+            "candidate_hits",
+            candidate_hits,
+            "Combined candidate hits across the frozen Stage 1e rerun input WET files.",
+        ),
+        _summary_row(
+            "validated_hits_wet",
+            validated_hits_wet,
+            "Combined WET-validated hits used as input to Stage 1e WARC validation.",
+        ),
+        _summary_row(
+            "validated_hits_warc",
+            validated_hits_warc,
+            "Combined row-level hits that survived Stage 1e WARC validation and extraction.",
+        ),
+        _summary_row(
+            "validated_hits_wet_per_10k",
+            round(_rate_per(validated_hits_wet, docs_scanned, 10_000), 6),
+            "Combined WET-validated hit rate per 10,000 scanned documents.",
+        ),
+        _summary_row(
+            "validated_hits_warc_per_10k",
+            round(_rate_per(validated_hits_warc, docs_scanned, 10_000), 6),
+            "Combined WARC-validated hit rate per 10,000 scanned documents.",
+        ),
+        _summary_row(
+            "warc_validation_attempted",
+            True,
+            "Indicates that Stage 1e WARC validation ran for this summary.",
+        ),
+        _summary_row(
+            "warc_validation_notes",
+            notes,
+            "Short note describing the Stage 1e WARC validation scope.",
+        ),
+    ]
+    for role in ("target", "baseline"):
+        role_values = role_counts.get(role, {})
+        rows.extend(
+            [
+                _summary_row(
+                    f"term_role.{role}.validated_hits_wet",
+                    role_values.get("validated_hits_wet", 0),
+                    f"Input WET-validated hits attributed to term_role={role}.",
+                ),
+                _summary_row(
+                    f"term_role.{role}.validated_hits_warc",
+                    role_values.get("validated_hits_warc", 0),
+                    f"WARC-validated hits attributed to term_role={role}.",
+                ),
+            ]
+        )
+    rows.extend(_build_publication_date_rows(publication_metrics or {}))
+    for metric_name, metric_value in sorted(doc_metrics.items()):
+        rows.append(
+            _summary_row(
+                metric_name,
+                metric_value,
+                "Stage 1e document-level lookup, fetch, extraction, or filtering metric.",
             )
         )
     return rows
@@ -642,9 +922,7 @@ def _write_stage1d_term_summary(
     )
     if include_filter_fields:
         extras = (
-            df.groupby(
-                ["crawl_id", "term_role", "term_group", "matched_term"], dropna=False
-            )
+            df.groupby(["crawl_id", "term_role", "term_group", "matched_term"], dropna=False)
             .agg(
                 english_hits=("is_english", "sum"),
                 dedup_representative_hits=("is_dedup_representative", "sum"),
@@ -655,13 +933,11 @@ def _write_stage1d_term_summary(
             extras,
             on=["crawl_id", "term_role", "term_group", "matched_term"],
             how="left",
-    )
+        )
     base.to_csv(path, index=False)
 
 
-def _upload_stage1d_outputs_to_s3(
-    local_paths: List[Path], s3_output_prefix: str
-) -> List[str]:
+def _upload_stage1d_outputs_to_s3(local_paths: List[Path], s3_output_prefix: str) -> List[str]:
     boto3 = _load_boto3()
     s3_client = boto3.client("s3")
     bucket, key_prefix = _parse_s3_uri(s3_output_prefix)
@@ -680,6 +956,7 @@ def extract_stage1d_pointer_cache(
     s3_output_prefix: Optional[str] = None,
 ) -> Path:
     _require_stage1d(config)
+    extraction_start = time.perf_counter()
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), "cc-stage1d-extract-remote", runid)
 
@@ -688,11 +965,13 @@ def extract_stage1d_pointer_cache(
         raise ValueError("No validated WET hits available for Stage 1d extraction.")
     combined_hits_df, sample_metadata = _sample_enrich_inputs(combined_hits_df, config)
 
-    warc_cfg = config.get("stage1d", {}).get("warc_validation", {})
-    favor_recall = bool(warc_cfg.get("favor_recall", False))
+    extraction_cfg = _warc_extraction_config(config, "stage1d")
     tolerance_hours = int(config.get("stage1d", {}).get("published_ts_tolerance_hours", 48))
+    min_published_ts = (
+        str(config.get("stage1d", {}).get("published_ts_min_date", "1995-01-01")).strip() or None
+    )
 
-    pointer_df = _load_pointer_cache_df(config, pointer_cache_uri)
+    pointer_df = _load_pointer_cache_df(stage1d_pointer_cache_dir(config), pointer_cache_uri)
     if pointer_df.empty:
         raise ValueError("Pointer cache is empty.")
     pointer_df = pointer_df.copy()
@@ -722,8 +1001,7 @@ def extract_stage1d_pointer_cache(
         )
 
     pointer_map = {
-        (str(row["crawl_id"]), str(row["url"])): row
-        for row in pointer_df.to_dict(orient="records")
+        (str(row["crawl_id"]), str(row["url"])): row for row in pointer_df.to_dict(orient="records")
     }
     unique_docs = combined_hits_df[DOC_KEY_COLUMNS].drop_duplicates().reset_index(drop=True)
 
@@ -781,8 +1059,7 @@ def extract_stage1d_pointer_cache(
             "extracted_text": "",
             "extracted_text_len": 0,
             "published_ts": "",
-            "published_ts_source": "",
-            "published_ts_confidence": "none",
+            "schema_types": "",
             "cdx_attempts": 0,
             "cdx_last_error": "",
             "cdx_retry_delay_total_s": 0.0,
@@ -812,10 +1089,11 @@ def extract_stage1d_pointer_cache(
 
         html_text = str(fetched_payload.get("html_text", ""))
         extracted_text, extract_note, extractor_used = _extract_main_content(
-            html_text, favor_recall=favor_recall
+            html_text, extraction_cfg=extraction_cfg
         )
         row["warc_validation_notes"] = extract_note
         row["extractor_used"] = extractor_used
+        row["schema_types"] = _extract_schema_types(html_text, url)
         if extracted_text:
             term_rows = combined_hits_df.loc[
                 (combined_hits_df["crawl_id"].astype(str) == crawl_id)
@@ -835,15 +1113,14 @@ def extract_stage1d_pointer_cache(
                 row["is_validated_hits_warc"] = True
                 row["extracted_text"] = extracted_text
                 row["extracted_text_len"] = len(extracted_text)
-        published_ts, published_source, published_confidence = _extract_published_timestamp(
+        published_ts = _extract_published_timestamp(
             html_text=html_text,
             url=url,
             capture_ts=str(row["capture_ts"]) or None,
             tolerance_hours=tolerance_hours,
+            min_date=min_published_ts,
         )
         row["published_ts"] = published_ts or ""
-        row["published_ts_source"] = published_source
-        row["published_ts_confidence"] = published_confidence
         doc_records.append(row)
 
         if doc_idx % 25 == 0:
@@ -868,38 +1145,29 @@ def extract_stage1d_pointer_cache(
     enriched_df["warc_lookup_success"] = (
         enriched_df["warc_lookup_success"].fillna(False).astype(bool)
     )
-    enriched_df["warc_fetch_success"] = (
-        enriched_df["warc_fetch_success"].fillna(False).astype(bool)
-    )
+    enriched_df["warc_fetch_success"] = enriched_df["warc_fetch_success"].fillna(False).astype(bool)
     enriched_df["lookup_provider"] = enriched_df["lookup_provider"].fillna("pointer_cache")
     enriched_df["lookup_note"] = enriched_df["lookup_note"].fillna("pointer_cache_no_match")
     enriched_df["lookup_match_count"] = (
-        pd.to_numeric(enriched_df["lookup_match_count"], errors="coerce")
-        .fillna(0)
-        .astype(int)
+        pd.to_numeric(enriched_df["lookup_match_count"], errors="coerce").fillna(0).astype(int)
     )
     for column in (
         "capture_ts",
         "warc_validation_notes",
         "published_ts",
-        "published_ts_source",
-        "published_ts_confidence",
         "pointer_fetch_status",
         "pointer_content_mime_type",
         "extractor_used",
         "extracted_text",
+        "schema_types",
     ):
-        default_value = "none" if column == "published_ts_confidence" else ""
-        enriched_df[column] = enriched_df[column].fillna(default_value)
+        enriched_df[column] = enriched_df[column].fillna("")
     enriched_df["extracted_text_len"] = (
-        pd.to_numeric(enriched_df["extracted_text_len"], errors="coerce")
-        .fillna(0)
-        .astype(int)
+        pd.to_numeric(enriched_df["extracted_text_len"], errors="coerce").fillna(0).astype(int)
     )
 
-    validated_warc_df = enriched_df.loc[
-        enriched_df["is_validated_hits_warc"].fillna(False)
-    ].copy()
+    validated_warc_df = enriched_df.loc[enriched_df["is_validated_hits_warc"].fillna(False)].copy()
+    publication_metrics = _compute_publication_date_metrics(doc_df)
 
     docs_scanned_total = sum(_metric_int(source.summary, "docs_scanned", 0) for source in sources)
     candidate_hits_total = sum(
@@ -915,6 +1183,7 @@ def extract_stage1d_pointer_cache(
             "validated_hits_warc": int(role_df["is_validated_hits_warc"].sum()),
         }
 
+    total_elapsed_sec = time.perf_counter() - extraction_start
     doc_metrics = {
         "doc_count_input": int(len(unique_docs)),
         "doc_count_lookup_success": int(lookup_success_docs),
@@ -923,6 +1192,8 @@ def extract_stage1d_pointer_cache(
         "doc_count_lookup_failed": int(len(unique_docs) - lookup_success_docs),
         "doc_count_fetch_failed": int(lookup_success_docs - fetch_success_docs),
         "doc_count_extract_failed": int(fetch_success_docs - extract_success_docs),
+        "total_elapsed_sec": round(total_elapsed_sec, 6),
+        "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
         "lookup_provider": "pointer_cache",
     }
     if bool(sample_metadata.get("doc_sample_enabled", False)):
@@ -932,12 +1203,8 @@ def extract_stage1d_pointer_cache(
                 "doc_sample_max_docs_per_crawl": int(
                     sample_metadata.get("doc_sample_max_docs_per_crawl", 0)
                 ),
-                "doc_sampled_input_docs": int(
-                    sample_metadata.get("doc_sampled_input_docs", 0)
-                ),
-                "doc_sampled_input_hits": int(
-                    sample_metadata.get("doc_sampled_input_hits", 0)
-                ),
+                "doc_sampled_input_docs": int(sample_metadata.get("doc_sampled_input_docs", 0)),
+                "doc_sampled_input_hits": int(sample_metadata.get("doc_sampled_input_hits", 0)),
             }
         )
 
@@ -968,6 +1235,7 @@ def extract_stage1d_pointer_cache(
             validated_hits_warc=validated_hits_warc_total,
             role_counts=role_counts,
             doc_metrics=doc_metrics,
+            publication_metrics=publication_metrics,
             notes=notes,
         ),
     )
@@ -975,7 +1243,8 @@ def extract_stage1d_pointer_cache(
     manifest_payload = {
         "runid": runid,
         "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "pointer_cache_uri": pointer_cache_uri or str(_latest_pointer_cache_path(config)[1]),
+        "pointer_cache_uri": pointer_cache_uri
+        or str(_latest_pointer_cache_path(stage1d_pointer_cache_dir(config))[1]),
         "s3_output_prefix": s3_output_prefix or "",
         "enriched_path": str(enriched_path),
         "validated_warc_path": str(validated_warc_path),
@@ -1002,4 +1271,338 @@ def extract_stage1d_pointer_cache(
     logger.info("Wrote enriched hits %s", enriched_path)
     logger.info("Wrote WARC-validated hits %s", validated_warc_path)
     logger.info("Wrote Stage 1d summary %s", summary_path)
+    return enriched_path
+
+
+def _latest_stage_hits_source(
+    config: Dict, stage_name: str
+) -> Tuple[str, Path, Path, pd.DataFrame]:
+    output_dir = stage1_output_dir(config, default_stage=stage_name)
+    runid, hits_path = _latest_validated_hits_wet(output_dir)
+    summary_path = output_dir / f"cc_scan_summary_{runid}.csv"
+    if not summary_path.exists():
+        raise FileNotFoundError(f"Missing scan summary for {stage_name}: {summary_path}")
+    hits_df = pd.read_parquet(hits_path).copy()
+    hits_df["source_stage"] = stage_name
+    hits_df["source_scope"] = "combined"
+    hits_df["source_runid"] = runid
+    return runid, hits_path, summary_path, hits_df
+
+
+def extract_stage1e_pointer_cache(
+    config: Dict,
+    pointer_cache_uri: Optional[str] = None,
+    s3_output_prefix: Optional[str] = None,
+) -> Path:
+    _require_stage1e(config)
+    extraction_start = time.perf_counter()
+    runid = _utc_runid()
+    logger = _setup_logger(Path("reports/logs"), "cc-stage1e-extract-remote", runid)
+
+    source_runid, _, input_summary_path, combined_hits_df = _latest_stage_hits_source(
+        config, "stage1e"
+    )
+    if combined_hits_df.empty:
+        raise ValueError("No validated WET hits available for Stage 1e extraction.")
+    combined_hits_df, sample_metadata = _sample_enrich_inputs(combined_hits_df, config)
+
+    extraction_cfg = _warc_extraction_config(config, "stage1e")
+    tolerance_hours = int(config.get("stage1e", {}).get("published_ts_tolerance_hours", 48))
+    min_published_ts = (
+        str(config.get("stage1e", {}).get("published_ts_min_date", "1995-01-01")).strip() or None
+    )
+
+    pointer_df = _load_pointer_cache_df(stage1e_pointer_cache_dir(config), pointer_cache_uri)
+    if pointer_df.empty:
+        raise ValueError("Pointer cache is empty.")
+    pointer_df = pointer_df.copy()
+    pointer_df["crawl_id"] = pointer_df["crawl_id"].astype(str)
+    pointer_df["url"] = pointer_df["url"].astype(str)
+    pointer_df = (
+        pointer_df.sort_values(DOC_KEY_COLUMNS)
+        .drop_duplicates(subset=DOC_KEY_COLUMNS, keep="first")
+        .reset_index(drop=True)
+    )
+
+    logger.info("Loaded %d Stage 1e input hits", len(combined_hits_df))
+    logger.info("Stage 1e source runid: %s", source_runid)
+    logger.info("Loaded pointer cache rows=%d", len(pointer_df))
+    if pointer_cache_uri:
+        logger.info("Pointer cache source: %s", pointer_cache_uri)
+    if bool(sample_metadata.get("doc_sample_enabled", False)):
+        logger.info(
+            "Sampling Stage 1e extraction input: max_docs_per_crawl=%d "
+            "sampled_docs=%d sampled_hits=%d",
+            int(sample_metadata.get("doc_sample_max_docs_per_crawl", 0)),
+            int(sample_metadata.get("doc_sampled_input_docs", 0)),
+            int(sample_metadata.get("doc_sampled_input_hits", 0)),
+        )
+
+    pointer_map = {
+        (str(row["crawl_id"]), str(row["url"])): row for row in pointer_df.to_dict(orient="records")
+    }
+    unique_docs = combined_hits_df[DOC_KEY_COLUMNS].drop_duplicates().reset_index(drop=True)
+
+    doc_records: List[Dict[str, object]] = []
+    lookup_success_docs = 0
+    fetch_success_docs = 0
+    extract_success_docs = 0
+
+    for doc_idx, (_, doc_row) in enumerate(unique_docs.iterrows(), start=1):
+        crawl_id = str(doc_row["crawl_id"])
+        url = str(doc_row["url"])
+        pointer_row = pointer_map.get((crawl_id, url))
+        lookup_note = "pointer_cache_no_match"
+        lookup_match_count = 0
+        record: Optional[LookupRecord] = None
+        pointer_fetch_status = ""
+        pointer_content_mime_type = ""
+        if pointer_row is not None:
+            lookup_note = str(pointer_row.get("lookup_note", "ok") or "ok")
+            lookup_match_count = int(pointer_row.get("lookup_match_count", 0) or 0)
+            pointer_fetch_status = str(pointer_row.get("fetch_status", "") or "")
+            pointer_content_mime_type = str(pointer_row.get("content_mime_type", "") or "")
+            filename = str(pointer_row.get("warc_filename", "") or "").strip()
+            offset = pointer_row.get("warc_record_offset", pd.NA)
+            length = pointer_row.get("warc_record_length", pd.NA)
+            if filename and pd.notna(offset) and pd.notna(length):
+                record = LookupRecord(
+                    url=url,
+                    crawl_id=crawl_id,
+                    filename=filename,
+                    offset=int(offset),
+                    length=int(length),
+                    status=pointer_fetch_status,
+                    mime=pointer_content_mime_type,
+                    timestamp=str(pointer_row.get("fetch_time", "") or ""),
+                )
+
+        row: Dict[str, object] = {
+            "crawl_id": crawl_id,
+            "url": url,
+            "lookup_provider": "pointer_cache",
+            "lookup_note": lookup_note,
+            "lookup_match_count": lookup_match_count,
+            "warc_lookup_success": record is not None,
+            "warc_fetch_success": False,
+            "trafilatura_success": False,
+            "is_validated_hits_warc": False,
+            "warc_filename": record.filename if record else "",
+            "warc_offset": record.offset if record else pd.NA,
+            "warc_length": record.length if record else pd.NA,
+            "capture_ts": "",
+            "warc_target_uri": "",
+            "http_status": "",
+            "html_bytes": 0,
+            "extracted_text": "",
+            "extracted_text_len": 0,
+            "published_ts": "",
+            "schema_types": "",
+            "cdx_attempts": 0,
+            "cdx_last_error": "",
+            "cdx_retry_delay_total_s": 0.0,
+            "cdx_cooldown_triggered": False,
+            "warc_validation_notes": lookup_note,
+            "pointer_fetch_status": pointer_fetch_status,
+            "pointer_content_mime_type": pointer_content_mime_type,
+            "extractor_used": "",
+        }
+        if record is None:
+            doc_records.append(row)
+            continue
+
+        lookup_success_docs += 1
+        fetched_payload, fetch_note = _fetch_warc_payload(record)
+        row["warc_validation_notes"] = fetch_note
+        if fetched_payload is None:
+            doc_records.append(row)
+            continue
+
+        fetch_success_docs += 1
+        row["warc_fetch_success"] = True
+        row["capture_ts"] = fetched_payload.get("capture_ts", "")
+        row["warc_target_uri"] = fetched_payload.get("warc_target_uri", "")
+        row["http_status"] = fetched_payload.get("http_status", "")
+        row["html_bytes"] = int(fetched_payload.get("html_bytes", 0) or 0)
+
+        html_text = str(fetched_payload.get("html_text", ""))
+        extracted_text, extract_note, extractor_used = _extract_main_content(
+            html_text, extraction_cfg=extraction_cfg
+        )
+        row["warc_validation_notes"] = extract_note
+        row["extractor_used"] = extractor_used
+        row["schema_types"] = _extract_schema_types(html_text, url)
+        if extracted_text:
+            term_rows = combined_hits_df.loc[
+                (combined_hits_df["crawl_id"].astype(str) == crawl_id)
+                & (combined_hits_df["url"].astype(str) == url)
+            ]
+            candidate_terms = {
+                str(term).strip().lower()
+                for term in term_rows["matched_term"].dropna().tolist()
+                if str(term).strip()
+            }
+            extracted_lower = extracted_text.lower()
+            if candidate_terms and not any(term in extracted_lower for term in candidate_terms):
+                row["warc_validation_notes"] = "term_missing_after_extraction"
+            else:
+                extract_success_docs += 1
+                row["trafilatura_success"] = extractor_used == "trafilatura"
+                row["is_validated_hits_warc"] = True
+                row["extracted_text"] = extracted_text
+                row["extracted_text_len"] = len(extracted_text)
+        published_ts = _extract_published_timestamp(
+            html_text=html_text,
+            url=url,
+            capture_ts=str(row["capture_ts"]) or None,
+            tolerance_hours=tolerance_hours,
+            min_date=min_published_ts,
+        )
+        row["published_ts"] = published_ts or ""
+        doc_records.append(row)
+
+        if doc_idx % 25 == 0:
+            logger.info(
+                "Stage 1e remote extraction progress %d/%d docs | lookup_success=%d "
+                "fetch_success=%d extract_success=%d",
+                doc_idx,
+                len(unique_docs),
+                lookup_success_docs,
+                fetch_success_docs,
+                extract_success_docs,
+            )
+
+    doc_df = pd.DataFrame(doc_records)
+    enriched_df = combined_hits_df.merge(doc_df, on=DOC_KEY_COLUMNS, how="left")
+    enriched_df["is_validated_hits_warc"] = (
+        enriched_df["is_validated_hits_warc"].fillna(False).astype(bool)
+    )
+    enriched_df["trafilatura_success"] = (
+        enriched_df["trafilatura_success"].fillna(False).astype(bool)
+    )
+    enriched_df["warc_lookup_success"] = (
+        enriched_df["warc_lookup_success"].fillna(False).astype(bool)
+    )
+    enriched_df["warc_fetch_success"] = enriched_df["warc_fetch_success"].fillna(False).astype(bool)
+    enriched_df["lookup_provider"] = enriched_df["lookup_provider"].fillna("pointer_cache")
+    enriched_df["lookup_note"] = enriched_df["lookup_note"].fillna("pointer_cache_no_match")
+    enriched_df["lookup_match_count"] = (
+        pd.to_numeric(enriched_df["lookup_match_count"], errors="coerce").fillna(0).astype(int)
+    )
+    for column in (
+        "capture_ts",
+        "warc_validation_notes",
+        "published_ts",
+        "pointer_fetch_status",
+        "pointer_content_mime_type",
+        "extractor_used",
+        "extracted_text",
+        "schema_types",
+    ):
+        enriched_df[column] = enriched_df[column].fillna("")
+    enriched_df["extracted_text_len"] = (
+        pd.to_numeric(enriched_df["extracted_text_len"], errors="coerce").fillna(0).astype(int)
+    )
+
+    validated_warc_df = enriched_df.loc[enriched_df["is_validated_hits_warc"].fillna(False)].copy()
+    publication_metrics = _compute_publication_date_metrics(doc_df)
+    source_summary = _load_metric_map(input_summary_path)
+    docs_scanned_total = _metric_int(source_summary, "docs_scanned", 0)
+    candidate_hits_total = _metric_int(source_summary, "candidate_hits", 0)
+    validated_hits_wet_total = len(enriched_df)
+    validated_hits_warc_total = len(validated_warc_df)
+    role_counts: Dict[str, Dict[str, int]] = {}
+    for role in ("target", "baseline"):
+        role_df = enriched_df.loc[enriched_df["term_role"] == role]
+        role_counts[role] = {
+            "validated_hits_wet": int(len(role_df)),
+            "validated_hits_warc": int(role_df["is_validated_hits_warc"].sum()),
+        }
+
+    total_elapsed_sec = time.perf_counter() - extraction_start
+    doc_metrics = {
+        "doc_count_input": int(len(unique_docs)),
+        "doc_count_lookup_success": int(lookup_success_docs),
+        "doc_count_fetch_success": int(fetch_success_docs),
+        "doc_count_extract_success": int(extract_success_docs),
+        "doc_count_lookup_failed": int(len(unique_docs) - lookup_success_docs),
+        "doc_count_fetch_failed": int(lookup_success_docs - fetch_success_docs),
+        "doc_count_extract_failed": int(fetch_success_docs - extract_success_docs),
+        "total_elapsed_sec": round(total_elapsed_sec, 6),
+        "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
+        "lookup_provider": "pointer_cache",
+    }
+    if bool(sample_metadata.get("doc_sample_enabled", False)):
+        doc_metrics.update(
+            {
+                "doc_sample_enabled": True,
+                "doc_sample_max_docs_per_crawl": int(
+                    sample_metadata.get("doc_sample_max_docs_per_crawl", 0)
+                ),
+                "doc_sampled_input_docs": int(sample_metadata.get("doc_sampled_input_docs", 0)),
+                "doc_sampled_input_hits": int(sample_metadata.get("doc_sampled_input_hits", 0)),
+            }
+        )
+
+    notes = "Stage 1e WARC validation over the frozen Stage 1 rerun input WET files."
+    if pointer_cache_uri:
+        notes += f" pointer_cache_source={pointer_cache_uri}."
+
+    out_dir = stage1e_warc_dir(config)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    enriched_path = out_dir / f"cc_enriched_hits_{runid}.parquet"
+    validated_warc_path = out_dir / f"cc_validated_hits_warc_{runid}.parquet"
+    summary_path = out_dir / f"cc_stage1e_summary_{runid}.csv"
+    term_summary_path = out_dir / f"cc_stage1e_term_summary_{runid}.csv"
+    manifest_path = out_dir / f"cc_stage1e_remote_extract_manifest_{runid}.json"
+
+    enriched_df.to_parquet(enriched_path, index=False)
+    validated_warc_df.to_parquet(validated_warc_path, index=False)
+    _write_stage1d_term_summary(term_summary_path, enriched_df, include_filter_fields=False)
+    _write_summary_csv(
+        summary_path,
+        _build_stage1e_summary_rows(
+            docs_scanned=docs_scanned_total,
+            candidate_hits=candidate_hits_total,
+            validated_hits_wet=validated_hits_wet_total,
+            validated_hits_warc=validated_hits_warc_total,
+            role_counts=role_counts,
+            doc_metrics=doc_metrics,
+            publication_metrics=publication_metrics,
+            notes=notes,
+        ),
+    )
+
+    manifest_payload = {
+        "runid": runid,
+        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "source_runid": source_runid,
+        "pointer_cache_uri": pointer_cache_uri
+        or str(_latest_pointer_cache_path(stage1e_pointer_cache_dir(config))[1]),
+        "s3_output_prefix": s3_output_prefix or "",
+        "enriched_path": str(enriched_path),
+        "validated_warc_path": str(validated_warc_path),
+        "summary_path": str(summary_path),
+        "term_summary_path": str(term_summary_path),
+    }
+    manifest_path.write_text(json.dumps(manifest_payload, indent=2, sort_keys=True))
+
+    if s3_output_prefix:
+        uploaded_uris = _upload_stage1d_outputs_to_s3(
+            [
+                enriched_path,
+                validated_warc_path,
+                summary_path,
+                term_summary_path,
+                manifest_path,
+            ],
+            s3_output_prefix,
+        )
+        logger.info("Uploaded Stage 1e remote extraction outputs to %s", s3_output_prefix)
+        for uri in uploaded_uris:
+            logger.info("Uploaded %s", uri)
+
+    logger.info("Wrote enriched hits %s", enriched_path)
+    logger.info("Wrote WARC-validated hits %s", validated_warc_path)
+    logger.info("Wrote Stage 1e summary %s", summary_path)
     return enriched_path

@@ -1,0 +1,17 @@
+metric,value
+runid,20260511_121959
+wet.docs_scanned,310082
+wet.elapsed_sec,209.807133
+wet.docs_per_sec,1477.938312
+url_export.doc_count_total,1602
+warc.doc_count_input,1602
+warc.elapsed_sec,510.419009
+warc.docs_per_sec,3.138598
+warc.fetch_success_rate_pct,99.875156
+warc.extract_success_rate_pct,45.755306
+document_quality.doc_count_input,733
+document_quality.elapsed_sec,35.4445
+document_quality.docs_per_sec,20.680218
+final.doc_count,301
+total_observed_elapsed_sec,755.670642
+total_observed_docs_per_sec,410.340144

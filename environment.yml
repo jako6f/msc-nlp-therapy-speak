@@ -9,12 +9,15 @@ dependencies:
   - boto3
   - pyarrow
   - pyyaml
-  - beautifulsoup4
+  - extruct
+  - htmldate
+  - spacy
   - trafilatura
   - tldextract
   - warcio
   - py3langid
   - ruff
   - pip:
+      - datatrove==0.9.0
       - pywb
       - resiliparse

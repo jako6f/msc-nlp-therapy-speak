@@ -1,0 +1,14 @@
+{
+  "crawl_ids": [
+    "CC-MAIN-2016-44",
+    "CC-MAIN-2021-49",
+    "CC-MAIN-2026-04"
+  ],
+  "created_at_utc": "2026-05-08T12:47:13Z",
+  "csv_path": "data/interim/stage1_pilot-dev/stage1e/url_exports/cc_stage1e_urls_20260508_124713.csv",
+  "doc_count": 1650,
+  "parquet_path": "data/interim/stage1_pilot-dev/stage1e/url_exports/cc_stage1e_urls_20260508_124713.parquet",
+  "runid": "20260508_124713",
+  "source_runid": "20260508_123203",
+  "summary_path": "data/interim/stage1_pilot-dev/stage1e/url_exports/cc_stage1e_urls_summary_20260508_124713.csv"
+}

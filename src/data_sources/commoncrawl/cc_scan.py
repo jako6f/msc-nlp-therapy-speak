@@ -78,6 +78,8 @@ CANDIDATE_HIT_COLUMNS = [
     "text_len",
     "triage_rule_signature_hard",
     "triage_rule_directory_index",
+    "triage_rule_negative_page_type_url",
+    "triage_rule_negative_page_type_url_reason",
     "removed_by_domaincap",
     "is_validated_hits_wet",
     "triage_decision",
@@ -154,9 +156,7 @@ def _normalize_term_spec(
     if isinstance(raw_spec, str):
         return default_name, raw_spec, default_role, default_group
     if not isinstance(raw_spec, dict):
-        raise TypeError(
-            f"Unsupported term spec type for {default_name}: {type(raw_spec).__name__}"
-        )
+        raise TypeError(f"Unsupported term spec type for {default_name}: {type(raw_spec).__name__}")
 
     matched_term = str(raw_spec.get("name", default_name)).strip() or default_name
     term_pattern = str(raw_spec.get("pattern", "")).strip()
@@ -271,6 +271,7 @@ def _new_counter_bucket() -> Dict[str, int]:
         "removed_domaincap": 0,
         "removed_boilerplate_signature_hard": 0,
         "removed_boilerplate_directory_index": 0,
+        "removed_boilerplate_negative_page_type_url": 0,
         "removed_boilerplate_total": 0,
     }
 
@@ -325,6 +326,57 @@ def is_boilerplate_signature(snippet: str, patterns: List[re.Pattern]) -> bool:
     return any(pattern.search(snippet) for pattern in patterns)
 
 
+def is_negative_page_type_url(url: str, patterns: List[re.Pattern]) -> bool:
+    if not url:
+        return False
+    return any(pattern.search(url) for pattern in patterns)
+
+
+def _negative_page_type_url_reason(url: str, patterns: List[re.Pattern]) -> str:
+    if not url:
+        return ""
+    for pattern in patterns:
+        if not pattern.search(url):
+            continue
+        pattern_text = pattern.pattern.lower()
+        if "flashcard" in pattern_text:
+            return "flashcards"
+        if "viewtopic" in pattern_text:
+            return "viewtopic"
+        if "thread" in pattern_text:
+            return "threads"
+        if "trackasin" in pattern_text:
+            return "trackasin"
+        if "album" in pattern_text:
+            return "albums"
+        if "product-category" in pattern_text:
+            return "product_category"
+        if "product" in pattern_text:
+            return "products"
+        if "list/job" in pattern_text:
+            return "job_list"
+        if "job" in pattern_text:
+            return "jobs"
+        if "/pin" in pattern_text:
+            return "pin"
+        if "playlist" in pattern_text:
+            return "playlists"
+        if "forum" in pattern_text:
+            return "forums"
+        if "quote" in pattern_text:
+            return "quotes"
+        if "category" in pattern_text:
+            return "categories"
+        if "search" in pattern_text or "[?&](s|q|search)=" in pattern_text:
+            return "search"
+        if "casino" in pattern_text or "viagra" in pattern_text or "pharma" in pattern_text:
+            return "spam_domain"
+        if "tag" in pattern_text:
+            return "tags"
+        return "other"
+    return ""
+
+
 def normalize_listiness_phrases(phrases: List[str]) -> List[str]:
     return [phrase.strip().lower() for phrase in phrases if phrase.strip()]
 
@@ -338,9 +390,7 @@ def likely_sentence_terminator_count(text: str) -> int:
 def _count_short_fragments(snippet: str, short_fragment_max_words: int) -> int:
     fragments = [frag.strip() for frag in re.split(r"[|/>•]+", snippet) if frag.strip()]
     return sum(
-        1
-        for fragment in fragments
-        if len(fragment.split()) <= int(short_fragment_max_words)
+        1 for fragment in fragments if len(fragment.split()) <= int(short_fragment_max_words)
     )
 
 
@@ -354,9 +404,7 @@ def is_boilerplate_directory_index(
     char_count = max(1, len(snippet))
     lower_snippet = snippet.lower()
     fragments = [
-        frag.strip()
-        for frag in re.split(r"[\n\r,|;•»›/]+", snippet)
-        if frag and frag.strip()
+        frag.strip() for frag in re.split(r"[\n\r,|;•»›/]+", snippet) if frag and frag.strip()
     ]
     short_fragment_count = sum(
         1
@@ -369,36 +417,29 @@ def is_boilerplate_directory_index(
 
     separator_count = sum(snippet.count(ch) for ch in ",|;•»›/\n\r")
     separator_per_1k = (separator_count * 1000.0) / char_count
-    sentence_per_1k = (
-        likely_sentence_terminator_count(snippet) * 1000.0
-    ) / char_count
+    sentence_per_1k = (likely_sentence_terminator_count(snippet) * 1000.0) / char_count
     lexicon_hits = sum(1 for phrase in lexicon if phrase in lower_snippet)
 
     words = re.findall(r"\b[A-Za-z][A-Za-z'-]*\b", snippet)
-    capitalized_ratio = (
-        sum(1 for word in words if word[0].isupper()) / max(1, len(words))
-    )
+    capitalized_ratio = sum(1 for word in words if word[0].isupper()) / max(1, len(words))
     single_letter_tokens = set(re.findall(r"\b[a-z]\b", lower_snippet))
 
     score = 0
     if separator_per_1k >= float(thresholds["min_separator_per_1k"]):
         score += 1
-    if (
-        short_fragment_count >= int(thresholds["min_short_fragments"])
-        and short_fragment_ratio >= float(thresholds["min_short_fragment_ratio"])
-    ):
+    if short_fragment_count >= int(
+        thresholds["min_short_fragments"]
+    ) and short_fragment_ratio >= float(thresholds["min_short_fragment_ratio"]):
         score += 1
-    if (
-        sentence_per_1k <= float(thresholds["max_sentence_terminators_per_1k"])
-        and separator_per_1k >= float(thresholds["low_narrative_min_separator_per_1k"])
-    ):
+    if sentence_per_1k <= float(
+        thresholds["max_sentence_terminators_per_1k"]
+    ) and separator_per_1k >= float(thresholds["low_narrative_min_separator_per_1k"]):
         score += 1
     if lexicon_hits >= int(thresholds["min_lexicon_hits"]):
         score += 1
-    if (
-        capitalized_ratio >= float(thresholds["min_capitalized_token_ratio"])
-        and short_fragment_ratio >= float(thresholds["min_short_fragment_ratio"])
-    ):
+    if capitalized_ratio >= float(
+        thresholds["min_capitalized_token_ratio"]
+    ) and short_fragment_ratio >= float(thresholds["min_short_fragment_ratio"]):
         score += 1
     if len(single_letter_tokens) >= int(thresholds["min_single_letter_tokens"]):
         score += 1
@@ -440,8 +481,7 @@ def _write_removed_audit_csv(
     for reason in sorted(reasons):
         candidates = removed_rows_by_reason.get(reason, [])
         reason_rng = random.Random(
-            run_seed
-            ^ int(hashlib.sha256(reason.encode("utf-8")).hexdigest()[:8], 16)
+            run_seed ^ int(hashlib.sha256(reason.encode("utf-8")).hexdigest()[:8], 16)
         )
         if not candidates:
             logger.warning("Audit rows for %s: requested=%d available=0", reason, sample_size)
@@ -506,6 +546,8 @@ def _build_hit_row(
     doc_char_len: int,
     triage_rule_signature_hard: bool,
     triage_rule_directory_index: bool,
+    triage_rule_negative_page_type_url: bool,
+    triage_rule_negative_page_type_url_reason: str,
     removed_by_domaincap: bool,
     is_validated_hits_wet: bool,
     triage_decision: str,
@@ -525,6 +567,8 @@ def _build_hit_row(
         "text_len": doc_char_len,
         "triage_rule_signature_hard": triage_rule_signature_hard,
         "triage_rule_directory_index": triage_rule_directory_index,
+        "triage_rule_negative_page_type_url": triage_rule_negative_page_type_url,
+        "triage_rule_negative_page_type_url_reason": triage_rule_negative_page_type_url_reason,
         "removed_by_domaincap": removed_by_domaincap,
         "is_validated_hits_wet": is_validated_hits_wet,
         "triage_decision": triage_decision,
@@ -548,6 +592,7 @@ def _write_term_summary_csv(
                 "validated_hits_wet",
                 "removed_boilerplate_signature_hard",
                 "removed_boilerplate_directory_index",
+                "removed_boilerplate_negative_page_type_url",
                 "removed_domaincap",
             ]
         )
@@ -568,6 +613,10 @@ def _write_term_summary_csv(
                 ),
                 removed_boilerplate_directory_index=(
                     "triage_rule_directory_index",
+                    "sum",
+                ),
+                removed_boilerplate_negative_page_type_url=(
+                    "triage_rule_negative_page_type_url",
                     "sum",
                 ),
                 removed_domaincap=("removed_by_domaincap", "sum"),
@@ -832,16 +881,12 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     boilerplate_signature_hard_patterns = compile_boilerplate_patterns(
         boilerplate_cfg.get(
             "signature_hard_patterns",
-            boilerplate_cfg.get(
-                "signature_patterns", DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS
-            ),
+            boilerplate_cfg.get("signature_patterns", DEFAULT_BOILERPLATE_SIGNATURE_PATTERNS),
         )
     )
     directory_index_cfg = boilerplate_cfg.get("directory_index", {})
     boilerplate_directory_index_enabled = bool(
-        directory_index_cfg.get(
-            "enabled", boilerplate_cfg.get("directory_index_enabled", True)
-        )
+        directory_index_cfg.get("enabled", boilerplate_cfg.get("directory_index_enabled", True))
     )
     boilerplate_directory_index_lexicon = normalize_listiness_phrases(
         directory_index_cfg.get(
@@ -866,19 +911,13 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     )
     boilerplate_directory_index_thresholds = {
         "score_threshold": int(directory_index_cfg.get("score_threshold", 4)),
-        "min_separator_per_1k": float(
-            directory_index_cfg.get("min_separator_per_1k", 10.0)
-        ),
+        "min_separator_per_1k": float(directory_index_cfg.get("min_separator_per_1k", 10.0)),
         "min_short_fragment_ratio": float(
             directory_index_cfg.get("min_short_fragment_ratio", 0.45)
         ),
         "min_short_fragments": int(directory_index_cfg.get("min_short_fragments", 10)),
-        "short_fragment_min_chars": int(
-            directory_index_cfg.get("short_fragment_min_chars", 3)
-        ),
-        "short_fragment_max_chars": int(
-            directory_index_cfg.get("short_fragment_max_chars", 35)
-        ),
+        "short_fragment_min_chars": int(directory_index_cfg.get("short_fragment_min_chars", 3)),
+        "short_fragment_max_chars": int(directory_index_cfg.get("short_fragment_max_chars", 35)),
         "max_sentence_terminators_per_1k": float(
             directory_index_cfg.get("max_sentence_terminators_per_1k", 2.5)
         ),
@@ -889,10 +928,13 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         "min_capitalized_token_ratio": float(
             directory_index_cfg.get("min_capitalized_token_ratio", 0.3)
         ),
-        "min_single_letter_tokens": int(
-            directory_index_cfg.get("min_single_letter_tokens", 6)
-        ),
+        "min_single_letter_tokens": int(directory_index_cfg.get("min_single_letter_tokens", 6)),
     }
+    negative_page_type_url_cfg = boilerplate_cfg.get("negative_page_type_url", {})
+    negative_page_type_url_enabled = bool(negative_page_type_url_cfg.get("enabled", False))
+    negative_page_type_url_patterns = compile_boilerplate_patterns(
+        negative_page_type_url_cfg.get("patterns", [])
+    )
 
     terms = config["terms"]
     patterns = compile_patterns(terms)
@@ -909,11 +951,14 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         "Stage 1b consolidation (iter_08b): keeping only signature_hard and directory_index."
     )
     logger.info("Boilerplate signature hard patterns: %d", len(boilerplate_signature_hard_patterns))
-    logger.info(
-        "Boilerplate directory index enabled: %s", boilerplate_directory_index_enabled
-    )
+    logger.info("Boilerplate directory index enabled: %s", boilerplate_directory_index_enabled)
 
     wet_dir = Path("data/raw/wet")
+    configured_wet_files = {
+        str(name).strip()
+        for name in config.get("inputs", {}).get("wet_filenames", [])
+        if str(name).strip()
+    }
     configured_crawl_ids = {
         str(crawl_id).strip()
         for crawl_id in config.get("pilot", {}).get("crawl_ids", [])
@@ -922,24 +967,25 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     wet_files = [
         wet_path
         for wet_path in sorted(wet_dir.glob("*.wet.gz"))
-        if not configured_crawl_ids
-        or _crawl_id_from_wet_name(wet_path.name) in configured_crawl_ids
+        if (
+            (not configured_wet_files or wet_path.name in configured_wet_files)
+            and (
+                not configured_crawl_ids
+                or _crawl_id_from_wet_name(wet_path.name) in configured_crawl_ids
+            )
+        )
     ]
     if not wet_files:
         raise FileNotFoundError("No .wet.gz files found in data/raw/wet")
     logger.info("Configured crawl IDs: %s", sorted(configured_crawl_ids) or "ALL")
+    logger.info(
+        "Configured WET filenames: %s",
+        sorted(configured_wet_files) or "ALL",
+    )
     logger.info("Matched WET files: %d", len(wet_files))
 
     combined = _new_counter_bucket()
     counters_by_crawl: Dict[str, Dict[str, int]] = defaultdict(_new_counter_bucket)
-    boilerplate_reasons = sorted(
-        [
-            key
-            for key in combined
-            if key.startswith("removed_boilerplate_")
-            and key != "removed_boilerplate_total"
-        ]
-    )
     removed_rows_by_reason: Dict[str, List[Dict[str, str]]] = defaultdict(list)
     combined_timings = _new_timing_bucket()
     timings_by_crawl: Dict[str, Dict[str, float]] = defaultdict(_new_timing_bucket)
@@ -1013,11 +1059,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
                 for term, span in matches:
                     stored_snippet = _context_snippet(text, span, context_window_chars)
-                    check_text = _context_snippet(
-                        text, span, boilerplate_check_window_chars
-                    )
+                    check_text = _context_snippet(text, span, boilerplate_check_window_chars)
                     triage_rule_signature_hard = False
                     triage_rule_directory_index = False
+                    triage_rule_negative_page_type_url = False
+                    triage_rule_negative_page_type_url_reason = ""
                     removed_by_domaincap = False
                     is_validated_hits_wet = False
                     triage_decision = "validated_hits_wet"
@@ -1033,13 +1079,10 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 crawl_counters,
                                 "removed_boilerplate_signature_hard",
                             )
-                        elif (
-                            boilerplate_directory_index_enabled
-                            and is_boilerplate_directory_index(
-                                check_text,
-                                boilerplate_directory_index_lexicon,
-                                boilerplate_directory_index_thresholds,
-                            )
+                        elif boilerplate_directory_index_enabled and is_boilerplate_directory_index(
+                            check_text,
+                            boilerplate_directory_index_lexicon,
+                            boilerplate_directory_index_thresholds,
                         ):
                             triage_rule_directory_index = True
                             triage_decision = "removed_boilerplate_directory_index"
@@ -1047,6 +1090,26 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 combined,
                                 crawl_counters,
                                 "removed_boilerplate_directory_index",
+                            )
+                        elif negative_page_type_url_enabled and (
+                            triage_rule_negative_page_type_url_reason := _negative_page_type_url_reason(
+                                url or "", negative_page_type_url_patterns
+                            )
+                        ):
+                            triage_rule_negative_page_type_url = True
+                            triage_decision = "removed_boilerplate_negative_page_type_url"
+                            _record_boilerplate_removal(
+                                combined,
+                                crawl_counters,
+                                "removed_boilerplate_negative_page_type_url",
+                            )
+                            specific_reason = (
+                                "removed_boilerplate_negative_page_type_url."
+                                f"{triage_rule_negative_page_type_url_reason}"
+                            )
+                            combined[specific_reason] = combined.get(specific_reason, 0) + 1
+                            crawl_counters[specific_reason] = (
+                                crawl_counters.get(specific_reason, 0) + 1
                             )
 
                     if triage_decision == "validated_hits_wet" and domain:
@@ -1079,6 +1142,10 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         doc_char_len=text_len,
                         triage_rule_signature_hard=triage_rule_signature_hard,
                         triage_rule_directory_index=triage_rule_directory_index,
+                        triage_rule_negative_page_type_url=triage_rule_negative_page_type_url,
+                        triage_rule_negative_page_type_url_reason=(
+                            triage_rule_negative_page_type_url_reason
+                        ),
                         removed_by_domaincap=removed_by_domaincap,
                         is_validated_hits_wet=is_validated_hits_wet,
                         triage_decision=triage_decision,
@@ -1090,11 +1157,26 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         removal_reason = (
                             "signature_hard"
                             if triage_decision == "removed_boilerplate_signature_hard"
-                            else "directory_index"
+                            else (
+                                "directory_index"
+                                if triage_decision == "removed_boilerplate_directory_index"
+                                else (
+                                    "negative_page_type_url."
+                                    f"{triage_rule_negative_page_type_url_reason or 'other'}"
+                                )
+                            )
+                        )
+                        audit_bucket = (
+                            triage_decision
+                            if triage_decision != "removed_boilerplate_negative_page_type_url"
+                            else (
+                                "removed_boilerplate_negative_page_type_url."
+                                f"{triage_rule_negative_page_type_url_reason or 'other'}"
+                            )
                         )
                         _add_removed_audit_row(
                             removed_rows_by_reason,
-                            triage_decision,
+                            audit_bucket,
                             row,
                             removal_reason=removal_reason,
                         )
@@ -1139,15 +1221,11 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         candidate_df.groupby("term_role").size().to_dict() if not candidate_df.empty else {}
     )
     validated_hits_wet_by_role = (
-        validated_df.groupby("term_role").size().to_dict()
-        if not validated_df.empty
-        else {}
+        validated_df.groupby("term_role").size().to_dict() if not validated_df.empty else {}
     )
 
     total_elapsed_sec = time.perf_counter() - scan_start
-    docs_per_sec = (
-        combined["docs_scanned"] / total_elapsed_sec if total_elapsed_sec > 0 else 0.0
-    )
+    docs_per_sec = combined["docs_scanned"] / total_elapsed_sec if total_elapsed_sec > 0 else 0.0
     docs_per_sec_by_crawl = {
         crawl_id: (
             counters["docs_scanned"] / elapsed_by_crawl[crawl_id]
@@ -1156,6 +1234,13 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         )
         for crawl_id, counters in counters_by_crawl.items()
     }
+    boilerplate_reasons = sorted(
+        [
+            key
+            for key in combined
+            if key.startswith("removed_boilerplate_") and key != "removed_boilerplate_total"
+        ]
+    )
     summary_rows = _build_scan_summary_rows(
         combined=combined,
         docs_per_sec=docs_per_sec,
@@ -1186,7 +1271,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         runid=runid,
         project_seed=project_seed,
         removed_rows_by_reason=removed_rows_by_reason,
-        reasons=boilerplate_reasons,
+        reasons=sorted(removed_rows_by_reason.keys()),
         logger=logger,
     )
 

@@ -1,0 +1,6 @@
+metric,value,description
+doc_count_total,1650,Unique Stage 1e URL candidates.
+crawl_count,3,Number of crawl partitions represented in the export.
+crawl.CC-MAIN-2016-44.doc_count,598,Unique URL candidates exported for this crawl.
+crawl.CC-MAIN-2021-49.doc_count,835,Unique URL candidates exported for this crawl.
+crawl.CC-MAIN-2026-04.doc_count,217,Unique URL candidates exported for this crawl.

@@ -10,6 +10,7 @@ from src.pathing import stage1d_filter_en_dedup_dir, stage1d_warc_dir
 from .cc_warc import (
     DOC_KEY_COLUMNS,
     _build_stage1d_summary_rows,
+    _compute_publication_date_metrics,
     _latest_enriched_hits,
     _load_metric_map,
     _metric_int,
@@ -60,7 +61,8 @@ def _load_language_identifier():
             from py3langid.langid import MODEL_FILE, LanguageIdentifier  # type: ignore
         except ImportError as exc:  # pragma: no cover - dependency dependent
             raise RuntimeError(
-                "Missing language-ID dependency. Install 'langid' or 'py3langid' before running cc-filter-en-dedup."
+                "Missing language-ID dependency. Install 'langid' or 'py3langid' "
+                "before running cc-filter-en-dedup."
             ) from exc
         # py3langid packages its default model as a compressed file path, not as the
         # legacy base64 model string expected by from_modelstring().
@@ -207,8 +209,6 @@ def filter_en_dedup_hits(config: Dict) -> Path:
             source_scope=("source_scope", "first"),
             capture_ts=("capture_ts", "first"),
             published_ts=("published_ts", "first"),
-            published_ts_source=("published_ts_source", "first"),
-            published_ts_confidence=("published_ts_confidence", "first"),
             extracted_text=("extracted_text", "first"),
             extracted_text_len=("extracted_text_len", "first"),
             matched_terms=("matched_term", lambda series: "|".join(sorted(set(series)))),
@@ -243,8 +243,6 @@ def filter_en_dedup_hits(config: Dict) -> Path:
         "source_scope",
         "capture_ts",
         "published_ts",
-        "published_ts_source",
-        "published_ts_confidence",
         "extracted_text_len",
         "dedup_cluster_id",
         "extracted_text",
@@ -323,6 +321,19 @@ def filter_en_dedup_hits(config: Dict) -> Path:
             6,
         ),
     }
+    publication_doc_df = (
+        filtered_df[
+            DOC_KEY_COLUMNS
+            + [
+                "warc_fetch_success",
+                "is_validated_hits_warc",
+                "published_ts",
+            ]
+        ]
+        .drop_duplicates(subset=DOC_KEY_COLUMNS)
+        .reset_index(drop=True)
+    )
+    publication_metrics = _compute_publication_date_metrics(publication_doc_df)
 
     _write_summary_csv(
         summary_path,
@@ -333,6 +344,7 @@ def filter_en_dedup_hits(config: Dict) -> Path:
             validated_hits_warc=validated_hits_warc_total,
             role_counts=role_counts,
             doc_metrics=doc_metrics,
+            publication_metrics=publication_metrics,
             notes="Stage 1d filtered outputs after English gating and dedup.",
         ),
     )

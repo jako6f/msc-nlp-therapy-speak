@@ -1,0 +1,71 @@
+metric,value,description
+docs_scanned,310082,Combined scanned documents across the frozen Stage 1e rerun input WET files.
+candidate_hits,2682,Combined candidate hits across the frozen Stage 1e rerun input WET files.
+validated_hits_wet,1942,Combined WET-validated hits used as input to Stage 1e WARC validation.
+validated_hits_warc,862,Combined row-level hits that survived Stage 1e WARC validation and extraction.
+validated_hits_wet_per_10k,62.628595,"Combined WET-validated hit rate per 10,000 scanned documents."
+validated_hits_warc_per_10k,27.799098,"Combined WARC-validated hit rate per 10,000 scanned documents."
+warc_validation_attempted,True,Indicates that Stage 1e WARC validation ran for this summary.
+warc_validation_notes,"Stage 1e document-quality outputs after schema guardrails, DataTrove Gopher/FineWeb quality filtering, substantiveness checks, English gating, and local dedup.",Short note describing the Stage 1e WARC validation scope.
+term_role.target.validated_hits_wet,999,Input WET-validated hits attributed to term_role=target.
+term_role.target.validated_hits_warc,299,WARC-validated hits attributed to term_role=target.
+term_role.baseline.validated_hits_wet,943,Input WET-validated hits attributed to term_role=baseline.
+term_role.baseline.validated_hits_warc,563,WARC-validated hits attributed to term_role=baseline.
+doc_count_published_ts_found,1564,Fetch-success documents with a candidate published timestamp.
+doc_count_published_ts_missing,36,Fetch-success documents without a candidate published timestamp.
+pct_fetch_success_docs_with_published_ts,97.75,Share of fetch-success documents with a candidate published timestamp.
+doc_count_warc_validated_with_published_ts,711,WARC-validated documents with a candidate published timestamp.
+pct_warc_validated_docs_with_published_ts,96.998636,Share of WARC-validated documents with a candidate published timestamp.
+doc_count_dedup_representatives,489,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+doc_count_document_quality_kept,507,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+doc_count_english,492,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+doc_count_warc_validated,733,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_dedup_docs,3,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_dedup_hits,5,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_lang_docs,15,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_lang_hits,17,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_above_avg_threshold.docs,5,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_above_avg_threshold.hits,5,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_below_alpha_threshold.docs,59,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_below_alpha_threshold.hits,71,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_enough_stop_words.docs,37,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_enough_stop_words.hits,38,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_short_doc.docs,4,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_short_doc.hits,4,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_too_many_bullets.docs,8,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_too_many_bullets.hits,9,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_too_many_end_ellipsis.docs,12,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_too_many_end_ellipsis.hits,14,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_too_many_hashes.docs,3,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_quality_gopher_too_many_hashes.hits,3,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_5_n_grams.docs,59,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_5_n_grams.hits,84,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_6_n_grams.docs,1,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_6_n_grams.hits,1,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_7_n_grams.docs,2,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_7_n_grams.hits,2,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_9_n_grams.docs,1,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_duplicated_9_n_grams.hits,1,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_top_2_gram.docs,3,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_top_2_gram.hits,3,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_top_3_gram.docs,5,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_top_3_gram.hits,5,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_top_4_gram.docs,2,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.gopher_repetition_top_4_gram.hits,2,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.schema_page_type.docs,17,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.schema_page_type.hits,21,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.substantive_context.docs,8,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_document_quality_reason.substantive_context.hits,9,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_fineweb_quality_docs,0,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_fineweb_quality_hits,0,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_gopher_quality_docs,128,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_gopher_quality_hits,144,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_gopher_repetition_docs,73,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_gopher_repetition_hits,98,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_schema_type_docs,17,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_schema_type_hits,21,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_substantive_context_docs,8,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+removed_by_stage1e_substantive_context_hits,9,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+term_role.baseline.dedup_representative_hits,403,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+term_role.target.dedup_representative_hits,165,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."
+total_elapsed_sec,46.998984,"Stage 1e document-level lookup, fetch, extraction, or filtering metric."

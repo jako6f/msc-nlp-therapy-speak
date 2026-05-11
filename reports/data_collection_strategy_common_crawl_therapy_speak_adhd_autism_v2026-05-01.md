@@ -6,7 +6,7 @@
 1) A living “North Star” for the end‑to‑end data collection pipeline (design → implementation → outputs).
 2) The shared reference for this ChatGPT project so future implementation decisions stay aligned.
 
-**Status:** Active / editable (updated through the frozen Stage 1d EC2-backed pointer-resolution/extraction run; Stage 1e is the next cleanup pass).
+**Status:** Active / editable (updated through the frozen Stage 1e document-quality cleanup pass; Stage 2 is the next scale-up step).
 
 ---
 
@@ -34,7 +34,8 @@ We study the rise of “therapy‑speak” in general web discourse by tracking 
 - **Stage 1a (pilot/discovery):** complete — end‑to‑end WET pipeline proven on `CC-MAIN-2016-44` and `CC-MAIN-2026-04`.
 - **Stage 1b (WET target-terms scan + boilerplate triage):** frozen — conservative WET boilerplate mitigation reduced to a minimal, stable rule stack.
 - **Stage 1c (WET baseline-terms scan + boilerplate triage):** complete / frozen — baseline candidates evaluated and final pilot-dev baseline set selected.
-- **Stage 1d (generalisation + WARC validation/enrichment + English-only dedup filtering):** frozen gate to Stage 2.
+- **Stage 1d (generalisation + WARC validation/enrichment + English-only dedup filtering):** frozen.
+- **Stage 1e (document-quality cleanup on WARC-validated documents):** frozen gate to Stage 2.
 - **Stage 2 (scale):** one crawl per year across ~10 years, producing Trend Track + Corpus Track outputs.
 
 ---
@@ -81,7 +82,7 @@ A document/context is “substantive” if the term appears in meaningful conten
 
 ### 2.4 Timestamps
 - `capture_ts`: capture timestamp from WARC headers (`WARC-Date`) — robust and always available for WARC records.
-- `published_ts`: best‑effort inferred publication date from HTML metadata — often missing/ambiguous. Store value + provenance.
+- `published_ts`: best‑effort inferred publication date from WARC HTML via `htmldate` — often missing/ambiguous.
 
 **Rule:** Trend analyses use **capture year** as the primary time axis; publication dates are a robustness layer on the subset with credible signals.
 
@@ -96,7 +97,7 @@ To prevent a few large sites dominating:
 
 ### 3.1 Objects
 - **WET:** plaintext extracted from HTML (cheap to scan).
-- **WARC:** raw HTML + headers (required for DOM‑aware extraction and timestamp/provenance enrichment).
+- **WARC:** raw HTML + headers (required for DOM‑aware extraction and timestamp enrichment).
 
 ### 3.2 Access patterns
 - **Stage 1:** download a small number of `.wet.gz` files per crawl; only fetch WARC records for selected survivors/contexts.
@@ -327,7 +328,7 @@ Reason for exclusions (short form):
 ### 9.1 Objectives
 1) **Hold‑out generalisation test (WET):** sample WET files from a new year not used in Stage 1b/1c and apply frozen rules unchanged.
 2) **Authoritative content validation (WARC):** resolve WARC pointers in bulk on an EC2 worker by querying a local Common Crawl index server backed by the raw CDXJ secondary indexes, then fetch WARC records only for selected survivors and run main-content extraction.
-3) **Enrichment:** populate `capture_ts`, WARC pointers, and attempt `published_ts` (source + confidence).
+3) **Enrichment:** populate `capture_ts`, WARC pointers, and attempt `published_ts`.
 4) **Filtering:** English‑only gating (language ID) and de‑duplication on extracted main content.
 5) **Baseline smoke test:** ensure the selected baseline terms (`frustration`, `sadness`, `loneliness`) remain usable under the Stage 1d validation/filtering workflow, at least on a controlled sample.
 
@@ -370,9 +371,7 @@ Reason for exclusions (short form):
 For WARC‑validated hits:
 - `capture_ts` from WARC headers (`WARC-Date`)
 - WARC pointers: `warc_filename`, `warc_offset`, `warc_length`
-- attempt `published_ts` using the hierarchy in §10, storing:
-  - `published_ts_source`
-  - `published_ts_confidence`
+- attempt `published_ts` with `htmldate`, then normalize and filter it against capture-time and sanity constraints
 
 **1d‑E — English-only dedup filtering**
 - **Language identification:** enforce **English‑only** gating for modelling outputs (record decision thresholds).
@@ -390,41 +389,75 @@ Stage 1d outputs live under:
 - `data/interim/stage1_pilot-dev/stage1d/…`
 - freeze README: `data/interim/stage1_pilot-dev/stage1d/README_stage1d_freeze.md`
 
-### 9.4 Stage 1e — WARC-validated cleanup pass (next)
-- Stage 1e will start from the WARC-validated documents produced by Stage 1d.
-- Purpose: tighten corpus quality by removing tag pages, directory pages, and other residual junk that survived the Stage 1d freeze pipeline.
-- Scope: cleanup only; no new collection design decisions or Stage 2 expansion yet.
+### 9.4 Stage 1e — WARC-validated document-quality cleanup pass (frozen)
+Stage 1e reran the pilot-dev corpus-quality pass on the same WET input slice as Stage 1d, allowing direct comparison of the cleanup strategy while avoiding a new hold-out sample.
+
+Purpose:
+- tighten the WARC-validated corpus quality before Stage 2;
+- remove non-substantive documents, repeated/list-like pages, low-quality extracted text, schema-detected page types, and residual junk;
+- avoid target-term centrality filters that would bias the ADHD/autism discourse analysis.
+
+Final approach:
+- keep the WET-stage URL denylist as a cheap pre-WARC cost-control filter;
+- keep WARC extraction/enrichment unchanged from Stage 1e extraction outputs;
+- replace the hand-rolled post-WARC text-shape rule stack with a DataTrove-backed document-quality gate;
+- use DataTrove `GopherRepetitionFilter`, `GopherQualityFilter`, and `FineWebQualityFilter`;
+- disable FineWeb's line-punctuation threshold with `line_punct_thr: 0.0` because the default rule over-filtered plausible Trafilatura-extracted prose;
+- keep local English gating and local exact/near-dedup rather than adopting DataTrove MinHash at pilot scale.
+
+Final Stage 1e freeze run IDs:
+- WET scan: `20260511_092845`
+- URL export: `20260511_093546`
+- WARC extraction: `20260511_100811`
+- Document quality: `20260511_131035`
+
+Headline final counts:
+- documents scanned: **310,082**
+- WET candidate hits: **2,682**
+- WET-validated hits: **1,942**
+- WARC-validated row-level hits: **862**
+- WARC-validated documents entering document quality: **733**
+- documents kept after document quality: **507**
+- English documents: **492**
+- final deduplicated corpus documents: **489**
+- final target hits: **165**
+- final baseline hits: **403**
+
+Manual validation:
+- final deterministic sample: `data/interim/stage1_pilot-dev/stage1e/document_quality/cc_val_sample30_20260511_131035.csv`
+- the output is the best pilot-dev corpus candidate so far, but remaining known failures include prose-like spam, service directories, commercial listings, archive pages, and isolated incidental target mentions.
+
+Stage 1e outputs live under:
+- `data/interim/stage1_pilot-dev/stage1e/…`
+- freeze README: `data/interim/stage1_pilot-dev/stage1e/README_stage1e_freeze.md`
 
 ---
 
 ## 10. Publication date and provenance strategy (WARC enrichment)
 
 ### 10.1 Rationale
-WET text is not reliable for publication metadata. We enrich selected hits by retrieving the corresponding WARC HTML record and extracting candidate publication dates.
+WET text is not reliable for publication metadata. We enrich selected hits by retrieving the corresponding WARC HTML record and extracting best-effort publication dates.
 
 ### 10.2 Stored fields (must-have)
 - `capture_ts` (from `WARC-Date`)
 - WARC pointers: `warc_filename`, `warc_offset`, `warc_length` (plus digest if available)
 - `published_ts` (nullable)
-- `published_ts_source`
-- `published_ts_confidence`
 
 ### 10.3 Extraction hierarchy (published_ts)
-Attempt in order:
-1) JSON-LD (`schema.org`): `datePublished`, `dateModified`
-2) OpenGraph/meta: `article:published_time`, `pubdate`, `DC.date`, etc.
-3) HTML `<time datetime=…>` (prefer near top / main article)
-4) URL date pattern (weak; mark low confidence)
-5) else missing
+Use `htmldate` on the fetched WARC HTML with original-date mode enabled. The returned date is then:
+1) normalized to UTC ISO format for storage
+2) rejected if it is later than `capture_ts` beyond a small tolerance
+3) rejected if it matches obvious defaults (e.g. `1970-01-01`, year `0001`)
+4) rejected if it predates the configurable pre-web lower bound
+5) otherwise stored as `published_ts`; else missing
 
 ### 10.4 Validity checks
 - `published_ts` should be ≤ `capture_ts` (allow small tolerance for timezone/clock skews).
 - Reject implausible years (configurable bounds).
-- Store provenance so downstream analysis can filter to “high confidence only”.
 
 ---
 
-## 11. Stage 2 — Full-scale diachronic collection (TBC after Stage 1e)
+## 11. Stage 2 — Full-scale diachronic collection (next)
 
 ### 11.1 Stage 2 objectives
 - Collect ~10 years of data with:
@@ -432,6 +465,7 @@ Attempt in order:
   - Corpus Track modelling corpus per year (precision‑leaning)
   - Baseline-term contexts for semantic drift comparison
   - WARC enrichment for provenance and timestamps (at least for Corpus Track and selected baseline/target contexts used in semantic analyses)
+  - Stage 1e document-quality filtering for WARC-validated corpus outputs
 
 ### 11.2 Stage 2 plan (provisional)
 1) Freeze the year→crawl mapping (anchoring rule + chosen crawl IDs).
@@ -441,10 +475,15 @@ Attempt in order:
 5) Freeze datasets with checksums and version tags.
 
 ### 11.3 Compute model (local vs AWS)
-Decision after Stage 1d throughput measurements:
-- Stage 1d now assumes **AWS `us-east-1`** for the WARC stage.
+Decision after Stage 1e throughput measurements:
+- Stage 2 should assume **AWS `us-east-1`** for the WARC stage.
 - Local execution remains appropriate for WET scanning, validation, and downstream analysis.
 - Store only compact outputs locally; keep the expensive WARC fetch/extraction step in-region.
+- Observed Stage 1e throughput:
+  - WET scan: ~**1,478 docs/sec**
+  - WARC extraction: ~**3.14 docs/sec**
+  - document quality: ~**15.59 docs/sec**
+  - WARC extraction is the bottleneck.
 
 ---
 
@@ -475,12 +514,26 @@ Decision after Stage 1d throughput measurements:
 - `validated_hits_warc` membership
 - `capture_ts`
 - WARC pointers: `warc_filename`, `warc_offset`, `warc_length`
-- `published_ts`, `published_ts_source`, `published_ts_confidence`
+- `published_ts`
 - `text_main` (Trafilatura main content)
 - `lang`, `lang_confidence` (or equivalent)
 - `dedup_cluster_id` / `is_duplicate` (as applicable)
 
-### 12.5 File formats
+### 12.5 Document-quality corpus outputs (post Stage 1e)
+- `stage1e_passes_document_quality`
+- `stage1e_document_quality_reason`
+- DataTrove filter diagnostics:
+  - `passes_gopher_repetition`
+  - `passes_gopher_quality`
+  - `passes_fineweb_quality`
+  - `stage1e_quality_filter_name`
+  - `stage1e_quality_filter_reason`
+- `context_snippet_sentence_200`
+- final English/dedup fields:
+  - `language_code`, `language_score`, `is_english`
+  - `dedup_cluster_id`, `dedup_reason`, `is_dedup_representative`
+
+### 12.6 File formats
 - Prefer **Parquet** for large tables; CSV for small summaries; JSONL for manifests.
 
 ---
@@ -494,12 +547,13 @@ Layout:
 - `src/`
   - `data_sources/commoncrawl/` — WET sampling/scanning/triage + (Stage 1d+) WARC pointers/enrichment.
   - `analysis/` — downstream analyses consuming processed outputs.
-  - `cli.py` — stable CLI entrypoints (sample/download/scan/validate/filter-en-dedup).
+  - `cli.py` — stable CLI entrypoints (sample/download/scan/validate/resolve/extract/document-quality).
 - `configs/` — versioned run configs (crawl IDs, seed, K/M, regex, baseline terms, ASD window, domain cap, stage flags).
   - Stage-scoped freeze configs should follow:
     - `configs/stage1b_freeze.yaml`
     - `configs/stage1c_freeze.yaml`
     - `configs/stage1d_freeze.yaml`
+    - `configs/stage1e.yaml`
   - Reserve `configs/commoncrawl_collection.yaml` for the post-Stage-1 collection freeze that will drive Stage 2.
 - `data/`
   - `raw/` — immutable inputs (e.g., `.wet.gz` downloaded in Stage 1). **Untracked.**
@@ -523,7 +577,7 @@ Runs are executed via CLI entrypoints (not ad-hoc notebooks):
 7) **Upload URLs (Stage 1d freeze)** → upload the latest URL export to S3.
 8) **Remote resolve (Stage 1d freeze)** → resolve WARC pointers in bulk on EC2 via the local Common Crawl index server in `us-east-1`.
 9) **Remote extract (Stage 1d freeze)** → fetch WARC byte ranges on EC2 and extract main content.
-10) **Filter (Stage 1d freeze)** → English gating + dedup annotations / corpus-ready texts.
+10) **Document quality (Stage 1e freeze)** → DataTrove/Gopher quality gate + English gating + dedup annotations / corpus-ready texts.
 11) Compile `paper/` and commit code/config/manifests.
 
 ### 13.3 Directory conventions (Stage 1)
@@ -537,6 +591,13 @@ Runs are executed via CLI entrypoints (not ad-hoc notebooks):
     - `pointer_cache/`
     - `warc/`
     - `filter_en_dedup/`
+  - Stage 1e commonly uses:
+    - `wet_scan/`
+    - `url_exports/`
+    - `pointer_cache/`
+    - `warc/`
+    - `document_quality/`
+    - `metrics/`
 
 ### 13.4 Tracked vs untracked
 **Tracked:** `src/`, `configs/`, `paper/`, `data/manifests/`, and selected report notes/materials as needed.
@@ -554,6 +615,7 @@ Every sampling action writes a manifest (JSONL) capturing crawl IDs, sampled pat
   - `cc_stage1b_freeze_*` ↔ `configs/stage1b_freeze.yaml`
   - `cc_stage1c_freeze_*` ↔ `configs/stage1c_freeze.yaml`
   - `cc_stage1d_freeze_*` ↔ `configs/stage1d_freeze.yaml`
+  - `cc_stage1e_*` ↔ `configs/stage1e.yaml`
 - Reserve `cc_collection_*` for the post-Stage-1 collection workflow that will pair with `configs/commoncrawl_collection.yaml`.
 
 ---
@@ -573,14 +635,13 @@ Mitigation: fixed anchoring rule; conservative thresholds; consistent reporting 
 Mitigation: use several baseline terms, audit frequency and noise in Stage 1c, freeze a small final set, and report any mismatch or volatility transparently.
 
 ### 14.5 Publication date missingness
-Mitigation: always store `capture_ts`; treat `published_ts` as optional with provenance/confidence.
+Mitigation: always store `capture_ts`; treat `published_ts` as optional and best-effort.
 
 ---
 
 ## 15. Open decisions / TODO (update as work progresses)
 - Final anchoring rule for yearly crawl selection (and the frozen year→crawl list).
-- Language ID method + thresholds (for English‑only gating).
-- Dedup strategy (exact vs near-dup; within-year vs cross-year).
+- Whether Stage 2 keeps the local Stage 1e dedup or adopts a larger-scale MinHash strategy.
 - Corpus Track targets per year (M) and compute budget constraints.
 - Whether to backfill `capture_ts` / WARC pointers for Stage 1a/1b/1c artifacts (optional).
 
@@ -616,13 +677,19 @@ Resolved in Stage 1c:
 ### Stage 1d (frozen)
 - [x] Hold‑out WET generalisation completed (4 WET files, unseen year)
 - [x] Populate `validated_hits_warc` via WARC + Trafilatura (`favor_recall=False`) for selected target/baseline records
-- [x] Enrichment: `capture_ts`, WARC pointers, attempted `published_ts` + provenance/confidence
+- [x] Enrichment: `capture_ts`, WARC pointers, attempted `published_ts`
 - [x] English-only dedup filtering: report % removed
 - [x] Freeze config + tag: `v0.2-stage1d-freeze`
 
-### Stage 1e (next)
-- [ ] Cleanup pass on the WARC-validated docs
-- [ ] Remove tag pages, directory pages, and residual junk from the Stage 1d frozen corpus
+### Stage 1e (frozen)
+- [x] Rerun Stage 1e on the same pilot-dev WET input slice for direct comparison
+- [x] Apply WET-stage URL denylist as pre-WARC cost control
+- [x] Resolve pointers and extract WARC records on EC2
+- [x] Apply DataTrove/Gopher document-quality gate
+- [x] Disable FineWeb line-punctuation threshold after it proved too destructive for Trafilatura output
+- [x] Preserve local English gating and local dedup
+- [x] Export final document-quality corpus, summaries, throughput metrics, and sample30
+- [x] Freeze README: `data/interim/stage1_pilot-dev/stage1e/README_stage1e_freeze.md`
 - [ ] Validate the cleaned corpus manually before any Stage 2 expansion
 
 ### Stage 2 (provisional)

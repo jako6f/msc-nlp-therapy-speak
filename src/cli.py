@@ -6,17 +6,24 @@ import yaml
 
 from src.analysis.cc_validate import validate_corpus_outputs
 from src.data_sources.commoncrawl import (
+    document_quality_stage1e_hits,
     download_from_manifest,
-    filter_en_dedup_hits,
     export_stage1d_urls,
+    export_stage1e_urls,
     extract_stage1d_pointer_cache,
+    extract_stage1e_pointer_cache,
+    filter_en_dedup_hits,
     find_latest_manifest,
     install_stage1d_indexes_remote,
+    install_stage1e_indexes_remote,
     resolve_stage1d_urls_remote,
+    resolve_stage1e_urls_remote,
     sample_and_write_manifest,
     scan_wet_files,
     start_stage1d_index_server_remote,
+    start_stage1e_index_server_remote,
     upload_stage1d_urls_to_s3,
+    upload_stage1e_urls_to_s3,
     validate_counts,
 )
 from src.pathing import (
@@ -25,6 +32,11 @@ from src.pathing import (
     stage1d_pointer_cache_dir,
     stage1d_url_export_dir,
     stage1d_warc_dir,
+    stage1e_document_quality_dir,
+    stage1e_metrics_dir,
+    stage1e_pointer_cache_dir,
+    stage1e_url_export_dir,
+    stage1e_warc_dir,
 )
 
 
@@ -34,13 +46,19 @@ def load_config(path: Path) -> dict:
 
 def _ensure_stage1_dirs(cfg: dict) -> None:
     base = stage1_base(cfg)
-    for stage in ("stage1a", "stage1b", "stage1c", "stage1d"):
+    for stage in ("stage1a", "stage1b", "stage1c", "stage1d", "stage1e"):
         (base / stage).mkdir(parents=True, exist_ok=True)
     if cfg.get("run_context", {}).get("stage") == "stage1d":
         stage1d_url_export_dir(cfg).mkdir(parents=True, exist_ok=True)
         stage1d_pointer_cache_dir(cfg).mkdir(parents=True, exist_ok=True)
         stage1d_warc_dir(cfg).mkdir(parents=True, exist_ok=True)
         stage1d_filter_en_dedup_dir(cfg).mkdir(parents=True, exist_ok=True)
+    if cfg.get("run_context", {}).get("stage") == "stage1e":
+        stage1e_url_export_dir(cfg).mkdir(parents=True, exist_ok=True)
+        stage1e_pointer_cache_dir(cfg).mkdir(parents=True, exist_ok=True)
+        stage1e_warc_dir(cfg).mkdir(parents=True, exist_ok=True)
+        stage1e_document_quality_dir(cfg).mkdir(parents=True, exist_ok=True)
+        stage1e_metrics_dir(cfg).mkdir(parents=True, exist_ok=True)
 
 
 def _add_config_arg(parser: argparse.ArgumentParser) -> None:
@@ -81,8 +99,7 @@ def main() -> None:
     p_export_urls = sub.add_parser(
         "cc-stage1d-export-urls",
         help=(
-            "Export unique Stage 1d WARC URL candidates for remote "
-            "Common Crawl pointer resolution"
+            "Export unique Stage 1d WARC URL candidates for remote Common Crawl pointer resolution"
         ),
     )
     _add_config_arg(p_export_urls)
@@ -144,6 +161,81 @@ def main() -> None:
         default=None,
         help="Optional s3:// prefix to upload the extraction outputs to after the run finishes.",
     )
+
+    p_export_urls_stage1e = sub.add_parser(
+        "cc-stage1e-export-urls",
+        help=(
+            "Export unique Stage 1e WARC URL candidates for remote Common Crawl pointer resolution"
+        ),
+    )
+    _add_config_arg(p_export_urls_stage1e)
+
+    p_upload_urls_stage1e = sub.add_parser(
+        "cc-stage1e-upload-urls",
+        help="Upload the latest Stage 1e URL export to S3 for the remote resolver",
+    )
+    _add_config_arg(p_upload_urls_stage1e)
+
+    p_install_indexes_stage1e = sub.add_parser(
+        "cc-stage1e-install-indexes-remote",
+        help="Install Common Crawl secondary indexes locally on the remote EC2 resolver host",
+    )
+    _add_config_arg(p_install_indexes_stage1e)
+    p_install_indexes_stage1e.add_argument(
+        "--url-export-uri",
+        default=None,
+        help="Optional local path or s3:// URI for the Stage 1e URL export CSV/parquet/manifest.",
+    )
+
+    p_start_index_server_stage1e = sub.add_parser(
+        "cc-stage1e-start-index-server",
+        help="Start the local pywb/Common Crawl index server on the remote EC2 resolver host",
+    )
+    _add_config_arg(p_start_index_server_stage1e)
+
+    p_resolve_remote_stage1e = sub.add_parser(
+        "cc-stage1e-resolve-remote",
+        help=(
+            "Resolve Stage 1e WARC pointers by querying the local Common Crawl "
+            "index server on a remote EC2 instance"
+        ),
+    )
+    _add_config_arg(p_resolve_remote_stage1e)
+    p_resolve_remote_stage1e.add_argument(
+        "--url-export-uri",
+        default=None,
+        help="Optional local path or s3:// URI for the Stage 1e URL export CSV/parquet/manifest.",
+    )
+    p_resolve_remote_stage1e.add_argument(
+        "--s3-output-prefix",
+        default=None,
+        help="Optional s3:// prefix to upload the pointer cache outputs to after the run finishes.",
+    )
+
+    p_extract_remote_stage1e = sub.add_parser(
+        "cc-stage1e-extract-remote",
+        help="Run Stage 1e WARC extraction from a resolver-produced pointer cache",
+    )
+    _add_config_arg(p_extract_remote_stage1e)
+    p_extract_remote_stage1e.add_argument(
+        "--pointer-cache-uri",
+        default=None,
+        help="Optional local parquet path, local directory, or s3:// URI for the pointer cache.",
+    )
+    p_extract_remote_stage1e.add_argument(
+        "--s3-output-prefix",
+        default=None,
+        help="Optional s3:// prefix to upload the extraction outputs to after the run finishes.",
+    )
+
+    p_document_quality_stage1e = sub.add_parser(
+        "cc-stage1e-document-quality",
+        help=(
+            "Run Stage 1e document-quality filtering, English gating, deduplication, "
+            "and validation sample export"
+        ),
+    )
+    _add_config_arg(p_document_quality_stage1e)
 
     args = p.parse_args()
     cfg_path = Path(args.config)
@@ -207,6 +299,42 @@ def main() -> None:
             pointer_cache_uri=args.pointer_cache_uri,
             s3_output_prefix=args.s3_output_prefix,
         )
+        return
+
+    if args.command == "cc-stage1e-export-urls":
+        export_stage1e_urls(cfg)
+        return
+
+    if args.command == "cc-stage1e-upload-urls":
+        upload_stage1e_urls_to_s3(cfg)
+        return
+
+    if args.command == "cc-stage1e-install-indexes-remote":
+        install_stage1e_indexes_remote(cfg, url_export_uri=args.url_export_uri)
+        return
+
+    if args.command == "cc-stage1e-start-index-server":
+        start_stage1e_index_server_remote(cfg)
+        return
+
+    if args.command == "cc-stage1e-resolve-remote":
+        resolve_stage1e_urls_remote(
+            cfg,
+            url_export_uri=args.url_export_uri,
+            s3_output_prefix=args.s3_output_prefix,
+        )
+        return
+
+    if args.command == "cc-stage1e-extract-remote":
+        extract_stage1e_pointer_cache(
+            cfg,
+            pointer_cache_uri=args.pointer_cache_uri,
+            s3_output_prefix=args.s3_output_prefix,
+        )
+        return
+
+    if args.command == "cc-stage1e-document-quality":
+        document_quality_stage1e_hits(cfg)
         return
 
 
