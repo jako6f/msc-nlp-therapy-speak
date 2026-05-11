@@ -690,7 +690,7 @@ Resolved in Stage 1c:
 - [x] Preserve local English gating and local dedup
 - [x] Export final document-quality corpus, summaries, throughput metrics, and sample30
 - [x] Freeze README: `data/interim/stage1_pilot-dev/stage1e/README_stage1e_freeze.md`
-- [ ] Validate the cleaned corpus manually before any Stage 2 expansion
+- [x] Validate the cleaned corpus manually before any Stage 2 expansion
 
 ### Stage 2 (provisional)
 - [ ] Freeze year→crawl mapping
