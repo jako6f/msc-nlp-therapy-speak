@@ -145,7 +145,7 @@ def _rate_per(numer: int, denom: int, scale: int) -> float:
 
 
 def _summary_row(metric: str, value: object, description: str) -> List[object]:
-    return [metric, value, description]
+    return [metric, value]
 
 
 def _load_metric_map(path: Path) -> Dict[str, object]:
@@ -847,16 +847,6 @@ def _build_stage1e_summary_rows(
             round(_rate_per(validated_hits_warc, docs_scanned, 10_000), 6),
             "Combined WARC-validated hit rate per 10,000 scanned documents.",
         ),
-        _summary_row(
-            "warc_validation_attempted",
-            True,
-            "Indicates that Stage 1e WARC validation ran for this summary.",
-        ),
-        _summary_row(
-            "warc_validation_notes",
-            notes,
-            "Short note describing the Stage 1e WARC validation scope.",
-        ),
     ]
     for role in ("target", "baseline"):
         role_values = role_counts.get(role, {})
@@ -875,7 +865,10 @@ def _build_stage1e_summary_rows(
             ]
         )
     rows.extend(_build_publication_date_rows(publication_metrics or {}))
+    omitted_metrics = {"docs_per_sec", "lookup_provider", "total_elapsed_sec"}
     for metric_name, metric_value in sorted(doc_metrics.items()):
+        if metric_name in omitted_metrics:
+            continue
         rows.append(
             _summary_row(
                 metric_name,
@@ -889,8 +882,8 @@ def _build_stage1e_summary_rows(
 def _write_summary_csv(path: Path, rows: List[List[object]]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["metric", "value", "description"])
-        writer.writerows(rows)
+        writer.writerow(["metric", "value"])
+        writer.writerows([row[:2] for row in rows])
 
 
 def _write_stage1d_term_summary(
@@ -1589,6 +1582,8 @@ def extract_stage1e_pointer_cache(
         "validated_warc_path": str(validated_warc_path),
         "summary_path": str(summary_path),
         "term_summary_path": str(term_summary_path),
+        "total_elapsed_sec": round(total_elapsed_sec, 6),
+        "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
     }
     manifest_path.write_text(json.dumps(manifest_payload, indent=2, sort_keys=True))
 

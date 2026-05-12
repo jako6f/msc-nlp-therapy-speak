@@ -1,4 +1,5 @@
 import hashlib
+import json
 import re
 import time
 from pathlib import Path
@@ -301,6 +302,16 @@ def _latest_metric_map_or_empty(
         return "", {}
 
 
+def _latest_json_or_empty(
+    directory: Path, prefix: str, suffix: str
+) -> Tuple[str, Dict[str, object]]:
+    try:
+        runid, path = _latest_by_runid(directory, prefix, suffix)
+    except FileNotFoundError:
+        return "", {}
+    return runid, json.loads(path.read_text())
+
+
 def _write_stage1e_term_summary(path: Path, df: pd.DataFrame) -> None:
     if df.empty:
         pd.DataFrame(
@@ -366,6 +377,9 @@ def _write_stage1e_throughput_summary(
     _, warc_summary = _latest_metric_map_or_empty(
         stage1e_warc_dir(config), f"cc_{label}_summary_", ".csv"
     )
+    _, warc_manifest = _latest_json_or_empty(
+        stage1e_warc_dir(config), f"cc_{label}_extract_manifest_", ".json"
+    )
 
     wet_docs = _metric_int(wet_summary, "docs_scanned", 0)
     wet_elapsed = _metric_float(wet_summary, "total_elapsed_sec")
@@ -373,8 +387,14 @@ def _write_stage1e_throughput_summary(
     warc_docs = _metric_int(warc_summary, "doc_count_input", 0)
     warc_fetch_success = _metric_int(warc_summary, "doc_count_fetch_success", 0)
     warc_extract_success = _metric_int(warc_summary, "doc_count_extract_success", 0)
-    warc_elapsed = _metric_float(warc_summary, "total_elapsed_sec")
-    final_docs = _metric_int(document_quality_summary, "doc_count_dedup_representatives", 0)
+    warc_elapsed = _metric_float(
+        warc_manifest, "total_elapsed_sec", _metric_float(warc_summary, "total_elapsed_sec")
+    )
+    final_docs = _metric_int(
+        document_quality_summary,
+        "final.doc_count",
+        _metric_int(document_quality_summary, "doc_count_dedup_representatives", 0),
+    )
     document_quality_input = _metric_int(document_quality_summary, "doc_count_warc_validated", 0)
     total_observed_elapsed_sec = wet_elapsed + warc_elapsed + document_quality_elapsed_sec
 
@@ -813,6 +833,23 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
             & filtered_df["is_dedup_representative"].fillna(False)
         ).sum()
     )
+    final_mask = (
+        filtered_df["is_validated_hits_warc"].fillna(False)
+        & filtered_df["stage1e_passes_document_quality"].fillna(False)
+        & filtered_df["is_english"].fillna(False)
+        & filtered_df["is_dedup_representative"].fillna(False)
+    )
+    final_df = filtered_df.loc[final_mask].copy()
+
+    def _final_doc_count(column: str, value: str) -> int:
+        return int(
+            final_df.loc[final_df[column].eq(value), DOC_KEY_COLUMNS]
+            .drop_duplicates()
+            .shape[0]
+        )
+
+    def _final_hit_count(column: str, value: str) -> int:
+        return int(final_df[column].eq(value).sum())
 
     role_counts: Dict[str, Dict[str, int]] = {}
     for role in ("target", "baseline"):
@@ -925,25 +962,16 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         "doc_count_warc_validated": int(validated_docs.shape[0]),
         "doc_count_document_quality_kept": quality_docs_count,
         "doc_count_english": english_docs_count,
-        "doc_count_dedup_representatives": int(corpus_df.shape[0]),
-        "term_role.target.dedup_representative_hits": int(
-            (
-                filtered_df["term_role"].eq("target")
-                & filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_passes_document_quality"].fillna(False)
-                & filtered_df["is_english"].fillna(False)
-                & filtered_df["is_dedup_representative"].fillna(False)
-            ).sum()
-        ),
-        "term_role.baseline.dedup_representative_hits": int(
-            (
-                filtered_df["term_role"].eq("baseline")
-                & filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_passes_document_quality"].fillna(False)
-                & filtered_df["is_english"].fillna(False)
-                & filtered_df["is_dedup_representative"].fillna(False)
-            ).sum()
-        ),
+        "final.doc_count": int(corpus_df.shape[0]),
+        "final.hit_count": int(len(final_df)),
+        "final.term_role.target.doc_count": _final_doc_count("term_role", "target"),
+        "final.term_role.target.hit_count": _final_hit_count("term_role", "target"),
+        "final.term_role.baseline.doc_count": _final_doc_count("term_role", "baseline"),
+        "final.term_role.baseline.hit_count": _final_hit_count("term_role", "baseline"),
+        "final.term_group.adhd.doc_count": _final_doc_count("term_group", "adhd"),
+        "final.term_group.adhd.hit_count": _final_hit_count("term_group", "adhd"),
+        "final.term_group.autism.doc_count": _final_doc_count("term_group", "autism"),
+        "final.term_group.autism.hit_count": _final_hit_count("term_group", "autism"),
         "total_elapsed_sec": round(time.perf_counter() - filter_start, 6),
         "removed_by_stage1e_schema_type_docs": removed_schema_docs,
         "removed_by_stage1e_gopher_repetition_docs": removed_gopher_repetition_docs,

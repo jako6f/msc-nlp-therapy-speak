@@ -226,8 +226,8 @@ def _write_json(path: Path, payload: Dict[str, object]) -> None:
 def _write_summary_csv(path: Path, rows: List[List[object]]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["metric", "value", "description"])
-        writer.writerows(rows)
+        writer.writerow(["metric", "value"])
+        writer.writerows([row[:2] for row in rows])
 
 
 def _build_url_export_df(hits_df: pd.DataFrame) -> pd.DataFrame:

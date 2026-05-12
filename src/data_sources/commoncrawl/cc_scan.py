@@ -287,7 +287,7 @@ def _rate_per(numer: int, denom: int, scale: int) -> float:
 
 
 def _summary_row(metric: str, value: object, description: str) -> List[object]:
-    return [metric, value, description]
+    return [metric, value]
 
 
 def _warc_validation_placeholder_rows(prefix: str = "") -> List[List[object]]:
@@ -1092,8 +1092,10 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                                 "removed_boilerplate_directory_index",
                             )
                         elif negative_page_type_url_enabled and (
-                            triage_rule_negative_page_type_url_reason := _negative_page_type_url_reason(
-                                url or "", negative_page_type_url_patterns
+                            triage_rule_negative_page_type_url_reason
+                            := _negative_page_type_url_reason(
+                                url or "",
+                                negative_page_type_url_patterns,
                             )
                         ):
                             triage_rule_negative_page_type_url = True
@@ -1261,8 +1263,8 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     write_start = time.perf_counter()
     with summary_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["metric", "value", "description"])
-        writer.writerows(summary_rows)
+        writer.writerow(["metric", "value"])
+        writer.writerows([row[:2] for row in summary_rows])
     write_elapsed = time.perf_counter() - write_start
     combined_timings["time_write_sec"] += write_elapsed
 
