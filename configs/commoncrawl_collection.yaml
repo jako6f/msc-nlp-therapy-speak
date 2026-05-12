@@ -10,7 +10,7 @@ collection:
   interim_dir: "data/interim/collection"
   processed_dir: "data/processed"
 
-  # Temporal sampling frame
+  # 1. Crawl frame and deterministic WET acquisition
   window:
     primary_start_year: 2014
     fallback_start_year: 2016
@@ -51,7 +51,6 @@ collection:
     - year: 2026
       crawl_id: "CC-MAIN-2026-17"
 
-  # Track sizing
   trend:
     fixed_wet_files_per_year: 50
 
@@ -62,7 +61,110 @@ collection:
     expansion_wet_batch_size: 50
     max_wet_files_per_year_first_pass: 150
 
-  # Remote execution. Personal AWS account values belong in configs/local/aws.yaml.
+  # 2. WET scan: term matching and candidate-hit filters
+  terms:
+    adhd_patterns:
+      - name: "adhd"
+        pattern: "\\badhd\\b"
+      - name: "attention_deficit"
+        pattern: "attention[-\\s]?deficit"
+    autism_patterns:
+      - name: "autism"
+        pattern: "\\bautism\\b"
+      - name: "autistic"
+        pattern: "\\bautistic\\b"
+      - name: "autism_spectrum"
+        pattern: "autism[-\\s]?spectrum"
+    asd_pattern:
+      name: "asd"
+      pattern: "\\bASD\\b"
+    baseline_patterns:
+      - name: "frustration"
+        pattern: "\\bfrustration\\b"
+      - name: "sadness"
+        pattern: "\\bsadness\\b"
+      - name: "loneliness"
+        pattern: "\\bloneliness\\b"
+
+  filters:
+    min_chars: 500
+    domain_cap: 50
+    asd_disambiguation_window_chars: 200
+    context_window_chars: 200
+
+  boilerplate:
+    enabled: true
+    check_window_chars: 2000
+    signature_hard_patterns:
+      - "skip\\s+to\\s+content"
+      - "skip\\s+navigation"
+      - "privacy\\s+policy.{0,80}cookies?"
+      - "cookie\\s+consent"
+      - "cookie\\s+settings"
+      - "accept\\s+cookies?"
+      - "manage\\s+cookies?"
+      - "add\\s+to\\s+cart"
+      - "\\bcheckout\\b"
+      - "toggle\\s+navigation"
+      - "open\\s+accessibility\\s+menu"
+      - "accessibility\\s+widget"
+      - "accessibility\\s+profile"
+      - "choose\\s+accessibility\\s+menu"
+      - "cognitive\\s+disability"
+      - "seizure\\s+safe"
+      - "reading\\s+mask"
+      - "line\\s+height"
+      - "cursor\\s+size"
+      - "adhd[-\\s]?friendly\\s+(mode|profile)"
+    directory_index:
+      enabled: true
+      lexicon:
+        - "all conditions"
+        - "conditions a-z"
+        - "health a-z"
+        - "browse conditions"
+        - "symptoms"
+        - "diagnosis"
+        - "treatment"
+        - "diseases"
+        - "disorders"
+        - "a to z"
+        - "a-z index"
+      score_threshold: 4
+      min_separator_per_1k: 10.0
+      min_short_fragment_ratio: 0.45
+      min_short_fragments: 10
+      short_fragment_min_chars: 3
+      short_fragment_max_chars: 35
+      max_sentence_terminators_per_1k: 2.5
+      low_narrative_min_separator_per_1k: 8.0
+      min_lexicon_hits: 3
+      min_capitalized_token_ratio: 0.3
+      min_single_letter_tokens: 6
+    negative_page_type_url:
+      enabled: true
+      patterns:
+        - "/(tag|tags)(/|[?#]|$)"
+        - "/(category|categories)(/|[?#]|$)"
+        - "/(search)(/|[?#]|$)"
+        - "[?&](s|q|search)="
+        - "/(playlist|playlists)(/|[?#]|$)"
+        - "/(forum|forums)(/|[?#]|$)"
+        - "/(thread|threads)(/|[?#]|$)"
+        - "/viewtopic([/?#]|$)"
+        - "/(quote|quotes)(/|[?#]|$)"
+        - "/(flashcard|flashcards)(/|[?#]|$)"
+        - "/(album|albums)(/|[?#]|$)"
+        - "trackAsin="
+        - "/(product|products)(/|[?#]|$)"
+        - "/product-category(/|[?#]|$)"
+        - "/list/job(/|[?#]|$)"
+        - "/(job|jobs)(/|[?#]|$)"
+        - "/pin(/|[?#]|$)"
+        - "https?://[^/]*(casino|slots?|betting|viagra|cialis|pharma|pharmacy)[^/]*[./]"
+
+  # 3. Remote upload, pointer resolution, and WARC fetch execution.
+  # Personal AWS account values belong in configs/local/aws.yaml.
   aws:
     region: "us-east-1"
     s3:
@@ -88,7 +190,7 @@ collection:
     progress_log_every_urls: 50
     query_limit: 25
 
-  # WARC extraction and enrichment
+  # 4. WARC HTML extraction and publication-date enrichment
   warc_validation:
     favor_recall: false
     favor_precision: true
@@ -99,7 +201,7 @@ collection:
   published_ts_tolerance_hours: 48
   published_ts_min_date: "1995-01-01"
 
-  # Post-WARC document-quality gate
+  # 5. Post-WARC document-quality gate
   document_quality:
     schema_negative_types:
       - "SearchResultsPage"
@@ -128,6 +230,7 @@ collection:
         line_punct_thr: 0.0
     validation_sample_n: 30
 
+  # 6. English filtering and deduplication
   language:
     provider: "py3langid"
     keep:
@@ -136,104 +239,3 @@ collection:
   dedup:
     ngram_size: 5
     jaccard_threshold: 0.9
-
-terms:
-  adhd_patterns:
-    - name: "adhd"
-      pattern: "\\badhd\\b"
-    - name: "attention_deficit"
-      pattern: "attention[-\\s]?deficit"
-  autism_patterns:
-    - name: "autism"
-      pattern: "\\bautism\\b"
-    - name: "autistic"
-      pattern: "\\bautistic\\b"
-    - name: "autism_spectrum"
-      pattern: "autism[-\\s]?spectrum"
-  asd_pattern:
-    name: "asd"
-    pattern: "\\bASD\\b"
-  baseline_patterns:
-    - name: "frustration"
-      pattern: "\\bfrustration\\b"
-    - name: "sadness"
-      pattern: "\\bsadness\\b"
-    - name: "loneliness"
-      pattern: "\\bloneliness\\b"
-
-filters:
-  min_chars: 500
-  domain_cap: 50
-  asd_disambiguation_window_chars: 200
-  context_window_chars: 200
-
-boilerplate:
-  enabled: true
-  check_window_chars: 2000
-  signature_hard_patterns:
-    - "skip\\s+to\\s+content"
-    - "skip\\s+navigation"
-    - "privacy\\s+policy.{0,80}cookies?"
-    - "cookie\\s+consent"
-    - "cookie\\s+settings"
-    - "accept\\s+cookies?"
-    - "manage\\s+cookies?"
-    - "add\\s+to\\s+cart"
-    - "\\bcheckout\\b"
-    - "toggle\\s+navigation"
-    - "open\\s+accessibility\\s+menu"
-    - "accessibility\\s+widget"
-    - "accessibility\\s+profile"
-    - "choose\\s+accessibility\\s+menu"
-    - "cognitive\\s+disability"
-    - "seizure\\s+safe"
-    - "reading\\s+mask"
-    - "line\\s+height"
-    - "cursor\\s+size"
-    - "adhd[-\\s]?friendly\\s+(mode|profile)"
-  directory_index:
-    enabled: true
-    lexicon:
-      - "all conditions"
-      - "conditions a-z"
-      - "health a-z"
-      - "browse conditions"
-      - "symptoms"
-      - "diagnosis"
-      - "treatment"
-      - "diseases"
-      - "disorders"
-      - "a to z"
-      - "a-z index"
-    score_threshold: 4
-    min_separator_per_1k: 10.0
-    min_short_fragment_ratio: 0.45
-    min_short_fragments: 10
-    short_fragment_min_chars: 3
-    short_fragment_max_chars: 35
-    max_sentence_terminators_per_1k: 2.5
-    low_narrative_min_separator_per_1k: 8.0
-    min_lexicon_hits: 3
-    min_capitalized_token_ratio: 0.3
-    min_single_letter_tokens: 6
-  negative_page_type_url:
-    enabled: true
-    patterns:
-      - "/(tag|tags)(/|[?#]|$)"
-      - "/(category|categories)(/|[?#]|$)"
-      - "/(search)(/|[?#]|$)"
-      - "[?&](s|q|search)="
-      - "/(playlist|playlists)(/|[?#]|$)"
-      - "/(forum|forums)(/|[?#]|$)"
-      - "/(thread|threads)(/|[?#]|$)"
-      - "/viewtopic([/?#]|$)"
-      - "/(quote|quotes)(/|[?#]|$)"
-      - "/(flashcard|flashcards)(/|[?#]|$)"
-      - "/(album|albums)(/|[?#]|$)"
-      - "trackAsin="
-      - "/(product|products)(/|[?#]|$)"
-      - "/product-category(/|[?#]|$)"
-      - "/list/job(/|[?#]|$)"
-      - "/(job|jobs)(/|[?#]|$)"
-      - "/pin(/|[?#]|$)"
-      - "https?://[^/]*(casino|slots?|betting|viagra|cialis|pharma|pharmacy)[^/]*[./]"

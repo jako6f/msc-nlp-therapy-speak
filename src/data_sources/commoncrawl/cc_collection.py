@@ -450,6 +450,9 @@ def _collection_stage_config(
     }
     adapted["project"] = {**adapted.get("project", {}), "out_dir": str(working_dir / "wet_scan")}
     adapted["pilot"] = {"crawl_ids": [_crawl_id_for_year(adapted, year)]}
+    adapted["terms"] = collection.get("terms", adapted.get("terms", {}))
+    adapted["filters"] = collection.get("filters", adapted.get("filters", {}))
+    adapted["boilerplate"] = collection.get("boilerplate", adapted.get("boilerplate", {}))
     try:
         manifest_path = _latest_collection_manifest(year, track, batch_int)
         entries = read_manifest(manifest_path)
