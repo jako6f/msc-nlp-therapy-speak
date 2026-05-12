@@ -96,8 +96,8 @@ Archived pilot-dev outputs:
 
 - `data/interim/pilot-dev/`
 
-## Strategy
+## Design And Provenance
 
-The collection strategy is documented in:
+The corpus design and provenance record is documented in:
 
-- [reports/data_collection_strategy_common_crawl_therapy_speak_adhd_autism_v2026-05-01.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/reports/data_collection_strategy_common_crawl_therapy_speak_adhd_autism_v2026-05-01.md)
+- [reports/commoncrawl_corpus_design_and_provenance.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/reports/commoncrawl_corpus_design_and_provenance.md)
