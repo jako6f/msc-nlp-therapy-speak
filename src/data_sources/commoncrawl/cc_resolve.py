@@ -19,30 +19,26 @@ import pandas as pd
 import yaml
 
 from src.pathing import (
-    stage1_output_dir,
-    stage1d_pointer_cache_dir,
-    stage1d_url_export_dir,
-    stage1e_pointer_cache_dir,
-    stage1e_url_export_dir,
+    pointer_cache_output_dir,
+    url_export_output_dir,
+    working_output_dir,
 )
 
 from .cc_warc import (
     DOC_KEY_COLUMNS,
     LookupRecord,
-    _combined_stage1d_inputs,
     _http_get_bytes,
     _latest_validated_hits_wet,
     _lookup_outcome_from_candidates,
     _mime_is_html,
     _require_stage,
-    _require_stage1d,
     _setup_logger,
     _utc_runid,
 )
 
 
 @dataclass(frozen=True)
-class Stage1dAwsConfig:
+class AwsConfig:
     region: str
     s3_bucket: str
     s3_prefix: str
@@ -76,8 +72,8 @@ def _load_boto3():
         import boto3  # type: ignore
     except ImportError as exc:  # pragma: no cover - dependency dependent
         raise RuntimeError(
-            "Missing dependency 'boto3'. Install the Stage 1d AWS dependencies "
-            "before using the Stage 1d S3 upload or remote resolver commands."
+            "Missing dependency 'boto3'. Install the collection AWS dependencies "
+            "before using S3 upload or remote resolver commands."
         ) from exc
     return boto3
 
@@ -86,7 +82,7 @@ def _expand_path(value: str) -> Path:
     return Path(value).expanduser()
 
 
-def _aws_config(config: Dict, stage_key: str = "stage1d") -> Stage1dAwsConfig:
+def _aws_config(config: Dict, stage_key: str = "collection_stage") -> AwsConfig:
     aws_cfg = config.get(stage_key, {}).get("aws", {})
     s3_cfg = aws_cfg.get("s3", {})
     ec2_cfg = aws_cfg.get("ec2", {})
@@ -96,7 +92,7 @@ def _aws_config(config: Dict, stage_key: str = "stage1d") -> Stage1dAwsConfig:
             f"{stage_key}.aws.s3.bucket is required. Create an S3 bucket in us-east-1 "
             "and add its name to configs/local/aws.yaml or MSC_NLP_LOCAL_CONFIG."
         )
-    return Stage1dAwsConfig(
+    return AwsConfig(
         region=str(aws_cfg.get("region", "us-east-1")).strip() or "us-east-1",
         s3_bucket=bucket,
         s3_prefix=str(s3_cfg.get("prefix", f"msc-nlp-therapy-speak/{stage_key}")).strip("/")
@@ -108,7 +104,9 @@ def _aws_config(config: Dict, stage_key: str = "stage1d") -> Stage1dAwsConfig:
     )
 
 
-def _resolve_remote_config(config: Dict, stage_key: str = "stage1d") -> ResolveRemoteConfig:
+def _resolve_remote_config(
+    config: Dict, stage_key: str = "collection_stage"
+) -> ResolveRemoteConfig:
     raw_cfg = config.get(stage_key, {}).get("resolve_remote", {})
     runtime_dir = _expand_path(
         str(
@@ -188,31 +186,21 @@ def _s3_uri(bucket: str, key: str) -> str:
     return f"s3://{bucket}/{key}" if key else f"s3://{bucket}"
 
 
-def _stage1d_prefix(aws_cfg: Stage1dAwsConfig, *parts: str) -> str:
+def _s3_key_prefix(aws_cfg: AwsConfig, *parts: str) -> str:
     joined = "/".join(part.strip("/") for part in parts if part)
     return f"{aws_cfg.s3_prefix}/{joined}".strip("/")
 
 
-def _url_export_s3_prefix(aws_cfg: Stage1dAwsConfig, runid: str) -> str:
-    return _stage1d_prefix(aws_cfg, "url_exports", runid)
-
-
-def _pointer_cache_s3_prefix(aws_cfg: Stage1dAwsConfig, runid: str) -> str:
-    return _stage1d_prefix(aws_cfg, "pointer_cache", runid)
-
-
-def _collection_s3_prefix(
-    config: Dict, aws_cfg: Stage1dAwsConfig, artifact: str, runid: str
-) -> str:
+def _collection_s3_prefix(config: Dict, aws_cfg: AwsConfig, artifact: str, runid: str) -> str:
     run_context = config.get("run_context", {})
     label = str(run_context.get("label", "")).strip()
     if label != "collection":
-        return _stage1d_prefix(aws_cfg, artifact, runid)
+        return _s3_key_prefix(aws_cfg, artifact, runid)
 
     track = str(run_context.get("track", "corpus")).strip()
     year = str(run_context.get("collection_year", "")).strip()
     batch = f"batch_{int(run_context.get('batch', 1)):03d}"
-    return _stage1d_prefix(aws_cfg, artifact, track, year, batch, runid)
+    return _s3_key_prefix(aws_cfg, artifact, track, year, batch, runid)
 
 
 def _load_json(path: Path) -> Dict[str, object]:
@@ -248,82 +236,24 @@ def _build_url_export_df(hits_df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def export_stage1d_urls(config: Dict) -> Path:
-    _require_stage1d(config)
+def export_urls(config: Dict) -> Path:
+    _require_stage(config, "collection")
     runid = _utc_runid()
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1d-export-urls", runid)
-    combined_hits_df, sources = _combined_stage1d_inputs(config)
-    if combined_hits_df.empty:
-        raise ValueError("No validated WET hits available for Stage 1d URL export.")
-
-    export_df = _build_url_export_df(combined_hits_df)
-
-    out_dir = stage1d_url_export_dir(config)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    parquet_path = out_dir / f"cc_stage1d_urls_{runid}.parquet"
-    csv_path = out_dir / f"cc_stage1d_urls_{runid}.csv"
-    summary_path = out_dir / f"cc_stage1d_urls_summary_{runid}.csv"
-    manifest_path = _manifest_path(out_dir, "cc_stage1d_urls_manifest", runid)
-
-    export_df.to_parquet(parquet_path, index=False)
-    export_df.to_csv(csv_path, index=False)
-
-    crawl_counts = export_df.groupby("crawl_id").size().to_dict()
-    _write_summary_csv(
-        summary_path,
-        [
-            ["doc_count_total", int(len(export_df)), "Unique Stage 1d URL candidates."],
-            [
-                "crawl_count",
-                int(len(crawl_counts)),
-                "Number of crawl partitions represented in the export.",
-            ],
-            *[
-                [
-                    f"crawl.{crawl_id}.doc_count",
-                    int(count),
-                    "Unique URL candidates exported for this crawl.",
-                ]
-                for crawl_id, count in sorted(crawl_counts.items())
-            ],
-        ],
-    )
-
-    manifest = {
-        "runid": runid,
-        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "doc_count": int(len(export_df)),
-        "crawl_ids": sorted(crawl_counts),
-        "source_runids": {source.scope_name: source.runid for source in sources},
-        "csv_path": str(csv_path),
-        "parquet_path": str(parquet_path),
-        "summary_path": str(summary_path),
-    }
-    _write_json(manifest_path, manifest)
-    logger.info("Wrote Stage 1d URL export %s", parquet_path)
-    logger.info("Wrote Stage 1d URL CSV %s", csv_path)
-    logger.info("Wrote Stage 1d URL manifest %s", manifest_path)
-    return parquet_path
-
-
-def export_stage1e_urls(config: Dict) -> Path:
-    _require_stage(config, "stage1e")
-    runid = _utc_runid()
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
     file_prefix = f"cc_{label}_urls"
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-export-urls", runid)
-    input_dir = stage1_output_dir(config, default_stage="stage1e")
+    input_dir = working_output_dir(config, default_name="wet_scan")
     source_runid, hits_path = _latest_validated_hits_wet(input_dir)
     hits_df = pd.read_parquet(hits_path).copy()
     if hits_df.empty:
-        raise ValueError("No validated WET hits available for Stage 1e URL export.")
+        raise ValueError("No validated WET hits available for URL export.")
     hits_df["source_stage"] = label
     hits_df["source_scope"] = "combined"
     hits_df["source_runid"] = source_runid
     export_df = _build_url_export_df(hits_df)
 
-    out_dir = stage1e_url_export_dir(config)
+    out_dir = url_export_output_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     parquet_path = out_dir / f"{file_prefix}_{runid}.parquet"
     csv_path = out_dir / f"{file_prefix}_{runid}.csv"
@@ -376,54 +306,16 @@ def _upload_file_to_s3(client, local_path: Path, bucket: str, key: str) -> str:
     return _s3_uri(bucket, key)
 
 
-def upload_stage1d_urls_to_s3(config: Dict) -> Path:
-    _require_stage1d(config)
+def upload_urls_to_s3(config: Dict) -> Path:
+    _require_stage(config, "collection")
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
+    file_prefix = f"cc_{label}_urls"
     runid, manifest_path = _latest_manifest(
-        stage1d_url_export_dir(config), "cc_stage1d_urls_manifest"
+        url_export_output_dir(config), f"{file_prefix}_manifest"
     )
     manifest = _load_json(manifest_path)
     aws_cfg = _aws_config(config)
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1d-upload-urls", runid)
-    boto3 = _load_boto3()
-    s3_client = boto3.client("s3", region_name=aws_cfg.region)
-
-    csv_path = Path(str(manifest["csv_path"]))
-    csv_key = f"{_url_export_s3_prefix(aws_cfg, runid)}/{csv_path.name}"
-    manifest_key = f"{_url_export_s3_prefix(aws_cfg, runid)}/{manifest_path.name}"
-    csv_uri = _upload_file_to_s3(s3_client, csv_path, aws_cfg.s3_bucket, csv_key)
-    manifest_uri = _upload_file_to_s3(s3_client, manifest_path, aws_cfg.s3_bucket, manifest_key)
-
-    upload_manifest = {
-        "runid": runid,
-        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "bucket": aws_cfg.s3_bucket,
-        "region": aws_cfg.region,
-        "csv_s3_uri": csv_uri,
-        "csv_s3_key": csv_key,
-        "manifest_s3_uri": manifest_uri,
-        "manifest_s3_key": manifest_key,
-        "doc_count": int(manifest["doc_count"]),
-        "crawl_ids": manifest["crawl_ids"],
-    }
-    upload_manifest_path = _manifest_path(
-        stage1d_url_export_dir(config), "cc_stage1d_url_upload_manifest", runid
-    )
-    _write_json(upload_manifest_path, upload_manifest)
-    logger.info("Uploaded Stage 1d URL CSV to %s", csv_uri)
-    logger.info("Wrote URL upload manifest %s", upload_manifest_path)
-    return upload_manifest_path
-
-
-def upload_stage1e_urls_to_s3(config: Dict) -> Path:
-    _require_stage(config, "stage1e")
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
-    file_prefix = f"cc_{label}_urls"
-    runid, manifest_path = _latest_manifest(
-        stage1e_url_export_dir(config), f"{file_prefix}_manifest"
-    )
-    manifest = _load_json(manifest_path)
-    aws_cfg = _aws_config(config, stage_key="stage1e")
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-upload-urls", runid)
     boto3 = _load_boto3()
     s3_client = boto3.client("s3", region_name=aws_cfg.region)
@@ -448,7 +340,7 @@ def upload_stage1e_urls_to_s3(config: Dict) -> Path:
         "crawl_ids": manifest["crawl_ids"],
     }
     upload_manifest_path = _manifest_path(
-        stage1e_url_export_dir(config), f"cc_{label}_url_upload_manifest", runid
+        url_export_output_dir(config), f"cc_{label}_url_upload_manifest", runid
     )
     _write_json(upload_manifest_path, upload_manifest)
     logger.info("Uploaded %s URL CSV to %s", display_label, csv_uri)
@@ -473,7 +365,7 @@ def _load_export_df_from_s3(uri: str) -> pd.DataFrame:
         if not csv_uri:
             raise ValueError(f"Upload manifest {uri} does not contain csv_s3_uri")
         return _load_export_df_from_s3(csv_uri)
-    raise ValueError(f"Unsupported Stage 1d export URI: {uri}")
+    raise ValueError(f"Unsupported URL export URI: {uri}")
 
 
 def _load_export_df(
@@ -585,64 +477,12 @@ def _ensure_collection_metadata(crawl_id: str, collections_dir: Path, timeout_s:
         return metadata_path
 
 
-def install_stage1d_indexes_remote(config: Dict, url_export_uri: Optional[str] = None) -> Path:
-    _require_stage1d(config)
+def install_indexes_remote(config: Dict, url_export_uri: Optional[str] = None) -> Path:
+    _require_stage(config, "collection")
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
     runid, export_df, export_source = _load_export_df(
-        url_export_dir=stage1d_url_export_dir(config),
-        url_prefix="cc_stage1d_urls_",
-        upload_manifest_prefix="cc_stage1d_url_upload_manifest",
-        url_export_uri=url_export_uri,
-    )
-    if export_df.empty:
-        raise ValueError("Stage 1d URL export is empty.")
-
-    resolve_cfg = _resolve_remote_config(config)
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1d-install-indexes-remote", runid)
-
-    crawl_ids = sorted({str(crawl_id) for crawl_id in export_df["crawl_id"].tolist()})
-    resolve_cfg.server_collections_dir.mkdir(parents=True, exist_ok=True)
-
-    downloaded_paths: List[str] = []
-    for crawl_id in crawl_ids:
-        logger.info("Installing Common Crawl secondary indexes for %s", crawl_id)
-        cluster_path = _download_collection_file_via_https(
-            crawl_id,
-            "cluster.idx",
-            resolve_cfg.server_collections_dir,
-            resolve_cfg.request_timeout_s,
-        )
-        metadata_path = _ensure_collection_metadata(
-            crawl_id,
-            resolve_cfg.server_collections_dir,
-            resolve_cfg.request_timeout_s,
-        )
-        downloaded_paths.extend([str(cluster_path), str(metadata_path)])
-        logger.info("Installed %s", cluster_path)
-        logger.info("Installed %s", metadata_path)
-
-    manifest_path = resolve_cfg.server_runtime_dir / f"install_manifest_{runid}.json"
-    resolve_cfg.server_runtime_dir.mkdir(parents=True, exist_ok=True)
-    _write_json(
-        manifest_path,
-        {
-            "runid": runid,
-            "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "url_export_source": export_source,
-            "collections_dir": str(resolve_cfg.server_collections_dir),
-            "crawl_ids": crawl_ids,
-            "downloaded_paths": downloaded_paths,
-        },
-    )
-    logger.info("Wrote local index install manifest %s", manifest_path)
-    return manifest_path
-
-
-def install_stage1e_indexes_remote(config: Dict, url_export_uri: Optional[str] = None) -> Path:
-    _require_stage(config, "stage1e")
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
-    runid, export_df, export_source = _load_export_df(
-        url_export_dir=stage1e_url_export_dir(config),
+        url_export_dir=url_export_output_dir(config),
         url_prefix=f"cc_{label}_urls_",
         upload_manifest_prefix=f"cc_{label}_url_upload_manifest",
         url_export_uri=url_export_uri,
@@ -650,7 +490,7 @@ def install_stage1e_indexes_remote(config: Dict, url_export_uri: Optional[str] =
     if export_df.empty:
         raise ValueError(f"{display_label} URL export is empty.")
 
-    resolve_cfg = _resolve_remote_config(config, stage_key="stage1e")
+    resolve_cfg = _resolve_remote_config(config)
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-install-indexes", runid)
 
     crawl_ids = sorted({str(crawl_id) for crawl_id in export_df["crawl_id"].tolist()})
@@ -794,96 +634,12 @@ def _read_log_tail(path: Path, max_lines: int = 40) -> str:
     return "\n".join(lines[-max_lines:])
 
 
-def start_stage1d_index_server_remote(config: Dict) -> Path:
-    _require_stage1d(config)
+def start_index_server_remote(config: Dict) -> Path:
+    _require_stage(config, "collection")
     runid = _utc_runid()
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
     resolve_cfg = _resolve_remote_config(config)
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1d-start-index-server", runid)
-
-    crawl_ids = _installed_crawl_ids(resolve_cfg)
-    if not crawl_ids:
-        raise FileNotFoundError(
-            "No local Common Crawl secondary indexes found. Run "
-            "`cc-stage1d-install-indexes-remote` first."
-        )
-
-    config_path = _write_index_server_config(resolve_cfg, crawl_ids)
-    logger.info("Wrote local index server config %s", config_path)
-
-    if _local_index_server_healthcheck(resolve_cfg, crawl_ids):
-        existing_pid = ""
-        if resolve_cfg.server_pid_path.exists():
-            existing_pid = resolve_cfg.server_pid_path.read_text().strip()
-        logger.info(
-            "Stage 1d local index server already responding on %s:%d%s",
-            resolve_cfg.server_host,
-            resolve_cfg.server_port,
-            f" (pid={existing_pid})" if existing_pid else "",
-        )
-        return config_path
-
-    if resolve_cfg.server_pid_path.exists():
-        try:
-            pid = int(resolve_cfg.server_pid_path.read_text().strip())
-        except ValueError:
-            pid = 0
-        if pid and _pid_is_alive(pid) and _local_index_server_healthcheck(resolve_cfg, crawl_ids):
-            logger.info(
-                "Stage 1d local index server already running on %s:%d (pid=%d)",
-                resolve_cfg.server_host,
-                resolve_cfg.server_port,
-                pid,
-            )
-            return config_path
-        resolve_cfg.server_pid_path.unlink(missing_ok=True)
-
-    command = _server_command() + ["-p", str(resolve_cfg.server_port)]
-    resolve_cfg.server_log_path.parent.mkdir(parents=True, exist_ok=True)
-    resolve_cfg.server_log_path.unlink(missing_ok=True)
-    with resolve_cfg.server_log_path.open("ab") as log_handle:
-        proc = subprocess.Popen(
-            command,
-            cwd=resolve_cfg.server_runtime_dir,
-            stdout=log_handle,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-    resolve_cfg.server_pid_path.write_text(str(proc.pid))
-
-    start_deadline = time.time() + resolve_cfg.startup_timeout_s
-    while time.time() < start_deadline:
-        if proc.poll() is not None:
-            raise RuntimeError(
-                "Local index server exited during startup.\n"
-                + _read_log_tail(resolve_cfg.server_log_path)
-            )
-        if _local_index_server_healthcheck(resolve_cfg, crawl_ids):
-            logger.info(
-                "Stage 1d local index server ready on %s:%d (pid=%d)",
-                resolve_cfg.server_host,
-                resolve_cfg.server_port,
-                proc.pid,
-            )
-            logger.info("Local index server log: %s", resolve_cfg.server_log_path)
-            return config_path
-        time.sleep(2)
-
-    try:
-        proc.terminate()
-    except OSError:
-        pass
-    raise TimeoutError(
-        "Timed out waiting for the local index server to become ready.\n"
-        + _read_log_tail(resolve_cfg.server_log_path)
-    )
-
-
-def start_stage1e_index_server_remote(config: Dict) -> Path:
-    _require_stage(config, "stage1e")
-    runid = _utc_runid()
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
-    resolve_cfg = _resolve_remote_config(config, stage_key="stage1e")
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-start-index-server", runid)
 
     crawl_ids = _installed_crawl_ids(resolve_cfg)
@@ -1127,7 +883,7 @@ def _resolve_crawl_via_raw_cdxj(
                 or processed_shards == len(shard_urls)
             ):
                 logger.info(
-                    "Stage 1d raw CDXJ resolve %s progress "
+                    "Raw CDXJ resolve %s progress "
                     "shards=%d/%d matched_docs=%d/%d failed_shards=%d",
                     crawl_id,
                     processed_shards,
@@ -1309,7 +1065,7 @@ def _resolve_crawl_via_local_index_server(
 
             if completed % resolve_cfg.progress_log_every_urls == 0 or completed == total:
                 logger.info(
-                    "Stage 1d local index resolve %s progress "
+                    "Local index resolve %s progress "
                     "urls=%d/%d matched_docs=%d failed_queries=%d",
                     crawl_id,
                     completed,
@@ -1341,226 +1097,17 @@ def _upload_outputs_to_s3(local_paths: List[Path], s3_output_prefix: str) -> Lis
     return uploaded_uris
 
 
-def resolve_stage1d_urls_remote(
+def resolve_urls_remote(
     config: Dict,
     url_export_uri: Optional[str] = None,
     s3_output_prefix: Optional[str] = None,
 ) -> Path:
-    _require_stage1d(config)
-    runid, export_df, export_source = _load_export_df(config, url_export_uri)
-    if export_df.empty:
-        raise ValueError("Stage 1d URL export is empty.")
-
-    resolve_cfg = _resolve_remote_config(config)
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1d-resolve-remote", runid)
-
-    export_df = export_df.copy()
-    export_df["crawl_id"] = export_df["crawl_id"].astype(str)
-    export_df["url"] = export_df["url"].astype(str)
-    export_df = export_df.drop_duplicates(subset=DOC_KEY_COLUMNS, keep="first").reset_index(
-        drop=True
-    )
-    crawl_ids = sorted(export_df["crawl_id"].unique().tolist())
-
-    logger.info("Loaded Stage 1d URL export rows=%d", len(export_df))
-    logger.info("URL export source: %s", export_source)
-    logger.info(
-        "Remote resolve config: provider=%s host=%s port=%d url_workers=%d timeout_s=%d",
-        resolve_cfg.provider,
-        resolve_cfg.server_host,
-        resolve_cfg.server_port,
-        resolve_cfg.url_workers,
-        resolve_cfg.request_timeout_s,
-    )
-
-    if resolve_cfg.provider == "local_index_server":
-        if not _local_index_server_healthcheck(resolve_cfg, crawl_ids):
-            raise RuntimeError(
-                "Local Stage 1d index server is not reachable. Run "
-                "`cc-stage1d-install-indexes-remote` and "
-                "`cc-stage1d-start-index-server` on the EC2 instance first."
-            )
-
-    crawl_frames: List[pd.DataFrame] = []
-    summary_rows: List[List[object]] = [
-        ["doc_count_total", int(len(export_df)), "Unique Stage 1d URL candidates."],
-        [
-            "crawl_count",
-            int(export_df["crawl_id"].nunique()),
-            "Number of crawl partitions represented in the resolver input.",
-        ],
-        [
-            "lookup_provider",
-            resolve_cfg.provider,
-            "Active Stage 1d pointer-resolution backend.",
-        ],
-    ]
-    failure_examples: Dict[str, List[str]] = {}
-
-    for crawl_id, crawl_df in export_df.groupby("crawl_id", sort=True):
-        logger.info("Resolving WARC pointers for %s (%d docs)", crawl_id, len(crawl_df))
-        if resolve_cfg.provider == "local_index_server":
-            resolved_df, crawl_metrics, failures = _resolve_crawl_via_local_index_server(
-                crawl_id=crawl_id,
-                crawl_df=crawl_df.reset_index(drop=True),
-                resolve_cfg=resolve_cfg,
-                logger=logger,
-            )
-            summary_rows.extend(
-                [
-                    [
-                        f"crawl.{crawl_id}.doc_count",
-                        crawl_metrics["doc_count"],
-                        "Unique URLs sent to the local Stage 1d index server.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.url_worker_count",
-                        crawl_metrics["url_worker_count"],
-                        "URL-level worker threads used for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.matched_doc_count",
-                        crawl_metrics["matched_doc_count"],
-                        "URLs resolved to a WARC pointer for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.unresolved_doc_count",
-                        crawl_metrics["unresolved_doc_count"],
-                        "URLs with no matching WARC pointer for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.failed_query_count",
-                        crawl_metrics["failed_query_count"],
-                        "Local index-server queries that failed for this crawl.",
-                    ],
-                ]
-            )
-        elif resolve_cfg.provider == "raw_cdxj":
-            resolved_df, crawl_metrics, failures = _resolve_crawl_via_raw_cdxj(
-                crawl_id=crawl_id,
-                crawl_df=crawl_df.reset_index(drop=True),
-                resolve_cfg=resolve_cfg,
-                logger=logger,
-            )
-            summary_rows.extend(
-                [
-                    [
-                        f"crawl.{crawl_id}.doc_count",
-                        crawl_metrics["doc_count"],
-                        "Unique URLs sent to the raw CDXJ resolver for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.shard_count",
-                        crawl_metrics["shard_count"],
-                        "Number of CDXJ shards enumerated for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.failed_shard_count",
-                        crawl_metrics["failed_shard_count"],
-                        "Raw CDXJ shard downloads or scans that failed for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.matched_doc_count",
-                        crawl_metrics["matched_doc_count"],
-                        "URLs resolved to a WARC pointer for this crawl.",
-                    ],
-                    [
-                        f"crawl.{crawl_id}.unresolved_doc_count",
-                        crawl_metrics["unresolved_doc_count"],
-                        "URLs with no matching raw CDXJ pointer for this crawl.",
-                    ],
-                ]
-            )
-        else:
-            raise ValueError(
-                f"Unsupported stage1d.resolve_remote.provider value: {resolve_cfg.provider}"
-            )
-
-        crawl_frames.append(resolved_df)
-        failure_examples[crawl_id] = failures
-
-    pointer_df = (
-        pd.concat(crawl_frames, ignore_index=True)
-        .sort_values(DOC_KEY_COLUMNS)
-        .reset_index(drop=True)
-    )
-    resolved_count = int(pointer_df["warc_filename"].fillna("").astype(str).ne("").sum())
-
-    summary_rows.extend(
-        [
-            [
-                "pointer_cache_rows",
-                int(len(pointer_df)),
-                "Rows in the Stage 1d pointer cache.",
-            ],
-            [
-                "pointer_cache_resolved_rows",
-                resolved_count,
-                "Rows with non-empty WARC pointer fields after Stage 1d resolution.",
-            ],
-            [
-                "pointer_cache_unresolved_rows",
-                int(len(pointer_df) - resolved_count),
-                "Rows without a matching WARC pointer.",
-            ],
-        ]
-    )
-
-    out_dir = stage1d_pointer_cache_dir(config)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    parquet_path = out_dir / f"cc_pointer_cache_{runid}.parquet"
-    summary_path = out_dir / f"cc_pointer_cache_summary_{runid}.csv"
-    manifest_path = out_dir / f"cc_stage1d_resolve_manifest_{runid}.json"
-
-    pointer_df.to_parquet(parquet_path, index=False)
-    _write_summary_csv(summary_path, summary_rows)
-
-    manifest_payload: Dict[str, object] = {
-        "runid": runid,
-        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "url_export_source": export_source,
-        "pointer_cache_path": str(parquet_path),
-        "summary_path": str(summary_path),
-        "failure_examples": failure_examples,
-        "resolve_config": {
-            "provider": resolve_cfg.provider,
-            "server_host": resolve_cfg.server_host,
-            "server_port": resolve_cfg.server_port,
-            "url_workers": resolve_cfg.url_workers,
-            "request_timeout_s": resolve_cfg.request_timeout_s,
-        },
-    }
-    manifest_path.write_text(json.dumps(manifest_payload, indent=2, sort_keys=True))
-
-    if s3_output_prefix:
-        uploaded_uris = _upload_outputs_to_s3(
-            [parquet_path, summary_path, manifest_path],
-            s3_output_prefix,
-        )
-        logger.info("Uploaded Stage 1d pointer cache outputs to %s", s3_output_prefix)
-        for uri in uploaded_uris:
-            logger.info("Uploaded %s", uri)
-
-    logger.info("Wrote Stage 1d pointer cache %s", parquet_path)
-    logger.info(
-        "Stage 1d remote resolve complete: pointer_cache_rows=%d resolved_rows=%d",
-        len(pointer_df),
-        resolved_count,
-    )
-    return parquet_path
-
-
-def resolve_stage1e_urls_remote(
-    config: Dict,
-    url_export_uri: Optional[str] = None,
-    s3_output_prefix: Optional[str] = None,
-) -> Path:
-    _require_stage(config, "stage1e")
+    _require_stage(config, "collection")
     resolve_start = time.perf_counter()
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
     runid, export_df, export_source = _load_export_df(
-        url_export_dir=stage1e_url_export_dir(config),
+        url_export_dir=url_export_output_dir(config),
         url_prefix=f"cc_{label}_urls_",
         upload_manifest_prefix=f"cc_{label}_url_upload_manifest",
         url_export_uri=url_export_uri,
@@ -1568,7 +1115,7 @@ def resolve_stage1e_urls_remote(
     if export_df.empty:
         raise ValueError(f"{display_label} URL export is empty.")
 
-    resolve_cfg = _resolve_remote_config(config, stage_key="stage1e")
+    resolve_cfg = _resolve_remote_config(config)
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-resolve", runid)
 
     export_df = export_df.copy()
@@ -1734,7 +1281,7 @@ def resolve_stage1e_urls_remote(
         ]
     )
 
-    out_dir = stage1e_pointer_cache_dir(config)
+    out_dir = pointer_cache_output_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     parquet_path = out_dir / f"cc_pointer_cache_{runid}.parquet"
     summary_path = out_dir / f"cc_pointer_cache_summary_{runid}.csv"

@@ -15,7 +15,7 @@ import pandas as pd
 import tldextract
 from warcio.archiveiterator import ArchiveIterator
 
-from src.pathing import stage1_output_dir
+from src.pathing import working_output_dir
 
 TIMING_FIELDS = [
     "time_input_read_sec",
@@ -286,36 +286,8 @@ def _rate_per(numer: int, denom: int, scale: int) -> float:
     return (numer / denom) * scale
 
 
-def _summary_row(metric: str, value: object, description: str) -> List[object]:
+def _summary_row(metric: str, value: object, description: str = "") -> List[object]:
     return [metric, value]
-
-
-def _warc_validation_placeholder_rows(prefix: str = "") -> List[List[object]]:
-    metric_prefix = f"{prefix}." if prefix else ""
-    scope = "Slice-level" if prefix else "Combined"
-    return [
-        _summary_row(
-            f"{metric_prefix}validated_hits_warc",
-            None,
-            f"{scope} WARC-validated hit placeholder; null until WARC validation is implemented.",
-        ),
-        _summary_row(
-            f"{metric_prefix}validated_hits_warc_per_10k",
-            None,
-            f"{scope} WARC-validated hit rate placeholder; "
-            "null until WARC validation is implemented.",
-        ),
-        _summary_row(
-            f"{metric_prefix}warc_validation_attempted",
-            False,
-            f"{scope} flag indicating whether WARC validation ran for this scope.",
-        ),
-        _summary_row(
-            f"{metric_prefix}warc_validation_notes",
-            "",
-            f"{scope} notes for WARC validation execution state (empty when not run).",
-        ),
-    ]
 
 
 def compile_boilerplate_patterns(patterns: List[str]) -> List[re.Pattern]:
@@ -745,18 +717,17 @@ def _build_scan_summary_rows(
             "Total wall-clock time for the scan stage in seconds.",
         ),
     ]
-    summary_rows.extend(_warc_validation_placeholder_rows())
     summary_rows.extend(
         [
             _summary_row(
                 "candidate_hits_path",
                 str(candidate_hits_path),
-                "Parquet table containing row-level candidate hits before Stage 1b triage removal.",
+                "Parquet table containing row-level candidate hits before WET triage removal.",
             ),
             _summary_row(
                 "validated_hits_wet_path",
                 str(validated_hits_wet_path),
-                "Parquet table containing row-level WET-validated hits after Stage 1b triage.",
+                "Parquet table containing row-level WET-validated hits after WET triage.",
             ),
             _summary_row(
                 "term_summary_path",
@@ -860,8 +831,6 @@ def _build_scan_summary_rows(
                 ),
             ]
         )
-        summary_rows.extend(_warc_validation_placeholder_rows(prefix=prefix))
-
     return summary_rows
 
 
@@ -947,9 +916,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Context window: %d", context_window_chars)
     logger.info("Boilerplate enabled: %s", boilerplate_enabled)
     logger.info("Boilerplate check window: %d", boilerplate_check_window_chars)
-    logger.info(
-        "Stage 1b consolidation (iter_08b): keeping only signature_hard and directory_index."
-    )
+    logger.info("Boilerplate filters: signature_hard and directory_index.")
     logger.info("Boilerplate signature hard patterns: %d", len(boilerplate_signature_hard_patterns))
     logger.info("Boilerplate directory index enabled: %s", boilerplate_directory_index_enabled)
 
@@ -961,7 +928,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     }
     configured_crawl_ids = {
         str(crawl_id).strip()
-        for crawl_id in config.get("pilot", {}).get("crawl_ids", [])
+        for crawl_id in config.get("crawl", {}).get("crawl_ids", [])
         if str(crawl_id).strip()
     }
     wet_files = [
@@ -1188,7 +1155,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
         elapsed_by_crawl[crawl_id] += time.perf_counter() - file_start
 
-    out_dir = stage1_output_dir(config, default_stage="stage1b")
+    out_dir = working_output_dir(config, default_name="wet_scan")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     summary_path = out_dir / f"cc_scan_summary_{runid}.csv"
@@ -1284,8 +1251,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
     logger.info("Wrote term summary %s", term_summary_path)
     logger.info("Wrote top domains by term %s", top_domains_by_term_path)
     logger.info("Wrote removed-audit sample %s", removed_audit_path)
-    logger.info("validated_hits_warc=%s", "NA")
-    logger.info("warc_validation_attempted=%s", False)
 
     print(
         "Scan complete: "
@@ -1293,8 +1258,6 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
         f"docs_minlen={combined['docs_minlen']}, "
         f"candidate_hits={combined['candidate_hits']}, "
         f"validated_hits_wet={combined['validated_hits_wet']}, "
-        f"validated_hits_warc=NA, "
-        f"warc_validation_attempted=False, "
         f"unique_domains_hits={len(domains_hits)}"
     )
     return summary_path

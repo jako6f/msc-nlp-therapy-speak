@@ -59,7 +59,7 @@ collection:
     soft_min_docs_per_target_group_year: 500
     initial_wet_batch_size: 50
     expansion_wet_batch_size: 50
-    max_wet_files_per_year_first_pass: 150
+    max_wet_files_per_year_first_pass: 250
 
   # 2. WET scan: term matching and candidate-hit filters
   terms:

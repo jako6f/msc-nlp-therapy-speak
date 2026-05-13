@@ -26,16 +26,16 @@ from src.pathing import (
 )
 
 from .cc_acquire import COMMONCRAWL_BASE_URL, _setup_logger, _stable_seed, read_manifest
-from .cc_document_quality import document_quality_stage1e_hits
+from .cc_document_quality import document_quality_hits
 from .cc_resolve import (
-    export_stage1e_urls,
-    install_stage1e_indexes_remote,
-    resolve_stage1e_urls_remote,
-    start_stage1e_index_server_remote,
-    upload_stage1e_urls_to_s3,
+    export_urls,
+    install_indexes_remote,
+    resolve_urls_remote,
+    start_index_server_remote,
+    upload_urls_to_s3,
 )
 from .cc_scan import scan_wet_files
-from .cc_warc import extract_stage1e_pointer_cache
+from .cc_warc import extract_pointer_cache
 
 COLLINFO_URL = "https://index.commoncrawl.org/collinfo.json"
 COMMONCRAWL_DATA_BASE_URL = "https://data.commoncrawl.org"
@@ -442,14 +442,14 @@ def _collection_stage_config(
     collection = _collection_cfg(adapted)
     working_dir = collection_track_working_dir(adapted, track=track, year=year, batch=batch_int)
     adapted["run_context"] = {
-        "stage": "stage1e",
+        "stage": "collection",
         "label": "collection",
         "track": track,
         "collection_year": str(year),
         "batch": str(batch_int),
     }
     adapted["project"] = {**adapted.get("project", {}), "out_dir": str(working_dir / "wet_scan")}
-    adapted["pilot"] = {"crawl_ids": [_crawl_id_for_year(adapted, year)]}
+    adapted["crawl"] = {"crawl_ids": [_crawl_id_for_year(adapted, year)]}
     adapted["terms"] = collection.get("terms", adapted.get("terms", {}))
     adapted["filters"] = collection.get("filters", adapted.get("filters", {}))
     adapted["boilerplate"] = collection.get("boilerplate", adapted.get("boilerplate", {}))
@@ -478,7 +478,7 @@ def _collection_stage_config(
             collection_metrics_dir(adapted, track=track, year=year, batch=batch_int)
         ),
     }
-    adapted["stage1e"] = stage_cfg
+    adapted["collection_stage"] = stage_cfg
     return adapted
 
 
@@ -492,7 +492,7 @@ def scan_collection(
 def export_collection_urls(
     config: Dict, *, year: int | str, track: Optional[str], batch: int | str
 ) -> Path:
-    return export_stage1e_urls(
+    return export_urls(
         _collection_stage_config(config, year=year, track=track, batch=batch)
     )
 
@@ -500,20 +500,20 @@ def export_collection_urls(
 def upload_collection_urls(
     config: Dict, *, year: int | str, track: Optional[str], batch: int | str
 ) -> Path:
-    return upload_stage1e_urls_to_s3(
+    return upload_urls_to_s3(
         _collection_stage_config(config, year=year, track=track, batch=batch)
     )
 
 
 def install_collection_indexes(config: Dict, url_export_uri: Optional[str] = None) -> Path:
-    return install_stage1e_indexes_remote(
+    return install_indexes_remote(
         _collection_stage_config(config, year=_collection_years(config)[0], track="corpus"),
         url_export_uri=url_export_uri,
     )
 
 
 def start_collection_index_server(config: Dict) -> Path:
-    return start_stage1e_index_server_remote(
+    return start_index_server_remote(
         _collection_stage_config(config, year=_collection_years(config)[0], track="corpus")
     )
 
@@ -527,7 +527,7 @@ def resolve_collection_urls(
     url_export_uri: Optional[str] = None,
     s3_output_prefix: Optional[str] = None,
 ) -> Path:
-    return resolve_stage1e_urls_remote(
+    return resolve_urls_remote(
         _collection_stage_config(config, year=year, track=track, batch=batch),
         url_export_uri=url_export_uri,
         s3_output_prefix=s3_output_prefix,
@@ -543,7 +543,7 @@ def extract_collection(
     pointer_cache_uri: Optional[str] = None,
     s3_output_prefix: Optional[str] = None,
 ) -> Path:
-    return extract_stage1e_pointer_cache(
+    return extract_pointer_cache(
         _collection_stage_config(config, year=year, track=track, batch=batch),
         pointer_cache_uri=pointer_cache_uri,
         s3_output_prefix=s3_output_prefix,
@@ -553,7 +553,7 @@ def extract_collection(
 def quality_collection(
     config: Dict, *, year: int | str, track: Optional[str], batch: int | str
 ) -> Path:
-    return document_quality_stage1e_hits(
+    return document_quality_hits(
         _collection_stage_config(config, year=year, track=track, batch=batch)
     )
 

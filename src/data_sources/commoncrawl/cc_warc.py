@@ -13,18 +13,11 @@ from urllib.request import Request, urlopen
 import pandas as pd
 from warcio.archiveiterator import ArchiveIterator
 
-from src.pathing import (
-    stage1_output_dir,
-    stage1_stage_dir,
-    stage1d_pointer_cache_dir,
-    stage1d_warc_dir,
-    stage1e_pointer_cache_dir,
-    stage1e_warc_dir,
-)
+from src.pathing import pointer_cache_output_dir, warc_output_dir, working_output_dir
 
 COMMONCRAWL_DATA_BASE_URL = "https://data.commoncrawl.org"
 DOC_KEY_COLUMNS = ["crawl_id", "url"]
-STAGE1E_SCHEMA_NEGATIVE_TYPES = {
+SCHEMA_NEGATIVE_TYPES = {
     "searchresultspage",
     "collectionpage",
     "itemlist",
@@ -35,19 +28,6 @@ STAGE1E_SCHEMA_NEGATIVE_TYPES = {
     "jobposting",
     "qapage",
 }
-
-
-@dataclass(frozen=True)
-class StageSource:
-    stage_name: str
-    scope_name: str
-    runid: str
-    output_dir: Path
-    hits_path: Path
-    summary_path: Path
-    term_summary_path: Path
-    hits_df: pd.DataFrame
-    summary: Dict[str, object]
 
 
 @dataclass(frozen=True)
@@ -120,10 +100,7 @@ def _latest_by_runid(directory: Path, prefix: str, suffix: str) -> Tuple[str, Pa
 
 
 def _latest_validated_hits_wet(directory: Path) -> Tuple[str, Path]:
-    try:
-        return _latest_by_runid(directory, "cc_validated_hits_wet_", ".parquet")
-    except FileNotFoundError:
-        return _latest_by_runid(directory, "cc_pilot_corpus_", ".parquet")
+    return _latest_by_runid(directory, "cc_validated_hits_wet_", ".parquet")
 
 
 def _latest_enriched_hits(directory: Path) -> Tuple[str, Path]:
@@ -155,82 +132,6 @@ def _load_metric_map(path: Path) -> Dict[str, object]:
     return dict(zip(df["metric"], df["value"]))
 
 
-def _load_stage_source(config: Dict, stage_name: str, scope_name: str) -> StageSource:
-    if stage_name == "stage1d":
-        output_dir = stage1_output_dir(config, default_stage="stage1d")
-    else:
-        output_dir = stage1_stage_dir(config, stage_name)
-    runid, hits_path = _latest_validated_hits_wet(output_dir)
-    summary_path = output_dir / f"cc_scan_summary_{runid}.csv"
-    term_summary_path = output_dir / f"cc_term_summary_{runid}.csv"
-    if not summary_path.exists():
-        raise FileNotFoundError(f"Missing scan summary for {stage_name}: {summary_path}")
-    if not term_summary_path.exists():
-        raise FileNotFoundError(f"Missing term summary for {stage_name}: {term_summary_path}")
-    hits_df = pd.read_parquet(hits_path)
-    hits_df = hits_df.copy()
-    hits_df["source_stage"] = stage_name
-    hits_df["source_scope"] = scope_name
-    hits_df["source_runid"] = runid
-    return StageSource(
-        stage_name=stage_name,
-        scope_name=scope_name,
-        runid=runid,
-        output_dir=output_dir,
-        hits_path=hits_path,
-        summary_path=summary_path,
-        term_summary_path=term_summary_path,
-        hits_df=hits_df,
-        summary=_load_metric_map(summary_path),
-    )
-
-
-def _combined_stage1d_inputs(config: Dict) -> Tuple[pd.DataFrame, List[StageSource]]:
-    anchor_stage = str(config.get("stage1d", {}).get("anchor_stage", "stage1c"))
-    sources = [
-        _load_stage_source(config, anchor_stage, "anchor"),
-        _load_stage_source(config, "stage1d", "holdout"),
-    ]
-    combined_df = pd.concat([source.hits_df for source in sources], ignore_index=True)
-    return combined_df, sources
-
-
-def _sample_enrich_inputs(
-    combined_hits_df: pd.DataFrame, config: Dict
-) -> Tuple[pd.DataFrame, Dict[str, int | bool]]:
-    sample_cfg = config.get("stage1d", {}).get("warc_validation", {}).get("sample", {})
-    max_docs_per_crawl = int(sample_cfg.get("max_docs_per_crawl", 0) or 0)
-    if max_docs_per_crawl <= 0 or combined_hits_df.empty:
-        return combined_hits_df, {"doc_sample_enabled": False}
-
-    base_seed = int(sample_cfg.get("seed", config.get("project", {}).get("seed", 123)))
-    unique_docs = combined_hits_df[DOC_KEY_COLUMNS].drop_duplicates().reset_index(drop=True)
-    sampled_groups: List[pd.DataFrame] = []
-    sampled_doc_total = 0
-
-    for crawl_idx, (_, crawl_docs) in enumerate(
-        unique_docs.groupby("crawl_id", sort=True), start=1
-    ):
-        sample_n = min(max_docs_per_crawl, len(crawl_docs))
-        sampled = crawl_docs.sample(
-            n=sample_n,
-            random_state=base_seed + crawl_idx,
-            replace=False,
-        )
-        sampled_groups.append(sampled)
-        sampled_doc_total += sample_n
-
-    sampled_keys = pd.concat(sampled_groups, ignore_index=True)
-    sampled_hits_df = combined_hits_df.merge(sampled_keys, on=DOC_KEY_COLUMNS, how="inner")
-    metadata: Dict[str, int | bool] = {
-        "doc_sample_enabled": True,
-        "doc_sample_max_docs_per_crawl": max_docs_per_crawl,
-        "doc_sampled_input_docs": sampled_doc_total,
-        "doc_sampled_input_hits": int(len(sampled_hits_df)),
-    }
-    return sampled_hits_df, metadata
-
-
 def _warc_extraction_config(config: Dict, stage_key: str) -> Dict[str, object]:
     warc_cfg = config.get(stage_key, {}).get("warc_validation", {})
     return {
@@ -249,12 +150,8 @@ def _require_stage(config: Dict, expected_stage: str) -> None:
         raise ValueError(f"{stage_label} commands require run_context.stage={expected_stage}")
 
 
-def _require_stage1d(config: Dict) -> None:
-    _require_stage(config, "stage1d")
-
-
-def _require_stage1e(config: Dict) -> None:
-    _require_stage(config, "stage1e")
+def _require_collection_stage(config: Dict) -> None:
+    _require_stage(config, "collection")
 
 
 def _http_get_bytes(url: str, timeout: int = 60) -> bytes:
@@ -352,8 +249,8 @@ def _load_boto3():
         import boto3  # type: ignore
     except ImportError as exc:  # pragma: no cover - dependency dependent
         raise RuntimeError(
-            "Missing dependency 'boto3'. Install the Stage 1d AWS dependencies "
-            "before using the Stage 1d remote resolver/extraction workflow."
+            "Missing dependency 'boto3'. Install the collection AWS dependencies "
+            "before using the remote resolver/extraction workflow."
         ) from exc
     return boto3
 
@@ -500,7 +397,7 @@ def _extract_published_timestamp(
         from htmldate import find_date
     except ImportError as exc:  # pragma: no cover - dependency dependent
         raise RuntimeError(
-            "Missing dependency 'htmldate'. Install it before running Stage 1d WARC extraction."
+            "Missing dependency 'htmldate'. Install it before running WARC extraction."
         ) from exc
 
     capture_max_date = _capture_max_date(capture_ts)
@@ -535,7 +432,7 @@ def _extract_schema_types(html_text: str, url: str) -> str:
         import extruct
     except ImportError as exc:  # pragma: no cover - dependency dependent
         raise RuntimeError(
-            "Missing dependency 'extruct'. Install it before running Stage 1e WARC extraction."
+            "Missing dependency 'extruct'. Install it before running WARC extraction."
         ) from exc
 
     try:
@@ -589,7 +486,7 @@ def _trafilatura_extract(
         import trafilatura
     except ImportError as exc:  # pragma: no cover - dependency dependent
         raise RuntimeError(
-            "Missing dependency 'trafilatura'. Install it before running Stage 1d WARC extraction."
+            "Missing dependency 'trafilatura'. Install it before running WARC extraction."
         ) from exc
 
     extracted = trafilatura.extract(
@@ -724,7 +621,7 @@ def _build_publication_date_rows(publication_metrics: Dict[str, object]) -> List
     return rows
 
 
-def _build_stage1d_summary_rows(
+def _build_warc_summary_rows(
     docs_scanned: int,
     candidate_hits: int,
     validated_hits_wet: int,
@@ -738,104 +635,22 @@ def _build_stage1d_summary_rows(
         _summary_row(
             "docs_scanned",
             docs_scanned,
-            "Combined scanned documents across the frozen "
-            "Stage 1c anchors and Stage 1d hold-out slice.",
+            "Documents scanned in the WET input files.",
         ),
         _summary_row(
             "candidate_hits",
             candidate_hits,
-            "Combined candidate hits across the frozen "
-            "Stage 1c anchors and Stage 1d hold-out slice.",
+            "Candidate hits in the WET input files.",
         ),
         _summary_row(
             "validated_hits_wet",
             validated_hits_wet,
-            "Combined WET-validated hits used as input to Stage 1d WARC validation.",
+            "WET-validated hits used as input to WARC validation.",
         ),
         _summary_row(
             "validated_hits_warc",
             validated_hits_warc,
-            "Combined row-level hits that survived WARC validation and Trafilatura extraction.",
-        ),
-        _summary_row(
-            "validated_hits_wet_per_10k",
-            round(_rate_per(validated_hits_wet, docs_scanned, 10_000), 6),
-            "Combined WET-validated hit rate per 10,000 scanned documents.",
-        ),
-        _summary_row(
-            "validated_hits_warc_per_10k",
-            round(_rate_per(validated_hits_warc, docs_scanned, 10_000), 6),
-            "Combined WARC-validated hit rate per 10,000 scanned documents.",
-        ),
-        _summary_row(
-            "warc_validation_attempted",
-            True,
-            "Indicates that Stage 1d WARC validation ran for this summary.",
-        ),
-        _summary_row(
-            "warc_validation_notes",
-            notes,
-            "Short note describing the Stage 1d WARC validation scope.",
-        ),
-    ]
-    for role in ("target", "baseline"):
-        role_values = role_counts.get(role, {})
-        rows.extend(
-            [
-                _summary_row(
-                    f"term_role.{role}.validated_hits_wet",
-                    role_values.get("validated_hits_wet", 0),
-                    f"Input WET-validated hits attributed to term_role={role}.",
-                ),
-                _summary_row(
-                    f"term_role.{role}.validated_hits_warc",
-                    role_values.get("validated_hits_warc", 0),
-                    f"WARC-validated hits attributed to term_role={role}.",
-                ),
-            ]
-        )
-    rows.extend(_build_publication_date_rows(publication_metrics or {}))
-    for metric_name, metric_value in sorted(doc_metrics.items()):
-        rows.append(
-            _summary_row(
-                metric_name,
-                metric_value,
-                "Stage 1d document-level lookup, fetch, extraction, or filtering metric.",
-            )
-        )
-    return rows
-
-
-def _build_stage1e_summary_rows(
-    docs_scanned: int,
-    candidate_hits: int,
-    validated_hits_wet: int,
-    validated_hits_warc: int,
-    role_counts: Dict[str, Dict[str, int]],
-    doc_metrics: Dict[str, object],
-    publication_metrics: Optional[Dict[str, object]],
-    notes: str,
-) -> List[List[object]]:
-    rows = [
-        _summary_row(
-            "docs_scanned",
-            docs_scanned,
-            "Combined scanned documents across the frozen Stage 1e rerun input WET files.",
-        ),
-        _summary_row(
-            "candidate_hits",
-            candidate_hits,
-            "Combined candidate hits across the frozen Stage 1e rerun input WET files.",
-        ),
-        _summary_row(
-            "validated_hits_wet",
-            validated_hits_wet,
-            "Combined WET-validated hits used as input to Stage 1e WARC validation.",
-        ),
-        _summary_row(
-            "validated_hits_warc",
-            validated_hits_warc,
-            "Combined row-level hits that survived Stage 1e WARC validation and extraction.",
+            "Row-level hits that survived WARC validation and extraction.",
         ),
         _summary_row(
             "validated_hits_wet_per_10k",
@@ -873,7 +688,7 @@ def _build_stage1e_summary_rows(
             _summary_row(
                 metric_name,
                 metric_value,
-                "Stage 1e document-level lookup, fetch, extraction, or filtering metric.",
+                "Document-level lookup, fetch, extraction, or filtering metric.",
             )
         )
     return rows
@@ -886,7 +701,7 @@ def _write_summary_csv(path: Path, rows: List[List[object]]) -> None:
         writer.writerows([row[:2] for row in rows])
 
 
-def _write_stage1d_term_summary(
+def _write_warc_term_summary(
     path: Path,
     df: pd.DataFrame,
     include_filter_fields: bool = False,
@@ -930,7 +745,7 @@ def _write_stage1d_term_summary(
     base.to_csv(path, index=False)
 
 
-def _upload_stage1d_outputs_to_s3(local_paths: List[Path], s3_output_prefix: str) -> List[str]:
+def _upload_warc_outputs_to_s3(local_paths: List[Path], s3_output_prefix: str) -> List[str]:
     boto3 = _load_boto3()
     s3_client = boto3.client("s3")
     bucket, key_prefix = _parse_s3_uri(s3_output_prefix)
@@ -943,335 +758,11 @@ def _upload_stage1d_outputs_to_s3(local_paths: List[Path], s3_output_prefix: str
     return uploaded_uris
 
 
-def extract_stage1d_pointer_cache(
-    config: Dict,
-    pointer_cache_uri: Optional[str] = None,
-    s3_output_prefix: Optional[str] = None,
-) -> Path:
-    _require_stage1d(config)
-    extraction_start = time.perf_counter()
-    runid = _utc_runid()
-    logger = _setup_logger(Path("reports/logs"), "cc-stage1d-extract-remote", runid)
-
-    combined_hits_df, sources = _combined_stage1d_inputs(config)
-    if combined_hits_df.empty:
-        raise ValueError("No validated WET hits available for Stage 1d extraction.")
-    combined_hits_df, sample_metadata = _sample_enrich_inputs(combined_hits_df, config)
-
-    extraction_cfg = _warc_extraction_config(config, "stage1d")
-    tolerance_hours = int(config.get("stage1d", {}).get("published_ts_tolerance_hours", 48))
-    min_published_ts = (
-        str(config.get("stage1d", {}).get("published_ts_min_date", "1995-01-01")).strip() or None
-    )
-
-    pointer_df = _load_pointer_cache_df(stage1d_pointer_cache_dir(config), pointer_cache_uri)
-    if pointer_df.empty:
-        raise ValueError("Pointer cache is empty.")
-    pointer_df = pointer_df.copy()
-    pointer_df["crawl_id"] = pointer_df["crawl_id"].astype(str)
-    pointer_df["url"] = pointer_df["url"].astype(str)
-    pointer_df = (
-        pointer_df.sort_values(DOC_KEY_COLUMNS)
-        .drop_duplicates(subset=DOC_KEY_COLUMNS, keep="first")
-        .reset_index(drop=True)
-    )
-
-    logger.info("Loaded %d Stage 1d input hits", len(combined_hits_df))
-    logger.info(
-        "Source runids: %s",
-        {source.scope_name: source.runid for source in sources},
-    )
-    logger.info("Loaded pointer cache rows=%d", len(pointer_df))
-    if pointer_cache_uri:
-        logger.info("Pointer cache source: %s", pointer_cache_uri)
-    if bool(sample_metadata.get("doc_sample_enabled", False)):
-        logger.info(
-            "Sampling Stage 1d extraction input: max_docs_per_crawl=%d "
-            "sampled_docs=%d sampled_hits=%d",
-            int(sample_metadata.get("doc_sample_max_docs_per_crawl", 0)),
-            int(sample_metadata.get("doc_sampled_input_docs", 0)),
-            int(sample_metadata.get("doc_sampled_input_hits", 0)),
-        )
-
-    pointer_map = {
-        (str(row["crawl_id"]), str(row["url"])): row for row in pointer_df.to_dict(orient="records")
-    }
-    unique_docs = combined_hits_df[DOC_KEY_COLUMNS].drop_duplicates().reset_index(drop=True)
-
-    doc_records: List[Dict[str, object]] = []
-    lookup_success_docs = 0
-    fetch_success_docs = 0
-    extract_success_docs = 0
-
-    for doc_idx, (_, doc_row) in enumerate(unique_docs.iterrows(), start=1):
-        crawl_id = str(doc_row["crawl_id"])
-        url = str(doc_row["url"])
-        pointer_row = pointer_map.get((crawl_id, url))
-        lookup_note = "pointer_cache_no_match"
-        lookup_match_count = 0
-        record: Optional[LookupRecord] = None
-        pointer_fetch_status = ""
-        pointer_content_mime_type = ""
-        if pointer_row is not None:
-            lookup_note = str(pointer_row.get("lookup_note", "ok") or "ok")
-            lookup_match_count = int(pointer_row.get("lookup_match_count", 0) or 0)
-            pointer_fetch_status = str(pointer_row.get("fetch_status", "") or "")
-            pointer_content_mime_type = str(pointer_row.get("content_mime_type", "") or "")
-            filename = str(pointer_row.get("warc_filename", "") or "").strip()
-            offset = pointer_row.get("warc_record_offset", pd.NA)
-            length = pointer_row.get("warc_record_length", pd.NA)
-            if filename and pd.notna(offset) and pd.notna(length):
-                record = LookupRecord(
-                    url=url,
-                    crawl_id=crawl_id,
-                    filename=filename,
-                    offset=int(offset),
-                    length=int(length),
-                    status=pointer_fetch_status,
-                    mime=pointer_content_mime_type,
-                    timestamp=str(pointer_row.get("fetch_time", "") or ""),
-                )
-
-        row: Dict[str, object] = {
-            "crawl_id": crawl_id,
-            "url": url,
-            "lookup_provider": "pointer_cache",
-            "lookup_note": lookup_note,
-            "lookup_match_count": lookup_match_count,
-            "warc_lookup_success": record is not None,
-            "warc_fetch_success": False,
-            "trafilatura_success": False,
-            "is_validated_hits_warc": False,
-            "warc_filename": record.filename if record else "",
-            "warc_offset": record.offset if record else pd.NA,
-            "warc_length": record.length if record else pd.NA,
-            "capture_ts": "",
-            "warc_target_uri": "",
-            "http_status": "",
-            "html_bytes": 0,
-            "extracted_text": "",
-            "extracted_text_len": 0,
-            "published_ts": "",
-            "schema_types": "",
-            "cdx_attempts": 0,
-            "cdx_last_error": "",
-            "cdx_retry_delay_total_s": 0.0,
-            "cdx_cooldown_triggered": False,
-            "warc_validation_notes": lookup_note,
-            "pointer_fetch_status": pointer_fetch_status,
-            "pointer_content_mime_type": pointer_content_mime_type,
-            "extractor_used": "",
-        }
-        if record is None:
-            doc_records.append(row)
-            continue
-
-        lookup_success_docs += 1
-        fetched_payload, fetch_note = _fetch_warc_payload(record)
-        row["warc_validation_notes"] = fetch_note
-        if fetched_payload is None:
-            doc_records.append(row)
-            continue
-
-        fetch_success_docs += 1
-        row["warc_fetch_success"] = True
-        row["capture_ts"] = fetched_payload.get("capture_ts", "")
-        row["warc_target_uri"] = fetched_payload.get("warc_target_uri", "")
-        row["http_status"] = fetched_payload.get("http_status", "")
-        row["html_bytes"] = int(fetched_payload.get("html_bytes", 0) or 0)
-
-        html_text = str(fetched_payload.get("html_text", ""))
-        extracted_text, extract_note, extractor_used = _extract_main_content(
-            html_text, extraction_cfg=extraction_cfg
-        )
-        row["warc_validation_notes"] = extract_note
-        row["extractor_used"] = extractor_used
-        row["schema_types"] = _extract_schema_types(html_text, url)
-        if extracted_text:
-            term_rows = combined_hits_df.loc[
-                (combined_hits_df["crawl_id"].astype(str) == crawl_id)
-                & (combined_hits_df["url"].astype(str) == url)
-            ]
-            candidate_terms = {
-                str(term).strip().lower()
-                for term in term_rows["matched_term"].dropna().tolist()
-                if str(term).strip()
-            }
-            extracted_lower = extracted_text.lower()
-            if candidate_terms and not any(term in extracted_lower for term in candidate_terms):
-                row["warc_validation_notes"] = "term_missing_after_extraction"
-            else:
-                extract_success_docs += 1
-                row["trafilatura_success"] = extractor_used == "trafilatura"
-                row["is_validated_hits_warc"] = True
-                row["extracted_text"] = extracted_text
-                row["extracted_text_len"] = len(extracted_text)
-        published_ts = _extract_published_timestamp(
-            html_text=html_text,
-            url=url,
-            capture_ts=str(row["capture_ts"]) or None,
-            tolerance_hours=tolerance_hours,
-            min_date=min_published_ts,
-        )
-        row["published_ts"] = published_ts or ""
-        doc_records.append(row)
-
-        if doc_idx % 25 == 0:
-            logger.info(
-                "Stage 1d remote extraction progress %d/%d docs | lookup_success=%d "
-                "fetch_success=%d extract_success=%d",
-                doc_idx,
-                len(unique_docs),
-                lookup_success_docs,
-                fetch_success_docs,
-                extract_success_docs,
-            )
-
-    doc_df = pd.DataFrame(doc_records)
-    enriched_df = combined_hits_df.merge(doc_df, on=DOC_KEY_COLUMNS, how="left")
-    enriched_df["is_validated_hits_warc"] = (
-        enriched_df["is_validated_hits_warc"].fillna(False).astype(bool)
-    )
-    enriched_df["trafilatura_success"] = (
-        enriched_df["trafilatura_success"].fillna(False).astype(bool)
-    )
-    enriched_df["warc_lookup_success"] = (
-        enriched_df["warc_lookup_success"].fillna(False).astype(bool)
-    )
-    enriched_df["warc_fetch_success"] = enriched_df["warc_fetch_success"].fillna(False).astype(bool)
-    enriched_df["lookup_provider"] = enriched_df["lookup_provider"].fillna("pointer_cache")
-    enriched_df["lookup_note"] = enriched_df["lookup_note"].fillna("pointer_cache_no_match")
-    enriched_df["lookup_match_count"] = (
-        pd.to_numeric(enriched_df["lookup_match_count"], errors="coerce").fillna(0).astype(int)
-    )
-    for column in (
-        "capture_ts",
-        "warc_validation_notes",
-        "published_ts",
-        "pointer_fetch_status",
-        "pointer_content_mime_type",
-        "extractor_used",
-        "extracted_text",
-        "schema_types",
-    ):
-        enriched_df[column] = enriched_df[column].fillna("")
-    enriched_df["extracted_text_len"] = (
-        pd.to_numeric(enriched_df["extracted_text_len"], errors="coerce").fillna(0).astype(int)
-    )
-
-    validated_warc_df = enriched_df.loc[enriched_df["is_validated_hits_warc"].fillna(False)].copy()
-    publication_metrics = _compute_publication_date_metrics(doc_df)
-
-    docs_scanned_total = sum(_metric_int(source.summary, "docs_scanned", 0) for source in sources)
-    candidate_hits_total = sum(
-        _metric_int(source.summary, "candidate_hits", 0) for source in sources
-    )
-    validated_hits_wet_total = len(enriched_df)
-    validated_hits_warc_total = len(validated_warc_df)
-    role_counts: Dict[str, Dict[str, int]] = {}
-    for role in ("target", "baseline"):
-        role_df = enriched_df.loc[enriched_df["term_role"] == role]
-        role_counts[role] = {
-            "validated_hits_wet": int(len(role_df)),
-            "validated_hits_warc": int(role_df["is_validated_hits_warc"].sum()),
-        }
-
-    total_elapsed_sec = time.perf_counter() - extraction_start
-    doc_metrics = {
-        "doc_count_input": int(len(unique_docs)),
-        "doc_count_lookup_success": int(lookup_success_docs),
-        "doc_count_fetch_success": int(fetch_success_docs),
-        "doc_count_extract_success": int(extract_success_docs),
-        "doc_count_lookup_failed": int(len(unique_docs) - lookup_success_docs),
-        "doc_count_fetch_failed": int(lookup_success_docs - fetch_success_docs),
-        "doc_count_extract_failed": int(fetch_success_docs - extract_success_docs),
-        "total_elapsed_sec": round(total_elapsed_sec, 6),
-        "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
-        "lookup_provider": "pointer_cache",
-    }
-    if bool(sample_metadata.get("doc_sample_enabled", False)):
-        doc_metrics.update(
-            {
-                "doc_sample_enabled": True,
-                "doc_sample_max_docs_per_crawl": int(
-                    sample_metadata.get("doc_sample_max_docs_per_crawl", 0)
-                ),
-                "doc_sampled_input_docs": int(sample_metadata.get("doc_sampled_input_docs", 0)),
-                "doc_sampled_input_hits": int(sample_metadata.get("doc_sampled_input_hits", 0)),
-            }
-        )
-
-    notes = (
-        "Stage 1d WARC validation over frozen Stage 1c anchors plus Stage 1d hold-out "
-        "using a remote resolver-produced pointer cache."
-    )
-    if pointer_cache_uri:
-        notes += f" pointer_cache_source={pointer_cache_uri}."
-
-    out_dir = stage1d_warc_dir(config)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    enriched_path = out_dir / f"cc_enriched_hits_{runid}.parquet"
-    validated_warc_path = out_dir / f"cc_validated_hits_warc_{runid}.parquet"
-    summary_path = out_dir / f"cc_stage1d_summary_{runid}.csv"
-    term_summary_path = out_dir / f"cc_stage1d_term_summary_{runid}.csv"
-    manifest_path = out_dir / f"cc_stage1d_remote_extract_manifest_{runid}.json"
-
-    enriched_df.to_parquet(enriched_path, index=False)
-    validated_warc_df.to_parquet(validated_warc_path, index=False)
-    _write_stage1d_term_summary(term_summary_path, enriched_df, include_filter_fields=False)
-    _write_summary_csv(
-        summary_path,
-        _build_stage1d_summary_rows(
-            docs_scanned=docs_scanned_total,
-            candidate_hits=candidate_hits_total,
-            validated_hits_wet=validated_hits_wet_total,
-            validated_hits_warc=validated_hits_warc_total,
-            role_counts=role_counts,
-            doc_metrics=doc_metrics,
-            publication_metrics=publication_metrics,
-            notes=notes,
-        ),
-    )
-
-    manifest_payload = {
-        "runid": runid,
-        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "pointer_cache_uri": pointer_cache_uri
-        or str(_latest_pointer_cache_path(stage1d_pointer_cache_dir(config))[1]),
-        "s3_output_prefix": s3_output_prefix or "",
-        "enriched_path": str(enriched_path),
-        "validated_warc_path": str(validated_warc_path),
-        "summary_path": str(summary_path),
-        "term_summary_path": str(term_summary_path),
-    }
-    manifest_path.write_text(json.dumps(manifest_payload, indent=2, sort_keys=True))
-
-    if s3_output_prefix:
-        uploaded_uris = _upload_stage1d_outputs_to_s3(
-            [
-                enriched_path,
-                validated_warc_path,
-                summary_path,
-                term_summary_path,
-                manifest_path,
-            ],
-            s3_output_prefix,
-        )
-        logger.info("Uploaded Stage 1d remote extraction outputs to %s", s3_output_prefix)
-        for uri in uploaded_uris:
-            logger.info("Uploaded %s", uri)
-
-    logger.info("Wrote enriched hits %s", enriched_path)
-    logger.info("Wrote WARC-validated hits %s", validated_warc_path)
-    logger.info("Wrote Stage 1d summary %s", summary_path)
-    return enriched_path
-
-
 def _latest_stage_hits_source(
     config: Dict, stage_name: str
 ) -> Tuple[str, Path, Path, pd.DataFrame]:
     source_label = str(config.get("run_context", {}).get("label", stage_name)).strip() or stage_name
-    output_dir = stage1_output_dir(config, default_stage=stage_name)
+    output_dir = working_output_dir(config, default_name="wet_scan")
     runid, hits_path = _latest_validated_hits_wet(output_dir)
     summary_path = output_dir / f"cc_scan_summary_{runid}.csv"
     if not summary_path.exists():
@@ -1283,32 +774,34 @@ def _latest_stage_hits_source(
     return runid, hits_path, summary_path, hits_df
 
 
-def extract_stage1e_pointer_cache(
+def extract_pointer_cache(
     config: Dict,
     pointer_cache_uri: Optional[str] = None,
     s3_output_prefix: Optional[str] = None,
 ) -> Path:
-    _require_stage1e(config)
+    _require_collection_stage(config)
     extraction_start = time.perf_counter()
     runid = _utc_runid()
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-extract", runid)
 
     source_runid, _, input_summary_path, combined_hits_df = _latest_stage_hits_source(
-        config, "stage1e"
+        config, "collection"
     )
     if combined_hits_df.empty:
         raise ValueError(f"No validated WET hits available for {display_label} extraction.")
-    combined_hits_df, sample_metadata = _sample_enrich_inputs(combined_hits_df, config)
 
-    extraction_cfg = _warc_extraction_config(config, "stage1e")
-    tolerance_hours = int(config.get("stage1e", {}).get("published_ts_tolerance_hours", 48))
+    extraction_cfg = _warc_extraction_config(config, "collection_stage")
+    tolerance_hours = int(
+        config.get("collection_stage", {}).get("published_ts_tolerance_hours", 48)
+    )
     min_published_ts = (
-        str(config.get("stage1e", {}).get("published_ts_min_date", "1995-01-01")).strip() or None
+        str(config.get("collection_stage", {}).get("published_ts_min_date", "1995-01-01")).strip()
+        or None
     )
 
-    pointer_df = _load_pointer_cache_df(stage1e_pointer_cache_dir(config), pointer_cache_uri)
+    pointer_df = _load_pointer_cache_df(pointer_cache_output_dir(config), pointer_cache_uri)
     if pointer_df.empty:
         raise ValueError("Pointer cache is empty.")
     pointer_df = pointer_df.copy()
@@ -1325,15 +818,6 @@ def extract_stage1e_pointer_cache(
     logger.info("Loaded pointer cache rows=%d", len(pointer_df))
     if pointer_cache_uri:
         logger.info("Pointer cache source: %s", pointer_cache_uri)
-    if bool(sample_metadata.get("doc_sample_enabled", False)):
-        logger.info(
-            "Sampling %s extraction input: max_docs_per_crawl=%d "
-            "sampled_docs=%d sampled_hits=%d",
-            display_label,
-            int(sample_metadata.get("doc_sample_max_docs_per_crawl", 0)),
-            int(sample_metadata.get("doc_sampled_input_docs", 0)),
-            int(sample_metadata.get("doc_sampled_input_hits", 0)),
-        )
 
     pointer_map = {
         (str(row["crawl_id"]), str(row["url"])): row for row in pointer_df.to_dict(orient="records")
@@ -1530,23 +1014,12 @@ def extract_stage1e_pointer_cache(
         "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
         "lookup_provider": "pointer_cache",
     }
-    if bool(sample_metadata.get("doc_sample_enabled", False)):
-        doc_metrics.update(
-            {
-                "doc_sample_enabled": True,
-                "doc_sample_max_docs_per_crawl": int(
-                    sample_metadata.get("doc_sample_max_docs_per_crawl", 0)
-                ),
-                "doc_sampled_input_docs": int(sample_metadata.get("doc_sampled_input_docs", 0)),
-                "doc_sampled_input_hits": int(sample_metadata.get("doc_sampled_input_hits", 0)),
-            }
-        )
 
     notes = f"{display_label} WARC validation over the frozen collection input WET files."
     if pointer_cache_uri:
         notes += f" pointer_cache_source={pointer_cache_uri}."
 
-    out_dir = stage1e_warc_dir(config)
+    out_dir = warc_output_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     enriched_path = out_dir / f"cc_enriched_hits_{runid}.parquet"
     validated_warc_path = out_dir / f"cc_validated_hits_warc_{runid}.parquet"
@@ -1556,10 +1029,10 @@ def extract_stage1e_pointer_cache(
 
     enriched_df.to_parquet(enriched_path, index=False)
     validated_warc_df.to_parquet(validated_warc_path, index=False)
-    _write_stage1d_term_summary(term_summary_path, enriched_df, include_filter_fields=False)
+    _write_warc_term_summary(term_summary_path, enriched_df, include_filter_fields=False)
     _write_summary_csv(
         summary_path,
-        _build_stage1e_summary_rows(
+        _build_warc_summary_rows(
             docs_scanned=docs_scanned_total,
             candidate_hits=candidate_hits_total,
             validated_hits_wet=validated_hits_wet_total,
@@ -1576,7 +1049,7 @@ def extract_stage1e_pointer_cache(
         "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "source_runid": source_runid,
         "pointer_cache_uri": pointer_cache_uri
-        or str(_latest_pointer_cache_path(stage1e_pointer_cache_dir(config))[1]),
+        or str(_latest_pointer_cache_path(pointer_cache_output_dir(config))[1]),
         "s3_output_prefix": s3_output_prefix or "",
         "enriched_path": str(enriched_path),
         "validated_warc_path": str(validated_warc_path),
@@ -1588,7 +1061,7 @@ def extract_stage1e_pointer_cache(
     manifest_path.write_text(json.dumps(manifest_payload, indent=2, sort_keys=True))
 
     if s3_output_prefix:
-        uploaded_uris = _upload_stage1d_outputs_to_s3(
+        uploaded_uris = _upload_warc_outputs_to_s3(
             [
                 enriched_path,
                 validated_warc_path,

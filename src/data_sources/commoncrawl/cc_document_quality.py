@@ -8,22 +8,22 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import pandas as pd
 
 from src.pathing import (
-    stage1_output_dir,
-    stage1e_document_quality_dir,
-    stage1e_metrics_dir,
-    stage1e_url_export_dir,
-    stage1e_warc_dir,
+    document_quality_output_dir,
+    metrics_output_dir,
+    url_export_output_dir,
+    warc_output_dir,
+    working_output_dir,
 )
 
 from .cc_warc import (
     DOC_KEY_COLUMNS,
-    STAGE1E_SCHEMA_NEGATIVE_TYPES,
-    _build_stage1e_summary_rows,
+    SCHEMA_NEGATIVE_TYPES,
+    _build_warc_summary_rows,
     _compute_publication_date_metrics,
     _latest_enriched_hits,
     _load_metric_map,
     _metric_int,
-    _require_stage1e,
+    _require_collection_stage,
     _setup_logger,
     _utc_runid,
     _write_summary_csv,
@@ -70,7 +70,7 @@ def _load_language_identifier():
         except ImportError as exc:  # pragma: no cover - dependency dependent
             raise RuntimeError(
                 "Missing language-ID dependency. Install 'langid' or 'py3langid' "
-                "before running Stage 1e document-quality filtering."
+                "before running document-quality filtering."
             ) from exc
         identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
         return identifier.classify
@@ -85,7 +85,7 @@ def _load_datatrove_quality_filters(datatrove_cfg: Dict):
     except ImportError as exc:  # pragma: no cover - dependency dependent
         raise RuntimeError(
             "Missing DataTrove dependency. Install 'datatrove==0.9.0' in the msc-nlp "
-            "environment before running Stage 1e document quality filtering."
+            "environment before running document quality filtering."
         ) from exc
 
     filter_specs = [
@@ -312,7 +312,7 @@ def _latest_json_or_empty(
     return runid, json.loads(path.read_text())
 
 
-def _write_stage1e_term_summary(path: Path, df: pd.DataFrame) -> None:
+def _write_term_summary(path: Path, df: pd.DataFrame) -> None:
     if df.empty:
         pd.DataFrame(
             columns=[
@@ -334,7 +334,7 @@ def _write_stage1e_term_summary(path: Path, df: pd.DataFrame) -> None:
         .agg(
             validated_hits_wet=("matched_term", "size"),
             validated_hits_warc=("is_validated_hits_warc", "sum"),
-            document_quality_kept_hits=("stage1e_passes_document_quality", "sum"),
+            document_quality_kept_hits=("passes_document_quality", "sum"),
             english_hits=("is_english", "sum"),
             dedup_representative_hits=("is_dedup_representative", "sum"),
         )
@@ -359,7 +359,7 @@ def _safe_rate(numerator: float, denominator: float) -> float:
     return numerator / denominator
 
 
-def _write_stage1e_throughput_summary(
+def _write_throughput_summary(
     path: Path,
     *,
     config: Dict,
@@ -367,18 +367,18 @@ def _write_stage1e_throughput_summary(
     document_quality_summary: Dict[str, object],
     document_quality_elapsed_sec: float,
 ) -> None:
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
     _, wet_summary = _latest_metric_map_or_empty(
-        stage1_output_dir(config, default_stage="stage1e"), "cc_scan_summary_", ".csv"
+        working_output_dir(config, default_name="wet_scan"), "cc_scan_summary_", ".csv"
     )
     _, url_summary = _latest_metric_map_or_empty(
-        stage1e_url_export_dir(config), f"cc_{label}_urls_summary_", ".csv"
+        url_export_output_dir(config), f"cc_{label}_urls_summary_", ".csv"
     )
     _, warc_summary = _latest_metric_map_or_empty(
-        stage1e_warc_dir(config), f"cc_{label}_summary_", ".csv"
+        warc_output_dir(config), f"cc_{label}_summary_", ".csv"
     )
     _, warc_manifest = _latest_json_or_empty(
-        stage1e_warc_dir(config), f"cc_{label}_extract_manifest_", ".json"
+        warc_output_dir(config), f"cc_{label}_extract_manifest_", ".json"
     )
 
     wet_docs = _metric_int(wet_summary, "docs_scanned", 0)
@@ -387,14 +387,8 @@ def _write_stage1e_throughput_summary(
     warc_docs = _metric_int(warc_summary, "doc_count_input", 0)
     warc_fetch_success = _metric_int(warc_summary, "doc_count_fetch_success", 0)
     warc_extract_success = _metric_int(warc_summary, "doc_count_extract_success", 0)
-    warc_elapsed = _metric_float(
-        warc_manifest, "total_elapsed_sec", _metric_float(warc_summary, "total_elapsed_sec")
-    )
-    final_docs = _metric_int(
-        document_quality_summary,
-        "final.doc_count",
-        _metric_int(document_quality_summary, "doc_count_dedup_representatives", 0),
-    )
+    warc_elapsed = _metric_float(warc_manifest, "total_elapsed_sec")
+    final_docs = _metric_int(document_quality_summary, "final.doc_count", 0)
     document_quality_input = _metric_int(document_quality_summary, "doc_count_warc_validated", 0)
     total_observed_elapsed_sec = wet_elapsed + warc_elapsed + document_quality_elapsed_sec
 
@@ -444,8 +438,8 @@ def _evaluate_datatrove_quality_filters(
     text: str, doc_id: str, url: str, filters: Sequence[Tuple[str, object]], document_cls
 ) -> Dict[str, object]:
     status: Dict[str, object] = {
-        "stage1e_datatrove_filter_name": "",
-        "stage1e_datatrove_filter_reason": "",
+        "datatrove_filter_name": "",
+        "datatrove_filter_reason": "",
         "passes_gopher_repetition": True,
         "passes_gopher_quality": True,
         "passes_fineweb_quality": True,
@@ -458,30 +452,30 @@ def _evaluate_datatrove_quality_filters(
             keep = False
             reason = f"filter_error_{type(exc).__name__.lower()}"
         status[f"passes_{filter_name}"] = keep
-        if not keep and not status["stage1e_datatrove_filter_name"]:
-            status["stage1e_datatrove_filter_name"] = filter_name
-            status["stage1e_datatrove_filter_reason"] = reason or "failed"
+        if not keep and not status["datatrove_filter_name"]:
+            status["datatrove_filter_name"] = filter_name
+            status["datatrove_filter_reason"] = reason or "failed"
     return status
 
 
-def document_quality_stage1e_hits(config: Dict) -> Path:
-    _require_stage1e(config)
+def document_quality_hits(config: Dict) -> Path:
+    _require_collection_stage(config)
     filter_start = time.perf_counter()
     runid = _utc_runid()
-    label = str(config.get("run_context", {}).get("label", "stage1e")).strip() or "stage1e"
-    display_label = "collection" if label == "collection" else "Stage 1e"
+    label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
+    display_label = label
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-quality", runid)
 
-    enrich_dir = stage1e_warc_dir(config)
+    enrich_dir = warc_output_dir(config)
     enrich_runid, enriched_path = _latest_enriched_hits(enrich_dir)
     enriched_df = pd.read_parquet(enriched_path)
     if enriched_df.empty:
         raise ValueError(f"Latest {display_label} enriched hits table is empty.")
 
-    quality_cfg = config.get("stage1e", {}).get("document_quality", {})
+    quality_cfg = config.get("collection_stage", {}).get("document_quality", {})
     negative_schema_types = {
         str(value).strip().lower()
-        for value in quality_cfg.get("schema_negative_types", STAGE1E_SCHEMA_NEGATIVE_TYPES)
+        for value in quality_cfg.get("schema_negative_types", SCHEMA_NEGATIVE_TYPES)
         if str(value).strip()
     }
     sentence_min_tokens = int(quality_cfg.get("sentence_min_tokens", 6))
@@ -556,8 +550,8 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
             doc_min_substantive_sentences=doc_min_substantive_sentences,
             min_extracted_text_chars=min_extracted_text_chars,
         )
-        datatrove_filter_name = str(datatrove_status["stage1e_datatrove_filter_name"])
-        datatrove_filter_reason = str(datatrove_status["stage1e_datatrove_filter_reason"])
+        datatrove_filter_name = str(datatrove_status["datatrove_filter_name"])
+        datatrove_filter_reason = str(datatrove_status["datatrove_filter_reason"])
         document_quality_reason = ""
         passes_document_quality = True
         if schema_negative:
@@ -576,15 +570,15 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
                 "url": doc_row["url"],
                 "matched_terms": "|".join(matched_terms),
                 "term_roles": "|".join(term_roles),
-                "stage1e_schema_negative": schema_negative,
-                "stage1e_substantive_context_ok": substantive_ok,
+                "schema_negative": schema_negative,
+                "substantive_context_ok": substantive_ok,
                 "passes_gopher_repetition": bool(datatrove_status["passes_gopher_repetition"]),
                 "passes_gopher_quality": bool(datatrove_status["passes_gopher_quality"]),
                 "passes_fineweb_quality": bool(datatrove_status["passes_fineweb_quality"]),
-                "stage1e_quality_filter_name": datatrove_filter_name,
-                "stage1e_quality_filter_reason": datatrove_filter_reason,
-                "stage1e_passes_document_quality": passes_document_quality,
-                "stage1e_document_quality_reason": document_quality_reason,
+                "quality_filter_name": datatrove_filter_name,
+                "quality_filter_reason": datatrove_filter_reason,
+                "passes_document_quality": passes_document_quality,
+                "document_quality_reason": document_quality_reason,
                 "doc_context_snippet_sentence_200": _build_sentence_window_snippet(
                     extracted_text,
                     compiled_term_patterns,
@@ -599,19 +593,19 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     for column in (
         "matched_terms",
         "term_roles",
-        "stage1e_quality_filter_name",
-        "stage1e_quality_filter_reason",
-        "stage1e_document_quality_reason",
+        "quality_filter_name",
+        "quality_filter_reason",
+        "document_quality_reason",
         "doc_context_snippet_sentence_200",
     ):
         filtered_df[column] = filtered_df[column].fillna("")
     for column in (
-        "stage1e_schema_negative",
-        "stage1e_substantive_context_ok",
+        "schema_negative",
+        "substantive_context_ok",
         "passes_gopher_repetition",
         "passes_gopher_quality",
         "passes_fineweb_quality",
-        "stage1e_passes_document_quality",
+        "passes_document_quality",
     ):
         filtered_df[column] = filtered_df[column].fillna(False).astype(bool)
 
@@ -640,7 +634,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
 
     cleanup_docs = filtered_df.loc[
         filtered_df["is_validated_hits_warc"].fillna(False)
-        & filtered_df["stage1e_passes_document_quality"].fillna(False),
+        & filtered_df["passes_document_quality"].fillna(False),
         DOC_KEY_COLUMNS + ["extracted_text"],
     ].drop_duplicates(subset=DOC_KEY_COLUMNS)
     if cleanup_docs.empty:
@@ -663,7 +657,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         )
 
     language_df = pd.DataFrame(language_rows)
-    dedup_cfg = config.get("stage1e", {}).get("dedup", {})
+    dedup_cfg = config.get("collection_stage", {}).get("dedup", {})
     ngram_size = int(dedup_cfg.get("ngram_size", 5))
     jaccard_threshold = float(dedup_cfg.get("jaccard_threshold", 0.9))
     english_docs = language_df.loc[language_df["is_english"]].copy()
@@ -752,7 +746,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     corpus_df = (
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_passes_document_quality"].fillna(False)
+            & filtered_df["passes_document_quality"].fillna(False)
             & filtered_df["is_english"]
             & filtered_df["is_dedup_representative"]
         ]
@@ -774,7 +768,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         .reset_index()
     )
 
-    out_dir = stage1e_document_quality_dir(config)
+    out_dir = document_quality_output_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     filtered_path = out_dir / f"cc_document_quality_hits_{runid}.parquet"
     corpus_path = out_dir / f"cc_corpus_texts_document_quality_{runid}.parquet"
@@ -808,34 +802,34 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         sample_path, index=False
     )
 
-    _write_stage1e_term_summary(term_summary_path, filtered_df)
+    _write_term_summary(term_summary_path, filtered_df)
 
     validated_hits_wet_total = int(len(filtered_df))
     validated_hits_warc_total = int(filtered_df["is_validated_hits_warc"].sum())
     quality_kept_hits_total = int(
         (
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_passes_document_quality"].fillna(False)
+            & filtered_df["passes_document_quality"].fillna(False)
         ).sum()
     )
     english_hits_total = int(
         (
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_passes_document_quality"].fillna(False)
+            & filtered_df["passes_document_quality"].fillna(False)
             & filtered_df["is_english"].fillna(False)
         ).sum()
     )
     dedup_rep_hits_total = int(
         (
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_passes_document_quality"].fillna(False)
+            & filtered_df["passes_document_quality"].fillna(False)
             & filtered_df["is_english"].fillna(False)
             & filtered_df["is_dedup_representative"].fillna(False)
         ).sum()
     )
     final_mask = (
         filtered_df["is_validated_hits_warc"].fillna(False)
-        & filtered_df["stage1e_passes_document_quality"].fillna(False)
+        & filtered_df["passes_document_quality"].fillna(False)
         & filtered_df["is_english"].fillna(False)
         & filtered_df["is_dedup_representative"].fillna(False)
     )
@@ -870,7 +864,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     quality_docs_count = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_passes_document_quality"].fillna(False),
+            & filtered_df["passes_document_quality"].fillna(False),
             DOC_KEY_COLUMNS,
         ]
         .drop_duplicates()
@@ -879,7 +873,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     english_docs_count = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_passes_document_quality"].fillna(False)
+            & filtered_df["passes_document_quality"].fillna(False)
             & filtered_df["is_english"].fillna(False),
             DOC_KEY_COLUMNS,
         ]
@@ -889,7 +883,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     removed_schema_docs = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].eq("schema_page_type"),
+            & filtered_df["document_quality_reason"].eq("schema_page_type"),
             DOC_KEY_COLUMNS,
         ]
         .drop_duplicates()
@@ -898,7 +892,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     removed_gopher_repetition_docs = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].str.startswith(
+            & filtered_df["document_quality_reason"].str.startswith(
                 "gopher_repetition_", na=False
             ),
             DOC_KEY_COLUMNS,
@@ -909,7 +903,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     removed_gopher_quality_docs = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].str.startswith(
+            & filtered_df["document_quality_reason"].str.startswith(
                 "gopher_quality_", na=False
             ),
             DOC_KEY_COLUMNS,
@@ -920,7 +914,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     removed_fineweb_quality_docs = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].str.startswith(
+            & filtered_df["document_quality_reason"].str.startswith(
                 "fineweb_quality_", na=False
             ),
             DOC_KEY_COLUMNS,
@@ -931,7 +925,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     removed_substantive_docs = int(
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].eq("substantive_context"),
+            & filtered_df["document_quality_reason"].eq("substantive_context"),
             DOC_KEY_COLUMNS,
         ]
         .drop_duplicates()
@@ -940,19 +934,19 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     reason_doc_counts = (
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].ne(""),
-            DOC_KEY_COLUMNS + ["stage1e_document_quality_reason"],
+            & filtered_df["document_quality_reason"].ne(""),
+            DOC_KEY_COLUMNS + ["document_quality_reason"],
         ]
         .drop_duplicates()
-        .groupby("stage1e_document_quality_reason", dropna=False)
+        .groupby("document_quality_reason", dropna=False)
         .size()
         .to_dict()
     )
     reason_hit_counts = (
         filtered_df.loc[
             filtered_df["is_validated_hits_warc"].fillna(False)
-            & filtered_df["stage1e_document_quality_reason"].ne(""),
-            "stage1e_document_quality_reason",
+            & filtered_df["document_quality_reason"].ne(""),
+            "document_quality_reason",
         ]
         .value_counts()
         .to_dict()
@@ -973,45 +967,45 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
         "final.term_group.autism.doc_count": _final_doc_count("term_group", "autism"),
         "final.term_group.autism.hit_count": _final_hit_count("term_group", "autism"),
         "total_elapsed_sec": round(time.perf_counter() - filter_start, 6),
-        "removed_by_stage1e_schema_type_docs": removed_schema_docs,
-        "removed_by_stage1e_gopher_repetition_docs": removed_gopher_repetition_docs,
-        "removed_by_stage1e_gopher_quality_docs": removed_gopher_quality_docs,
-        "removed_by_stage1e_fineweb_quality_docs": removed_fineweb_quality_docs,
-        "removed_by_stage1e_substantive_context_docs": removed_substantive_docs,
-        "removed_by_stage1e_schema_type_hits": int(
+        "removed_by_document_quality_schema_type_docs": removed_schema_docs,
+        "removed_by_document_quality_gopher_repetition_docs": removed_gopher_repetition_docs,
+        "removed_by_document_quality_gopher_quality_docs": removed_gopher_quality_docs,
+        "removed_by_document_quality_fineweb_quality_docs": removed_fineweb_quality_docs,
+        "removed_by_document_quality_substantive_context_docs": removed_substantive_docs,
+        "removed_by_document_quality_schema_type_hits": int(
             (
                 filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_document_quality_reason"].eq("schema_page_type")
+                & filtered_df["document_quality_reason"].eq("schema_page_type")
             ).sum()
         ),
-        "removed_by_stage1e_gopher_repetition_hits": int(
+        "removed_by_document_quality_gopher_repetition_hits": int(
             (
                 filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_document_quality_reason"].str.startswith(
+                & filtered_df["document_quality_reason"].str.startswith(
                     "gopher_repetition_", na=False
                 )
             ).sum()
         ),
-        "removed_by_stage1e_gopher_quality_hits": int(
+        "removed_by_document_quality_gopher_quality_hits": int(
             (
                 filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_document_quality_reason"].str.startswith(
+                & filtered_df["document_quality_reason"].str.startswith(
                     "gopher_quality_", na=False
                 )
             ).sum()
         ),
-        "removed_by_stage1e_fineweb_quality_hits": int(
+        "removed_by_document_quality_fineweb_quality_hits": int(
             (
                 filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_document_quality_reason"].str.startswith(
+                & filtered_df["document_quality_reason"].str.startswith(
                     "fineweb_quality_", na=False
                 )
             ).sum()
         ),
-        "removed_by_stage1e_substantive_context_hits": int(
+        "removed_by_document_quality_substantive_context_hits": int(
             (
                 filtered_df["is_validated_hits_warc"].fillna(False)
-                & filtered_df["stage1e_document_quality_reason"].eq("substantive_context")
+                & filtered_df["document_quality_reason"].eq("substantive_context")
             ).sum()
         ),
         "removed_by_lang_hits": int(quality_kept_hits_total - english_hits_total),
@@ -1021,10 +1015,10 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     }
     for reason in sorted(reason_doc_counts):
         safe_reason = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(reason))
-        doc_metrics[f"removed_by_stage1e_document_quality_reason.{safe_reason}.docs"] = int(
+        doc_metrics[f"removed_by_document_quality_reason.{safe_reason}.docs"] = int(
             reason_doc_counts[reason]
         )
-        doc_metrics[f"removed_by_stage1e_document_quality_reason.{safe_reason}.hits"] = int(
+        doc_metrics[f"removed_by_document_quality_reason.{safe_reason}.hits"] = int(
             reason_hit_counts.get(reason, 0)
         )
     publication_doc_df = (
@@ -1036,7 +1030,7 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
     )
     publication_metrics = _compute_publication_date_metrics(publication_doc_df)
 
-    stage1e_summary_rows = _build_stage1e_summary_rows(
+    summary_rows = _build_warc_summary_rows(
         docs_scanned=docs_scanned,
         candidate_hits=candidate_hits,
         validated_hits_wet=validated_hits_wet_total,
@@ -1050,12 +1044,12 @@ def document_quality_stage1e_hits(config: Dict) -> Path:
             "and local dedup."
         ),
     )
-    _write_summary_csv(summary_path, stage1e_summary_rows)
+    _write_summary_csv(summary_path, summary_rows)
     document_quality_elapsed_sec = time.perf_counter() - filter_start
-    metrics_dir = stage1e_metrics_dir(config)
+    metrics_dir = metrics_output_dir(config)
     metrics_dir.mkdir(parents=True, exist_ok=True)
     throughput_summary_path = metrics_dir / f"cc_{label}_throughput_summary_{runid}.csv"
-    _write_stage1e_throughput_summary(
+    _write_throughput_summary(
         throughput_summary_path,
         config=config,
         runid=runid,
