@@ -35,6 +35,14 @@ pointer resolution. This avoids stale server state when moving between crawls.
 
 Run on the EC2 collection host.
 
+Before connecting to EC2, make sure your local code changes are committed and pushed:
+
+```bash
+cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
+git status --short
+git push origin main
+```
+
 From your local machine:
 
 ```bash
@@ -48,6 +56,13 @@ cd ~/msc-nlp-therapy-speak
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate msc-nlp
 git pull origin main
+```
+
+Confirm EC2 is on the expected code:
+
+```bash
+git log --oneline -3
+git status --short
 ```
 
 Confirm the local AWS config exists:
@@ -94,6 +109,9 @@ Reattach after disconnecting:
 tmux attach -t collection
 ```
 
+If the session already exists, attach to it rather than creating a second collection
+session.
+
 ## Run All Trend Years
 
 The trend track uses the fixed annual WET sample size configured at:
@@ -114,6 +132,9 @@ This runs every configured year once and refreshes:
 data/processed/trend/trend_rates.csv
 ```
 
+Run trend first. It is the lower-risk full-history pass and gives the diachronic rate
+denominators before the larger corpus pass.
+
 ## Run All Corpus Years
 
 The corpus command runs batch 1 for every configured year:
@@ -125,7 +146,8 @@ make corpus CONFIG=configs/commoncrawl_collection.yaml
 This is the corpus first pass. After it completes, inspect annual target-group counts:
 
 ```bash
-find data/interim/collection/corpus_working -path "*/quality/cc_collection_summary_*.csv" | sort
+find data/interim/collection/corpus_working \
+  -path "*/quality/cc_collection_summary_*.csv" | sort
 ```
 
 For each year, check:
@@ -170,6 +192,9 @@ collection.corpus.max_wet_files_per_year_first_pass
 
 With 50-WET batches and a 250-WET cap, the practical first-pass maximum is five batches
 per year. Each successful `corpus_expand` run refreshes the processed corpus output.
+
+Use expansion only for years whose final target-group document counts remain below the
+configured target or soft minimum.
 
 ## Output Layout
 
