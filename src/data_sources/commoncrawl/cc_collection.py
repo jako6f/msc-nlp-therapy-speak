@@ -112,6 +112,37 @@ def _collection_s3_uri(config: Dict, *parts: str) -> str:
     return f"s3://{bucket}/{key}" if key else f"s3://{bucket}"
 
 
+def _parse_s3_uri(uri: str) -> Tuple[str, str]:
+    if not uri.startswith("s3://"):
+        raise ValueError(f"Expected S3 URI, got: {uri}")
+    without_scheme = uri[len("s3://") :]
+    bucket, _, key = without_scheme.partition("/")
+    return bucket, key
+
+
+def _upload_paths_to_s3(local_paths: Iterable[Path], s3_output_prefix: str) -> List[str]:
+    import boto3  # type: ignore
+
+    bucket, key_prefix = _parse_s3_uri(s3_output_prefix.rstrip("/") + "/")
+    key_prefix = key_prefix.rstrip("/")
+    s3_client = boto3.client("s3")
+    uploaded_uris: List[str] = []
+    for local_path in local_paths:
+        if not local_path.exists():
+            continue
+        key = f"{key_prefix}/{local_path.name}" if key_prefix else local_path.name
+        s3_client.upload_file(str(local_path), bucket, key)
+        uploaded_uris.append(f"s3://{bucket}/{key}")
+    return uploaded_uris
+
+
+def _runid_from_path(path: Path, prefix: str, suffix: str) -> str:
+    name = path.name
+    if not name.startswith(prefix) or not name.endswith(suffix):
+        raise ValueError(f"Unexpected file name format: {name}")
+    return name[len(prefix) : -len(suffix)]
+
+
 def _read_latest_url_upload_manifest(
     config: Dict, *, year: int | str, track: str, batch: int | str
 ) -> Dict[str, object]:
@@ -136,6 +167,29 @@ def _write_run_manifest(
     manifest_path = metrics_dir / f"cc_collection_run_manifest_{runid}.json"
     manifest_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
     return manifest_path
+
+
+def _quality_output_paths(
+    config: Dict, *, year: int | str, track: str, batch: int | str, runid: str
+) -> List[Path]:
+    quality_dir = collection_quality_dir(config, track=track, year=year, batch=batch)
+    paths = [
+        quality_dir / f"cc_document_quality_hits_{runid}.parquet",
+        quality_dir / f"cc_corpus_texts_document_quality_{runid}.parquet",
+        quality_dir / f"cc_collection_summary_{runid}.csv",
+        quality_dir / f"cc_collection_term_summary_{runid}.csv",
+    ]
+    paths.extend(sorted(quality_dir.glob(f"cc_val_sample*_{runid}.csv")))
+    return paths
+
+
+def _throughput_summary_path(
+    config: Dict, *, year: int | str, track: str, batch: int | str, runid: str
+) -> Path:
+    return (
+        collection_metrics_dir(config, track=track, year=year, batch=batch)
+        / f"cc_collection_throughput_summary_{runid}.csv"
+    )
 
 
 def _manifest_dir() -> Path:
@@ -773,18 +827,61 @@ def run_collection_year(
             s3_output_prefix=warc_output_prefix,
         ),
     )
-    _record_step("quality", quality_collection(config, year=year, track=track, batch=batch_int))
+    quality_summary_path = quality_collection(config, year=year, track=track, batch=batch_int)
+    _record_step("quality", quality_summary_path)
+
+    quality_runid = _runid_from_path(
+        quality_summary_path,
+        "cc_collection_summary_",
+        ".csv",
+    )
+    quality_output_prefix = (
+        _collection_s3_uri(config, "quality", track, str(year), batch_label, quality_runid).rstrip(
+            "/"
+        )
+        + "/"
+    )
+    quality_uploaded_uris = _upload_paths_to_s3(
+        _quality_output_paths(
+            config,
+            year=year,
+            track=track,
+            batch=batch_int,
+            runid=quality_runid,
+        ),
+        quality_output_prefix,
+    )
+    _record_step("upload_quality", quality_output_prefix)
 
     processed_path = ""
+    processed_output_prefix = ""
     if build_processed:
         if track == "trend":
             processed_path = str(build_processed_trend(config))
         else:
             processed_path = str(build_processed_corpus(config))
         _record_step("build_processed", processed_path)
+        processed_output_prefix = (
+            _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
+        )
+        _upload_paths_to_s3([Path(processed_path)], processed_output_prefix)
+        _record_step("upload_processed", processed_output_prefix)
 
+    metrics_output_prefix = (
+        _collection_s3_uri(config, "metrics", track, str(year), batch_label, runid).rstrip("/")
+        + "/"
+    )
+    throughput_summary_path = _throughput_summary_path(
+        config,
+        year=year,
+        track=track,
+        batch=batch_int,
+        runid=quality_runid,
+    )
+    _record_step("upload_metrics", metrics_output_prefix)
     manifest_payload = {
         "runid": runid,
+        "quality_runid": quality_runid,
         "url_export_runid": export_runid,
         "year": str(year),
         "track": track,
@@ -793,7 +890,12 @@ def run_collection_year(
         "resolve_output_prefix": resolve_output_prefix,
         "pointer_cache_uri": pointer_cache_uri,
         "warc_output_prefix": warc_output_prefix,
+        "quality_output_prefix": quality_output_prefix,
+        "quality_uploaded_uris": quality_uploaded_uris,
+        "metrics_output_prefix": metrics_output_prefix,
+        "throughput_summary_path": str(throughput_summary_path),
         "processed_path": processed_path,
+        "processed_output_prefix": processed_output_prefix,
         "steps": steps,
     }
     manifest_path = _write_run_manifest(
@@ -803,6 +905,8 @@ def run_collection_year(
         batch=batch_int,
         payload=manifest_payload,
     )
+    _upload_paths_to_s3([manifest_path], metrics_output_prefix)
+    _upload_paths_to_s3([throughput_summary_path], metrics_output_prefix)
     logger.info("Wrote collection run manifest %s", manifest_path)
     return manifest_path
 
@@ -859,6 +963,8 @@ def run_collection_track(config: Dict, *, track: str) -> None:
     for year in _collection_years(config):
         run_collection_year(config, year=year, track=track, batch=1, build_processed=False)
     if track == "trend":
-        build_processed_trend(config)
+        processed_path = build_processed_trend(config)
     else:
-        build_processed_corpus(config)
+        processed_path = build_processed_corpus(config)
+    processed_output_prefix = _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
+    _upload_paths_to_s3([processed_path], processed_output_prefix)

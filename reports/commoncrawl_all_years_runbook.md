@@ -173,6 +173,8 @@ per year. Each successful `corpus_expand` run refreshes the processed corpus out
 
 ## Output Layout
 
+On EC2, working outputs are written under track-specific working directories.
+
 Trend working outputs:
 
 ```text
@@ -202,6 +204,22 @@ metrics/cc_collection_throughput_summary_<runid>.csv
 metrics/cc_collection_run_manifest_<runid>.json
 ```
 
+The high-level runners also upload key outputs to S3. After syncing S3 locally, the
+S3-mirrored layout is:
+
+```text
+data/interim/collection/url_exports/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
+data/interim/collection/pointer_cache/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
+data/interim/collection/warc_output/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
+data/interim/collection/quality/<TRACK>/<YEAR>/batch_<BATCH>/<quality_runid>/
+data/interim/collection/metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
+data/interim/collection/processed/<TRACK>/
+```
+
+The final document-quality gate summaries, term summaries, validation samples, and
+filtered parquet outputs are in the synced `quality/.../<quality_runid>/` folders.
+Throughput summaries and run manifests are in the synced `metrics/.../<runid>/` folders.
+
 ## Sync Outputs To Local Machine
 
 Do not push collection outputs through GitHub. GitHub is only for tracked code, config,
@@ -216,6 +234,24 @@ aws s3 sync \
 ```
 
 Use a narrower S3 prefix if you only need a specific track, year, or batch.
+
+After syncing, inspect synced document-quality gate outputs locally with:
+
+```bash
+TRACK=trend
+YEAR=2024
+BATCH=1
+BPAD=$(printf "%03d" "$BATCH")
+
+find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_collection_summary_*.csv" | sort | tail -n1 | xargs cat
+find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_collection_term_summary_*.csv" | sort | tail -n1 | xargs cat
+find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_val_sample30_*.csv" | sort | tail -n1
+find "data/interim/collection/metrics/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_collection_throughput_summary_*.csv" | sort | tail -n1 | xargs cat
+```
 
 ## Monitoring
 

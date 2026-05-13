@@ -127,6 +127,8 @@ the year has reached the target document counts.
 
 ## Outputs
 
+On EC2, working outputs are written under the track-specific working directory.
+
 For `TRACK=trend`, outputs are written under:
 
 ```text
@@ -160,6 +162,23 @@ data/processed/trend/trend_rates.csv
 data/processed/corpus/corpus_documents.parquet
 ```
 
+The high-level runner also uploads the key outputs to S3 so they can be synced back to
+your local machine. The S3 mirror uses top-level collection folders, not the EC2 working
+folder names:
+
+```text
+url_exports/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
+pointer_cache/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
+warc_output/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
+quality/<TRACK>/<YEAR>/batch_<BATCH>/<quality_runid>/
+metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
+processed/<TRACK>/
+```
+
+The final document-quality gate summaries, term summaries, validation samples, and
+filtered parquet outputs are in the synced `quality/.../<quality_runid>/` folder. The
+throughput summary and run manifest are in the synced `metrics/.../<runid>/` folder.
+
 ## Sync Outputs To Local Machine
 
 Do not use GitHub to move collection outputs from EC2 to your local machine. GitHub is
@@ -174,6 +193,32 @@ aws s3 sync \
 ```
 
 Use a narrower S3 prefix if you only need one year, track, or batch.
+
+After syncing, the local S3-mirrored quality outputs are under:
+
+```text
+data/interim/collection/quality/<TRACK>/<YEAR>/batch_<BATCH>/<quality_runid>/
+```
+
+The synced throughput summary and run manifest are under:
+
+```text
+data/interim/collection/metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
+```
+
+For example:
+
+```bash
+BPAD=$(printf "%03d" "$BATCH")
+find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_collection_summary_*.csv" | sort | tail -n1 | xargs cat
+find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_collection_term_summary_*.csv" | sort | tail -n1 | xargs cat
+find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_val_sample30_*.csv" | sort | tail -n1
+find "data/interim/collection/metrics/$TRACK/$YEAR/batch_$BPAD" \
+  -name "cc_collection_throughput_summary_*.csv" | sort | tail -n1 | xargs cat
+```
 
 ## Inspect Latest Results
 
