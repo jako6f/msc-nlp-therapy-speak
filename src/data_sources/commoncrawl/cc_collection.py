@@ -2,8 +2,10 @@ import copy
 import datetime as dt
 import gzip
 import json
+import os
 import random
 import re
+import socket
 import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -32,6 +34,7 @@ from .cc_resolve import (
     install_indexes_remote,
     resolve_urls_remote,
     start_index_server_remote,
+    stop_index_server_remote,
     upload_urls_to_s3,
 )
 from .cc_scan import scan_wet_files
@@ -84,6 +87,55 @@ def _batch_size(config: Dict, track: str) -> int:
     if track == "trend":
         return int(collection.get("trend", {}).get("fixed_wet_files_per_year", 50))
     return int(collection.get("corpus", {}).get("initial_wet_batch_size", 50))
+
+
+def _batch_label(batch: int | str) -> str:
+    return f"batch_{int(batch):03d}"
+
+
+def _aws_s3_base(config: Dict) -> Tuple[str, str]:
+    s3_cfg = _collection_cfg(config).get("aws", {}).get("s3", {})
+    bucket = str(s3_cfg.get("bucket", "")).strip()
+    prefix = str(s3_cfg.get("prefix", "")).strip("/")
+    if not bucket:
+        raise ValueError(
+            "collection.aws.s3.bucket is required. Store it in configs/local/aws.yaml "
+            "or the file pointed to by MSC_NLP_LOCAL_CONFIG."
+        )
+    return bucket, prefix
+
+
+def _collection_s3_uri(config: Dict, *parts: str) -> str:
+    bucket, prefix = _aws_s3_base(config)
+    key_parts = [prefix, *[part.strip("/") for part in parts if part]]
+    key = "/".join(part for part in key_parts if part)
+    return f"s3://{bucket}/{key}" if key else f"s3://{bucket}"
+
+
+def _read_latest_url_upload_manifest(
+    config: Dict, *, year: int | str, track: str, batch: int | str
+) -> Dict[str, object]:
+    upload_dir = collection_url_export_dir(config, track=track, year=year, batch=batch)
+    matches = sorted(upload_dir.glob("cc_collection_url_upload_manifest_*.json"))
+    if not matches:
+        raise FileNotFoundError(f"No URL upload manifest found in {upload_dir}")
+    return json.loads(matches[-1].read_text())
+
+
+def _write_run_manifest(
+    config: Dict,
+    *,
+    year: int | str,
+    track: str,
+    batch: int | str,
+    payload: Dict[str, object],
+) -> Path:
+    metrics_dir = collection_metrics_dir(config, track=track, year=year, batch=batch)
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+    runid = str(payload.get("runid", _utc_runid()))
+    manifest_path = metrics_dir / f"cc_collection_run_manifest_{runid}.json"
+    manifest_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    return manifest_path
 
 
 def _manifest_dir() -> Path:
@@ -558,6 +610,203 @@ def quality_collection(
     )
 
 
+def stop_collection_index_server(config: Dict) -> Optional[int]:
+    return stop_index_server_remote(
+        _collection_stage_config(config, year=_collection_years(config)[0], track="corpus")
+    )
+
+
+def preflight_collection(config: Dict) -> Path:
+    runid = _utc_runid()
+    logger = _setup_logger(Path("reports/logs"), "cc-collection-preflight")
+    payload: Dict[str, object] = {
+        "runid": runid,
+        "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "checks": {},
+    }
+    checks = payload["checks"]
+    assert isinstance(checks, dict)
+
+    checks["configured_years"] = _collection_years(config)
+    bucket, prefix = _aws_s3_base(config)
+    checks["s3_bucket"] = bucket
+    checks["s3_prefix"] = prefix
+
+    import boto3  # type: ignore
+
+    sts_client = boto3.client("sts")
+    identity = sts_client.get_caller_identity()
+    checks["aws_identity_arn"] = identity.get("Arn", "")
+
+    s3_client = boto3.client("s3")
+    smoke_key = "/".join(part for part in [prefix, "_preflight", f"{runid}.txt"] if part)
+    s3_client.put_object(Bucket=bucket, Key=smoke_key, Body=b"ok\n")
+    s3_client.delete_object(Bucket=bucket, Key=smoke_key)
+    checks["s3_write_delete_ok"] = True
+
+    stage_cfg = _collection_stage_config(config, year=_collection_years(config)[0], track="corpus")
+    resolve_cfg = stage_cfg["collection_stage"].get("resolve_remote", {})
+    host = str(resolve_cfg.get("server_host", "127.0.0.1"))
+    port = int(resolve_cfg.get("server_port", 8080))
+    try:
+        with socket.create_connection((host, port), timeout=2):
+            port_open = True
+    except OSError:
+        port_open = False
+    checks["index_server_host"] = host
+    checks["index_server_port"] = port
+    checks["index_server_port_open"] = port_open
+
+    pid_path = Path(
+        str(
+            resolve_cfg.get(
+                "server_pid_path",
+                "~/.cache/msc-nlp-therapy-speak/collection_index_server/index_server.pid",
+            )
+        )
+    ).expanduser()
+    checks["index_server_pid_path"] = str(pid_path)
+    if pid_path.exists():
+        try:
+            pid = int(pid_path.read_text().strip())
+            os.kill(pid, 0)
+            checks["index_server_pid_alive"] = True
+            checks["index_server_pid"] = pid
+        except (OSError, ValueError):
+            checks["index_server_pid_alive"] = False
+    else:
+        checks["index_server_pid_alive"] = False
+
+    out_dir = processed_manifest_dir(config)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = out_dir / f"collection_preflight_{runid}.json"
+    manifest_path.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    logger.info("Wrote collection preflight manifest %s", manifest_path)
+    return manifest_path
+
+
+def run_collection_year(
+    config: Dict,
+    *,
+    year: int | str,
+    track: Optional[str],
+    batch: int | str = 1,
+    build_processed: bool = True,
+) -> Path:
+    track = _normalise_track(track)
+    batch_int = int(batch)
+    runid = _utc_runid()
+    logger = _setup_logger(Path("reports/logs"), f"cc-collection-run-year-{track}")
+    steps: List[Dict[str, object]] = []
+
+    def _record_step(name: str, output: object) -> None:
+        steps.append(
+            {
+                "step": name,
+                "output": str(output),
+                "completed_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            }
+        )
+
+    logger.info("Running collection year=%s track=%s batch=%03d", year, track, batch_int)
+    _record_step(
+        "sample_wet",
+        sample_collection_wet(config, year=year, track=track, batch=batch_int),
+    )
+    _record_step(
+        "download_wet",
+        download_collection_wet(config, year=year, track=track, batch=batch_int),
+    )
+    _record_step("scan_wet", scan_collection(config, year=year, track=track, batch=batch_int))
+    _record_step(
+        "export_urls",
+        export_collection_urls(config, year=year, track=track, batch=batch_int),
+    )
+    upload_manifest_path = upload_collection_urls(
+        config, year=year, track=track, batch=batch_int
+    )
+    _record_step("upload_urls", upload_manifest_path)
+
+    upload_manifest = _read_latest_url_upload_manifest(
+        config, year=year, track=track, batch=batch_int
+    )
+    url_export_uri = str(upload_manifest["csv_s3_uri"])
+    export_runid = str(upload_manifest["runid"])
+    batch_label = _batch_label(batch_int)
+
+    _record_step(
+        "install_indexes",
+        install_collection_indexes(config, url_export_uri=url_export_uri),
+    )
+    stopped_pid = stop_collection_index_server(config)
+    if stopped_pid is not None:
+        _record_step("stop_existing_index_server", stopped_pid)
+    _record_step("start_index_server", start_collection_index_server(config))
+
+    resolve_output_prefix = _collection_s3_uri(
+        config, "pointer_cache", track, str(year), batch_label, export_runid
+    )
+    resolve_output_prefix = resolve_output_prefix.rstrip("/") + "/"
+    pointer_cache_path = resolve_collection_urls(
+        config,
+        year=year,
+        track=track,
+        batch=batch_int,
+        url_export_uri=url_export_uri,
+        s3_output_prefix=resolve_output_prefix,
+    )
+    _record_step("resolve", pointer_cache_path)
+
+    pointer_cache_uri = f"{resolve_output_prefix}cc_pointer_cache_{export_runid}.parquet"
+    warc_output_prefix = _collection_s3_uri(
+        config, "warc_output", track, str(year), batch_label, export_runid
+    )
+    warc_output_prefix = warc_output_prefix.rstrip("/") + "/"
+    _record_step(
+        "extract",
+        extract_collection(
+            config,
+            year=year,
+            track=track,
+            batch=batch_int,
+            pointer_cache_uri=pointer_cache_uri,
+            s3_output_prefix=warc_output_prefix,
+        ),
+    )
+    _record_step("quality", quality_collection(config, year=year, track=track, batch=batch_int))
+
+    processed_path = ""
+    if build_processed:
+        if track == "trend":
+            processed_path = str(build_processed_trend(config))
+        else:
+            processed_path = str(build_processed_corpus(config))
+        _record_step("build_processed", processed_path)
+
+    manifest_payload = {
+        "runid": runid,
+        "url_export_runid": export_runid,
+        "year": str(year),
+        "track": track,
+        "batch": str(batch_int),
+        "url_export_uri": url_export_uri,
+        "resolve_output_prefix": resolve_output_prefix,
+        "pointer_cache_uri": pointer_cache_uri,
+        "warc_output_prefix": warc_output_prefix,
+        "processed_path": processed_path,
+        "steps": steps,
+    }
+    manifest_path = _write_run_manifest(
+        config,
+        year=year,
+        track=track,
+        batch=batch_int,
+        payload=manifest_payload,
+    )
+    logger.info("Wrote collection run manifest %s", manifest_path)
+    return manifest_path
+
+
 def build_processed_trend(config: Dict) -> Path:
     out_dir = processed_trend_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -608,8 +857,8 @@ def build_processed_corpus(config: Dict) -> Path:
 def run_collection_track(config: Dict, *, track: str) -> None:
     track = _normalise_track(track)
     for year in _collection_years(config):
-        sample_collection_wet(config, year=year, track=track, batch=1)
-        download_collection_wet(config, year=year, track=track, batch=1)
-        scan_collection(config, year=year, track=track, batch=1)
-        export_collection_urls(config, year=year, track=track, batch=1)
-        upload_collection_urls(config, year=year, track=track, batch=1)
+        run_collection_year(config, year=year, track=track, batch=1, build_processed=False)
+    if track == "trend":
+        build_processed_trend(config)
+    else:
+        build_processed_corpus(config)

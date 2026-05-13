@@ -22,6 +22,12 @@ paper:
 collection_select_crawls:
 	python -m src.cli cc-collection-select-crawls --config $(CONFIG)
 
+collection_preflight:
+	python -m src.cli cc-collection-preflight --config $(CONFIG)
+
+collection_stop_index_server:
+	python -m src.cli cc-collection-stop-index-server --config $(CONFIG)
+
 collection_sample:
 	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
 	python -m src.cli cc-collection-sample-wet --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
@@ -79,23 +85,18 @@ collection_build_processed:
 		python -m src.cli cc-collection-build-corpus --config $(CONFIG); \
 	fi
 
+collection_year:
+	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
+	python -m src.cli cc-collection-run-year --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
+
 trend_year:
-	$(MAKE) collection_acquire YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
-	$(MAKE) collection_scan YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
-	$(MAKE) collection_export_urls YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
-	$(MAKE) collection_upload_urls YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_year YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
 
 corpus_year:
-	$(MAKE) collection_acquire YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
-	$(MAKE) collection_scan YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
-	$(MAKE) collection_export_urls YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
-	$(MAKE) collection_upload_urls YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
+	$(MAKE) collection_year YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
 
 corpus_expand:
-	$(MAKE) collection_acquire YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
-	$(MAKE) collection_scan YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
-	$(MAKE) collection_export_urls YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
-	$(MAKE) collection_upload_urls YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
+	$(MAKE) collection_year YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
 
 trend:
 	python -m src.cli cc-collection-run --config $(CONFIG) --track trend

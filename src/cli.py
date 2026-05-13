@@ -13,13 +13,16 @@ from src.data_sources.commoncrawl import (
     export_collection_urls,
     extract_collection,
     install_collection_indexes,
+    preflight_collection,
     quality_collection,
     resolve_collection_urls,
     run_collection_track,
+    run_collection_year,
     sample_collection_wet,
     scan_collection,
     select_collection_crawls,
     start_collection_index_server,
+    stop_collection_index_server,
     upload_collection_urls,
 )
 from src.pathing import (
@@ -88,6 +91,12 @@ def main() -> None:
         help="Write the frozen year-to-crawl map manifest for the final collection.",
     )
     _add_config_arg(p_select)
+
+    p_preflight = sub.add_parser(
+        "cc-collection-preflight",
+        help="Check local config, AWS identity/S3 write access, and index-server state.",
+    )
+    _add_config_arg(p_preflight)
 
     p_sample = sub.add_parser(
         "cc-collection-sample-wet",
@@ -177,10 +186,23 @@ def main() -> None:
 
     p_run_track = sub.add_parser(
         "cc-collection-run",
-        help="Run acquire, scan, URL export, and URL upload for all configured years in one track.",
+        help="Run the full collection pipeline for all configured years in one track.",
     )
     _add_config_arg(p_run_track)
     p_run_track.add_argument("--track", required=True, choices=["trend", "corpus"])
+
+    p_run_year = sub.add_parser(
+        "cc-collection-run-year",
+        help="Run the full collection pipeline for one year/track/batch.",
+    )
+    _add_config_arg(p_run_year)
+    _add_year_track_batch_args(p_run_year)
+
+    p_stop = sub.add_parser(
+        "cc-collection-stop-index-server",
+        help="Stop the local collection index server recorded in the configured pidfile.",
+    )
+    _add_config_arg(p_stop)
 
     args = parser.parse_args()
     cfg_path = Path(args.config)
@@ -192,6 +214,9 @@ def main() -> None:
 
     if args.command == "cc-collection-select-crawls":
         select_collection_crawls(cfg)
+        return
+    if args.command == "cc-collection-preflight":
+        preflight_collection(cfg)
         return
     if args.command == "cc-collection-sample-wet":
         sample_collection_wet(cfg, year=args.year, track=args.track, batch=args.batch)
@@ -251,6 +276,12 @@ def main() -> None:
         return
     if args.command == "cc-collection-run":
         run_collection_track(cfg, track=args.track)
+        return
+    if args.command == "cc-collection-run-year":
+        run_collection_year(cfg, year=args.year, track=args.track, batch=args.batch)
+        return
+    if args.command == "cc-collection-stop-index-server":
+        stop_collection_index_server(cfg)
         return
 
 

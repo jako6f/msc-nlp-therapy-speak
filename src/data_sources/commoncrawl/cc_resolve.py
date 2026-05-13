@@ -723,6 +723,25 @@ def start_index_server_remote(config: Dict) -> Path:
     )
 
 
+def stop_index_server_remote(config: Dict) -> Optional[int]:
+    _require_stage(config, "collection")
+    resolve_cfg = _resolve_remote_config(config)
+    if not resolve_cfg.server_pid_path.exists():
+        return None
+
+    try:
+        pid = int(resolve_cfg.server_pid_path.read_text().strip())
+    except ValueError:
+        resolve_cfg.server_pid_path.unlink(missing_ok=True)
+        return None
+
+    if pid and _pid_is_alive(pid):
+        os.kill(pid, 15)
+        time.sleep(2)
+    resolve_cfg.server_pid_path.unlink(missing_ok=True)
+    return pid
+
+
 def _cdxj_manifest_url(crawl_id: str, resolve_cfg: ResolveRemoteConfig) -> str:
     return f"{resolve_cfg.index_manifest_base_url}/crawl-data/{crawl_id}/cc-index.paths.gz"
 
