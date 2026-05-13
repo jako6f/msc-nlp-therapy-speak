@@ -27,7 +27,7 @@ Run on the EC2 collection host unless you are deliberately testing local-only co
 From your local machine:
 
 ```bash
-ssh -i /path/to/commoncrawl-collection-key.pem ec2-user@YOUR_EC2_HOSTNAME
+ssh -i /Users/jakoblutkemeier/Desktop/aws/commoncrawl-collection-key.pem ec2-user@ec2-3-88-136-254.compute-1.amazonaws.com
 ```
 
 On EC2:
@@ -42,7 +42,7 @@ git pull origin main
 The local AWS config must exist on the EC2 host:
 
 ```bash
-test -f configs/local/aws.yaml
+test -f configs/local/aws.yaml && echo "File exists!"
 ```
 
 That file is intentionally not tracked by Git. It supplies the private S3 bucket/prefix
@@ -160,21 +160,6 @@ data/processed/trend/trend_rates.csv
 data/processed/corpus/corpus_documents.parquet
 ```
 
-## Sync Outputs To Local Machine
-
-Do not use GitHub to move collection outputs from EC2 to your local machine. GitHub is
-only for tracked code, config, and documentation. After a successful EC2 run, sync data
-artifacts from S3 on your local machine:
-
-```bash
-cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
-aws s3 sync \
-  s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ \
-  data/interim/collection/
-```
-
-Use a narrower S3 prefix if you only need one year, track, or batch.
-
 ## Inspect Latest Results
 
 For trend:
@@ -210,7 +195,6 @@ data/interim/collection/.../metrics/cc_collection_run_manifest_<runid>.json
 If the failure happened before WARC resolution, rerunning the same high-level command is
 usually acceptable. Existing WET downloads are skipped.
 
-If the failure happened after URL upload and you need specialist manual recovery, inspect
-the relevant log and manifest first, then call the underlying CLI command directly with the
-exact S3 URI or local path you want to resume from. These recovery commands are intentionally
-not exposed as public Make targets because the high-level command is the supported interface.
+If the failure happened after URL upload and you want to resume manually, use the lower-level
+Make targets in `Makefile`. They remain available for explicit recovery, but are not the
+recommended day-to-day interface.

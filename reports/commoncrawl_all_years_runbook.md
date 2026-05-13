@@ -202,6 +202,21 @@ metrics/cc_collection_throughput_summary_<runid>.csv
 metrics/cc_collection_run_manifest_<runid>.json
 ```
 
+## Sync Outputs To Local Machine
+
+Do not push collection outputs through GitHub. GitHub is only for tracked code, config,
+and documentation. After EC2 collection runs, sync data artifacts from S3 on your local
+machine:
+
+```bash
+cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
+aws s3 sync \
+  s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ \
+  data/interim/collection/
+```
+
+Use a narrower S3 prefix if you only need a specific track, year, or batch.
+
 ## Monitoring
 
 In another SSH session:
