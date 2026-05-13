@@ -1,103 +1,126 @@
 # msc-nlp-therapy-speak
 
-Research repository for collecting a Common Crawl corpus of ADHD/autism discourse and matched baseline terms for diachronic NLP analysis.
+This repository builds a Common Crawl corpus for diachronic NLP analysis of public web
+discourse around ADHD and autism, with matched baseline emotion terms for comparison.
 
-**Status:** final collection pipeline after pilot-dev validation. Pilot-dev artifacts are archived under `data/interim/pilot-dev/` and the pilot-dev code/data checkpoint is tagged as `v0.3-pilot-dev`.
+The repository is organized around a final collection pipeline. Earlier pilot-dev work is
+kept as archived evidence under `data/interim/pilot-dev/`, but the active code, config,
+and documentation are for the full collection run.
 
-## Quickstart
+## What This Pipeline Does
 
-```bash
-conda env create -f environment.yml
-conda activate msc-nlp
-make sanity
-make collection_select_crawls
+The pipeline starts from yearly Common Crawl WET files, finds candidate term hits, resolves
+their corresponding WARC HTML records, extracts readable document text, applies document
+quality gates, and writes two downstream products:
+
+- `trend`: fixed-size yearly samples for diachronic rate estimates.
+- `corpus`: larger yearly samples for target-term semantic and contextual analysis.
+
+The target groups are `adhd` and `autism`. The current baseline group contains negative
+emotion terms used as a comparison track.
+
+## Pipeline Overview
+
+```text
+Common Crawl crawl map
+        |
+        v
+Sample yearly WET files
+        |
+        v
+Download WET files
+        |
+        v
+Scan WET text for target/baseline hits
+        |
+        v
+Export candidate URLs
+        |
+        v
+Resolve WARC pointers with local Common Crawl index server
+        |
+        v
+Fetch WARC HTML records
+        |
+        v
+Extract main text and candidate publication dates
+        |
+        v
+Apply document quality gates, English filtering, and local deduplication
+        |
+        v
+Build processed trend and corpus outputs
 ```
 
-Process one yearly Trend batch:
+The WET stage is used for efficient coarse search. The WARC stage is the substantive
+validation point because it retrieves the original HTML record and re-extracts document
+text before final quality filtering.
 
-```bash
-make trend_year YEAR=2020
+## Key Files
+
+- `configs/commoncrawl_collection.yaml`: active collection configuration. It defines the
+  crawl map, sampling settings, term patterns, WET filters, WARC extraction settings,
+  document-quality gates, deduplication settings, output paths, and generic AWS/EC2
+  defaults.
+- `configs/local/aws.example.yaml`: template for private AWS/S3 settings.
+- `configs/local/aws.yaml`: untracked local override file. This is where account-specific
+  bucket, prefix, SSH key, or EC2 details belong.
+- `reports/commoncrawl_corpus_design_and_provenance.md`: public design and provenance
+  record. Read this for the rationale behind corpus scope, crawl selection, filtering,
+  validation, and known tradeoffs.
+- `reports/commoncrawl_single_year_runbook.md`: operational guide for one year, one track,
+  and one batch.
+- `reports/commoncrawl_all_years_runbook.md`: operational guide for all configured years.
+- `reports/commoncrawl_collection_crawl_map.json`: generated record of the frozen crawl map.
+- `environment.yml`: conda environment specification.
+- `AGENTS.md`: repository-level working instructions for Codex-style coding agents.
+
+## Repository Structure
+
+```text
+configs/
+  commoncrawl_collection.yaml      Active public collection config
+  local/                           Untracked private local overrides
+
+data/
+  interim/
+    collection/                    Working and S3-synced collection artifacts
+    pilot-dev/                     Archived pilot-dev outputs and closeout notes
+  processed/
+    trend/                         Processed trend outputs
+    corpus/                        Processed corpus outputs
+    manifests/                     Processed run manifests
+
+notebooks/                         Lightweight inspection and sanity notebooks
+paper/                             Thesis/proposal LaTeX materials
+reports/                           Runbooks, provenance docs, and crawl-map records
+src/
+  cli.py                           Command-line entry point
+  pathing.py                       Shared output path helpers
+  data_sources/commoncrawl/        Common Crawl acquisition, scan, WARC, and quality code
 ```
 
-Process one yearly Corpus batch:
+Generated data products are not moved through GitHub. Remote collection runs upload data
+artifacts to S3, and local machines sync those artifacts back from S3.
 
-```bash
-make corpus_year YEAR=2020 BATCH=1
-```
+## How To Operate The Pipeline
 
-See [reports/commoncrawl_collection_runbook.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/reports/commoncrawl_collection_runbook.md) for the full local/EC2 execution sequence.
+Use the runbooks rather than this README for execution details:
 
-## Active Configuration
+- Start with [the single-year runbook](reports/commoncrawl_single_year_runbook.md) for
+  smoke tests, targeted reruns, or corpus expansion batches.
+- Use [the all-years runbook](reports/commoncrawl_all_years_runbook.md) after the
+  single-year path has been validated.
 
-The active collection config is:
-
-- `configs/commoncrawl_collection.yaml`
-
-It defines:
-
-- the frozen 2014-2026 year-to-crawl map
-- the 2016-2026 conservative fallback window
-- Trend and Corpus sampling settings
-- target and baseline term patterns
-- WET triage rules
-- WARC extraction settings
-- publication-date extraction settings
-- document-quality, English filtering, and dedup settings
-- generic AWS/S3/EC2 resolver defaults; personal account values belong in untracked `configs/local/aws.yaml`
-
-Optional local override:
-
-```bash
-cp configs/local/aws.example.yaml configs/local/aws.yaml
-```
-
-`configs/local/aws.yaml` is ignored by git and is merged automatically when present. You can also point to another local override with `MSC_NLP_LOCAL_CONFIG=/path/to/local.yaml`.
-
-## Active Commands
-
-Individual steps:
-
-- `make collection_sample`
-- `make collection_download`
-- `make collection_scan`
-- `make collection_export_urls`
-- `make collection_upload_urls`
-- `make collection_install_indexes`
-- `make collection_start_index_server`
-- `make collection_resolve`
-- `make collection_extract`
-- `make collection_quality`
-- `make collection_build_processed`
-
-Convenience targets:
-
-- `make trend_year YEAR=YYYY`
-- `make corpus_year YEAR=YYYY BATCH=N`
-- `make corpus_expand YEAR=YYYY BATCH=N`
-- `make trend`
-- `make corpus`
-
-Remote pointer resolution and WARC extraction require explicit S3 URIs and should be run on the EC2 host in `us-east-1`; see the runbook.
-
-## Data Layout
-
-Working outputs:
-
-- `data/interim/collection/trend_working/`
-- `data/interim/collection/corpus_working/`
-
-Final processed outputs:
-
-- `data/processed/trend/`
-- `data/processed/corpus/`
-- `data/processed/manifests/`
-
-Archived pilot-dev outputs:
-
-- `data/interim/pilot-dev/`
+Those runbooks cover EC2 setup, GitHub synchronization, local AWS config, preflight checks,
+tmux usage, S3 sync-back, output inspection, and failure recovery.
 
 ## Design And Provenance
 
-The corpus design and provenance record is documented in:
+For methodological details, see
+[reports/commoncrawl_corpus_design_and_provenance.md](reports/commoncrawl_corpus_design_and_provenance.md).
 
-- [reports/commoncrawl_corpus_design_and_provenance.md](/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/reports/commoncrawl_corpus_design_and_provenance.md)
+That document records the important design and configuration decisions: crawl-window
+choice, crawl-map pinning, WET-first acquisition, WARC validation, publication-date
+recovery, page-quality filtering, deduplication, trend/corpus separation, and pilot-dev
+lessons that shaped the final pipeline.
