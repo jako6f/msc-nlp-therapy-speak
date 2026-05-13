@@ -195,6 +195,7 @@ data/interim/collection/.../metrics/cc_collection_run_manifest_<runid>.json
 If the failure happened before WARC resolution, rerunning the same high-level command is
 usually acceptable. Existing WET downloads are skipped.
 
-If the failure happened after URL upload and you want to resume manually, use the lower-level
-Make targets in `Makefile`. They remain available for explicit recovery, but are not the
-recommended day-to-day interface.
+If the failure happened after URL upload and you need specialist manual recovery, inspect
+the relevant log and manifest first, then call the underlying CLI command directly with the
+exact S3 URI or local path you want to resume from. These recovery commands are intentionally
+not exposed as public Make targets because the high-level command is the supported interface.

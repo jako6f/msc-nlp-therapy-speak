@@ -169,13 +169,7 @@ collection.corpus.max_wet_files_per_year_first_pass
 ```
 
 With 50-WET batches and a 250-WET cap, the practical first-pass maximum is five batches
-per year.
-
-After expansion, rebuild processed corpus output if needed:
-
-```bash
-make collection_build_processed TRACK=corpus CONFIG=configs/commoncrawl_collection.yaml
-```
+per year. Each successful `corpus_expand` run refreshes the processed corpus output.
 
 ## Output Layout
 
