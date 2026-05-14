@@ -3,6 +3,7 @@ import gzip
 import io
 import json
 import logging
+import signal
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -51,6 +52,33 @@ class LookupOutcome:
     retry_delay_total_s: float
     match_count: int
     provider: str
+
+
+class _DocumentTimeoutError(TimeoutError):
+    pass
+
+
+class _DocumentTimeout:
+    def __init__(self, timeout_s: int):
+        self.timeout_s = max(0, int(timeout_s))
+        self._previous_handler = None
+
+    def __enter__(self):
+        if self.timeout_s <= 0:
+            return self
+        self._previous_handler = signal.getsignal(signal.SIGALRM)
+        signal.signal(signal.SIGALRM, self._raise_timeout)
+        signal.setitimer(signal.ITIMER_REAL, self.timeout_s)
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self.timeout_s > 0:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, self._previous_handler)
+        return False
+
+    def _raise_timeout(self, signum, frame):  # noqa: ARG002
+        raise _DocumentTimeoutError(f"document_timeout:{self.timeout_s}s")
 
 
 def _utc_runid() -> str:
@@ -140,6 +168,7 @@ def _warc_extraction_config(config: Dict, stage_key: str) -> Dict[str, object]:
         "include_tables": bool(warc_cfg.get("include_tables", True)),
         "resiliparse_comments": bool(warc_cfg.get("resiliparse_comments", True)),
         "resiliparse_post_meta": bool(warc_cfg.get("resiliparse_post_meta", True)),
+        "document_timeout_s": int(warc_cfg.get("document_timeout_s", 300)),
     }
 
 
@@ -793,6 +822,7 @@ def extract_pointer_cache(
         raise ValueError(f"No validated WET hits available for {display_label} extraction.")
 
     extraction_cfg = _warc_extraction_config(config, "collection_stage")
+    document_timeout_s = int(extraction_cfg.get("document_timeout_s", 300) or 0)
     tolerance_hours = int(
         config.get("collection_stage", {}).get("published_ts_tolerance_hours", 48)
     )
@@ -893,53 +923,74 @@ def extract_pointer_cache(
             continue
 
         lookup_success_docs += 1
-        fetched_payload, fetch_note = _fetch_warc_payload(record)
-        row["warc_validation_notes"] = fetch_note
-        if fetched_payload is None:
+        try:
+            with _DocumentTimeout(document_timeout_s):
+                fetched_payload, fetch_note = _fetch_warc_payload(record)
+                row["warc_validation_notes"] = fetch_note
+                if fetched_payload is None:
+                    doc_records.append(row)
+                    continue
+
+                fetch_success_docs += 1
+                row["warc_fetch_success"] = True
+                row["capture_ts"] = fetched_payload.get("capture_ts", "")
+                row["warc_target_uri"] = fetched_payload.get("warc_target_uri", "")
+                row["http_status"] = fetched_payload.get("http_status", "")
+                row["html_bytes"] = int(fetched_payload.get("html_bytes", 0) or 0)
+
+                html_text = str(fetched_payload.get("html_text", ""))
+                extracted_text, extract_note, extractor_used = _extract_main_content(
+                    html_text, extraction_cfg=extraction_cfg
+                )
+                row["warc_validation_notes"] = extract_note
+                row["extractor_used"] = extractor_used
+                row["schema_types"] = _extract_schema_types(html_text, url)
+                if extracted_text:
+                    term_rows = combined_hits_df.loc[
+                        (combined_hits_df["crawl_id"].astype(str) == crawl_id)
+                        & (combined_hits_df["url"].astype(str) == url)
+                    ]
+                    candidate_terms = {
+                        str(term).strip().lower()
+                        for term in term_rows["matched_term"].dropna().tolist()
+                        if str(term).strip()
+                    }
+                    extracted_lower = extracted_text.lower()
+                    if candidate_terms and not any(
+                        term in extracted_lower for term in candidate_terms
+                    ):
+                        row["warc_validation_notes"] = "term_missing_after_extraction"
+                    else:
+                        extract_success_docs += 1
+                        row["trafilatura_success"] = extractor_used == "trafilatura"
+                        row["is_validated_hits_warc"] = True
+                        row["extracted_text"] = extracted_text
+                        row["extracted_text_len"] = len(extracted_text)
+                published_ts = _extract_published_timestamp(
+                    html_text=html_text,
+                    url=url,
+                    capture_ts=str(row["capture_ts"]) or None,
+                    tolerance_hours=tolerance_hours,
+                    min_date=min_published_ts,
+                )
+                row["published_ts"] = published_ts or ""
+        except _DocumentTimeoutError:
+            row["warc_validation_notes"] = f"document_timeout:{document_timeout_s}s"
+            logger.warning(
+                "%s remote extraction skipped timed-out doc %d/%d | crawl_id=%s "
+                "url=%s warc_filename=%s offset=%s length=%s timeout_s=%d",
+                display_label,
+                doc_idx,
+                len(unique_docs),
+                crawl_id,
+                url,
+                record.filename,
+                record.offset,
+                record.length,
+                document_timeout_s,
+            )
             doc_records.append(row)
             continue
-
-        fetch_success_docs += 1
-        row["warc_fetch_success"] = True
-        row["capture_ts"] = fetched_payload.get("capture_ts", "")
-        row["warc_target_uri"] = fetched_payload.get("warc_target_uri", "")
-        row["http_status"] = fetched_payload.get("http_status", "")
-        row["html_bytes"] = int(fetched_payload.get("html_bytes", 0) or 0)
-
-        html_text = str(fetched_payload.get("html_text", ""))
-        extracted_text, extract_note, extractor_used = _extract_main_content(
-            html_text, extraction_cfg=extraction_cfg
-        )
-        row["warc_validation_notes"] = extract_note
-        row["extractor_used"] = extractor_used
-        row["schema_types"] = _extract_schema_types(html_text, url)
-        if extracted_text:
-            term_rows = combined_hits_df.loc[
-                (combined_hits_df["crawl_id"].astype(str) == crawl_id)
-                & (combined_hits_df["url"].astype(str) == url)
-            ]
-            candidate_terms = {
-                str(term).strip().lower()
-                for term in term_rows["matched_term"].dropna().tolist()
-                if str(term).strip()
-            }
-            extracted_lower = extracted_text.lower()
-            if candidate_terms and not any(term in extracted_lower for term in candidate_terms):
-                row["warc_validation_notes"] = "term_missing_after_extraction"
-            else:
-                extract_success_docs += 1
-                row["trafilatura_success"] = extractor_used == "trafilatura"
-                row["is_validated_hits_warc"] = True
-                row["extracted_text"] = extracted_text
-                row["extracted_text_len"] = len(extracted_text)
-        published_ts = _extract_published_timestamp(
-            html_text=html_text,
-            url=url,
-            capture_ts=str(row["capture_ts"]) or None,
-            tolerance_hours=tolerance_hours,
-            min_date=min_published_ts,
-        )
-        row["published_ts"] = published_ts or ""
         doc_records.append(row)
 
         if doc_idx % 25 == 0:
