@@ -479,6 +479,7 @@ Known limitations:
 - Some prose-like spam, commercial listings, archive pages, and incidental mentions will survive.
 - WET-stage URL filtering is conservative and intentionally not complete.
 - Document-quality filters may remove some genuine prose.
+- Retained documents are quality-gated for substantive web discourse but are not classified or balanced by page genre.
 - Publication dates are inferred from archived HTML and may reflect page metadata rather than original authorship date.
 - Common Crawl captures are not a representative sample of the whole web or of all communities discussing ADHD/autism.
 - The final corpus is designed for research on web discourse patterns, not clinical prevalence, diagnosis, lived experience prevalence, or population-level health inference.

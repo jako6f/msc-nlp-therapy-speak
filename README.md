@@ -19,6 +19,12 @@ quality gates, and writes two downstream products:
 The target groups are `adhd` and `autism`. The current baseline group contains negative
 emotion terms used as a comparison track.
 
+## What This Pipeline Does NOT Do
+
+The pipeline does not attempt to classify retained documents by web page or genre type.
+Its focus is a quality-gated corpus of substantive web documents rather than a
+genre-controlled sample of articles, forums, blogs, or other page classes.
+
 ## Pipeline Overview
 
 ```text
