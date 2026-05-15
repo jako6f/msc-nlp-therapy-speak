@@ -54,6 +54,10 @@ collection:
   trend:
     fixed_wet_files_per_year: 50
 
+  raw_wet:
+    min_free_gb_before_download: 10.0
+    cleanup_after_successful_year: true
+
   corpus:
     target_docs_per_target_group_year: 1000
     soft_min_docs_per_target_group_year: 500

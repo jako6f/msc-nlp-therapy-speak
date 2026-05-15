@@ -81,7 +81,7 @@ make collection_preflight
 ```
 
 Preflight checks the merged config, AWS identity, S3 write/delete access, configured years,
-and index-server state.
+raw-WET disk headroom, and index-server state.
 
 If the configured pidfile points to an old collection index server, stop it:
 
@@ -195,6 +195,10 @@ per year. Each successful `corpus_expand` run refreshes the processed corpus out
 
 Use expansion only for years whose final target-group document counts remain below the
 configured target or soft minimum.
+
+Raw WET files are transient working inputs. After a year completes successfully, the
+runner removes that year's local WET batch automatically. The manifests and downstream
+outputs remain durable, and failed years keep their WET files for immediate recovery.
 
 ## Output Layout
 
@@ -317,5 +321,15 @@ Then either rerun the all-years command or rerun the affected year explicitly:
 make collection_year YEAR=2024 TRACK=trend BATCH=1 CONFIG=configs/commoncrawl_collection.yaml
 ```
 
-Existing WET downloads are skipped. Later steps write new timestamped outputs rather than
-overwriting old files.
+Existing WET downloads are skipped only while the raw files are still present. After a
+successful year, local raw WET files are cleaned up automatically and a later rerun will
+redownload them from the saved deterministic manifest. Later steps write new timestamped
+outputs rather than overwriting old files.
+
+If you run an ad hoc recovery loop manually, make it fail fast:
+
+```bash
+for YEAR in 2016 2017 2018; do
+  make trend_year YEAR=$YEAR CONFIG=configs/commoncrawl_collection.yaml || break
+done
+```

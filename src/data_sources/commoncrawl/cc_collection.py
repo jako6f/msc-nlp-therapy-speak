@@ -5,6 +5,7 @@ import json
 import os
 import random
 import re
+import shutil
 import socket
 import time
 from pathlib import Path
@@ -91,6 +92,34 @@ def _batch_size(config: Dict, track: str) -> int:
 
 def _batch_label(batch: int | str) -> str:
     return f"batch_{int(batch):03d}"
+
+
+def _raw_wet_cfg(config: Dict) -> Dict:
+    return _collection_cfg(config).get("raw_wet", {})
+
+
+def _raw_wet_dir() -> Path:
+    return Path("data/raw/wet")
+
+
+def _raw_wet_min_free_gb(config: Dict) -> float:
+    return float(_raw_wet_cfg(config).get("min_free_gb_before_download", 10.0))
+
+
+def _disk_free_gb(path: Path) -> float:
+    path.mkdir(parents=True, exist_ok=True)
+    return shutil.disk_usage(path).free / (1024**3)
+
+
+def _require_raw_wet_download_space(config: Dict, output_dir: Path) -> None:
+    min_free_gb = _raw_wet_min_free_gb(config)
+    free_gb = _disk_free_gb(output_dir)
+    if free_gb < min_free_gb:
+        raise RuntimeError(
+            "Insufficient free disk space before WET download: "
+            f"{free_gb:.2f} GiB available in {output_dir}, "
+            f"requires at least {min_free_gb:.2f} GiB."
+        )
 
 
 def _aws_s3_base(config: Dict) -> Tuple[str, str]:
@@ -507,12 +536,12 @@ def download_collection_wet(
     batch: int | str = 1,
     manifest: Optional[str] = None,
 ) -> int:
-    del config
     track = _normalise_track(track)
     manifest_path = Path(manifest) if manifest else _latest_collection_manifest(year, track, batch)
     entries = read_manifest(manifest_path)
-    output_dir = Path("data/raw/wet")
+    output_dir = _raw_wet_dir()
     output_dir.mkdir(parents=True, exist_ok=True)
+    _require_raw_wet_download_space(config, output_dir)
     logger = _setup_logger(Path("reports/logs"), f"cc-collection-download-{track}")
     downloaded = 0
     for entry in entries:
@@ -524,15 +553,46 @@ def download_collection_wet(
             downloaded += 1
             continue
         logger.info("Downloading %s -> %s", source_url, dest)
-        with urlopen(source_url) as response, dest.open("wb") as handle:
-            while True:
-                chunk = response.read(1024 * 1024)
-                if not chunk:
-                    break
-                handle.write(chunk)
+        temp_dest = dest.with_name(f"{dest.name}.part")
+        temp_dest.unlink(missing_ok=True)
+        try:
+            with urlopen(source_url) as response, temp_dest.open("wb") as handle:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    handle.write(chunk)
+            temp_dest.replace(dest)
+        except Exception:
+            temp_dest.unlink(missing_ok=True)
+            raise
         downloaded += 1
     logger.info("Downloaded or confirmed %d WET files", downloaded)
     return downloaded
+
+
+def cleanup_collection_wet(
+    config: Dict,
+    *,
+    year: int | str,
+    track: Optional[str] = None,
+    batch: int | str = 1,
+    manifest: Optional[str] = None,
+) -> int:
+    del config
+    track = _normalise_track(track)
+    manifest_path = Path(manifest) if manifest else _latest_collection_manifest(year, track, batch)
+    entries = read_manifest(manifest_path)
+    output_dir = _raw_wet_dir()
+    removed = 0
+    for entry in entries:
+        wet_path = output_dir / str(entry["local_filename"])
+        if wet_path.exists():
+            wet_path.unlink()
+            removed += 1
+        partial_path = wet_path.with_name(f"{wet_path.name}.part")
+        partial_path.unlink(missing_ok=True)
+    return removed
 
 
 def _collection_stage_config(
@@ -685,6 +745,18 @@ def preflight_collection(config: Dict) -> Path:
     bucket, prefix = _aws_s3_base(config)
     checks["s3_bucket"] = bucket
     checks["s3_prefix"] = prefix
+    raw_wet_dir = _raw_wet_dir()
+    raw_wet_free_gb = _disk_free_gb(raw_wet_dir)
+    raw_wet_min_free_gb = _raw_wet_min_free_gb(config)
+    checks["raw_wet_dir"] = str(raw_wet_dir)
+    checks["raw_wet_free_gb"] = round(raw_wet_free_gb, 3)
+    checks["raw_wet_min_free_gb_before_download"] = raw_wet_min_free_gb
+    if raw_wet_free_gb < raw_wet_min_free_gb:
+        raise RuntimeError(
+            "Insufficient free disk space before collection: "
+            f"{raw_wet_free_gb:.2f} GiB available in {raw_wet_dir}, "
+            f"requires at least {raw_wet_min_free_gb:.2f} GiB."
+        )
 
     import boto3  # type: ignore
 
@@ -763,13 +835,17 @@ def run_collection_year(
         )
 
     logger.info("Running collection year=%s track=%s batch=%03d", year, track, batch_int)
-    _record_step(
-        "sample_wet",
-        sample_collection_wet(config, year=year, track=track, batch=batch_int),
-    )
+    wet_manifest_path = sample_collection_wet(config, year=year, track=track, batch=batch_int)
+    _record_step("sample_wet", wet_manifest_path)
     _record_step(
         "download_wet",
-        download_collection_wet(config, year=year, track=track, batch=batch_int),
+        download_collection_wet(
+            config,
+            year=year,
+            track=track,
+            batch=batch_int,
+            manifest=str(wet_manifest_path),
+        ),
     )
     _record_step("scan_wet", scan_collection(config, year=year, track=track, batch=batch_int))
     _record_step(
@@ -852,6 +928,16 @@ def run_collection_year(
         quality_output_prefix,
     )
     _record_step("upload_quality", quality_output_prefix)
+    if bool(_raw_wet_cfg(config).get("cleanup_after_successful_year", True)):
+        removed_wet_files = cleanup_collection_wet(
+            config,
+            year=year,
+            track=track,
+            batch=batch_int,
+            manifest=str(wet_manifest_path),
+        )
+        logger.info("Removed %d raw WET files after successful year", removed_wet_files)
+        _record_step("cleanup_raw_wet", removed_wet_files)
 
     processed_path = ""
     processed_output_prefix = ""

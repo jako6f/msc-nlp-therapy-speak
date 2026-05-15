@@ -63,6 +63,7 @@ make collection_preflight
 - The configured S3 bucket and prefix.
 - AWS caller identity.
 - S3 write/delete access under the configured prefix.
+- Available disk headroom before local raw-WET download.
 - The local index-server port and pidfile state.
 
 If port `8080` is already occupied by an old collection index server, stop the recorded
@@ -124,6 +125,11 @@ make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
 Use `trend_year` for a fixed annual trend sample. Use `corpus_year` for corpus batch 1.
 Use `corpus_expand` for additional deterministic corpus batches after inspecting whether
 the year has reached the target document counts.
+
+Raw WET files are transient working inputs. After the year completes successfully, the
+runner removes that year's local WET batch automatically. The deterministic manifest and
+downstream outputs remain durable; if the year fails before completion, its WET files are
+kept for immediate recovery.
 
 ## Outputs
 
@@ -253,7 +259,8 @@ data/interim/collection/.../metrics/cc_collection_run_manifest_<runid>.json
 ```
 
 If the failure happened before WARC resolution, rerunning the same high-level command is
-usually acceptable. Existing WET downloads are skipped.
+usually acceptable. Existing WET downloads are skipped while the raw files are still
+present; after a successful year, a later rerun redownloads them from the saved manifest.
 
 If the failure happened after URL upload and you need specialist manual recovery, inspect
 the relevant log and manifest first, then call the underlying CLI command directly with the
