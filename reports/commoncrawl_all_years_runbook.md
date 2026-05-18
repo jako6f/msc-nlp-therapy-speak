@@ -234,7 +234,7 @@ metrics/cc_collection_run_manifest_<runid>.json
 ```
 
 The high-level runners also upload key outputs to S3. After syncing S3 locally, the
-S3-mirrored layout is:
+interim S3-mirrored layout is:
 
 ```text
 data/interim/collection/url_exports/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
@@ -242,12 +242,17 @@ data/interim/collection/pointer_cache/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_r
 data/interim/collection/warc_output/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
 data/interim/collection/quality/<TRACK>/<YEAR>/batch_<BATCH>/<quality_runid>/
 data/interim/collection/metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
-data/interim/collection/processed/<TRACK>/
 ```
 
 The final document-quality gate summaries, term summaries, validation samples, and
 filtered parquet outputs are in the synced `quality/.../<quality_runid>/` folders.
 Throughput summaries and run manifests are in the synced `metrics/.../<runid>/` folders.
+Final processed outputs are not part of the interim mirror. Sync them separately into:
+
+```text
+data/processed/trend/trend_rates.csv
+data/processed/corpus/corpus_documents.parquet
+```
 
 ## Sync Outputs To Local Machine
 
@@ -257,9 +262,8 @@ machine:
 
 ```bash
 cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
-aws s3 sync \
-  s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ \
-  data/interim/collection/
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ data/interim/collection/ --exclude "processed/*"
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/processed/ data/processed/
 ```
 
 Use a narrower S3 prefix if you only need a specific track, year, or batch.

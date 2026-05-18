@@ -1,6 +1,7 @@
 import copy
 import datetime as dt
 import gzip
+import io
 import json
 import os
 import random
@@ -84,6 +85,10 @@ def _warc_acceptance_cfg(config: Dict) -> Dict:
     return _warc_validation_cfg(config).get("acceptance", {})
 
 
+def _acquisition_cfg(config: Dict) -> Dict:
+    return _collection_cfg(config).get("acquisition", {})
+
+
 def _metric_float(summary: Dict[str, object], key: str, default: float = 0.0) -> float:
     value = summary.get(key, default)
     try:
@@ -98,6 +103,12 @@ def _warc_fetch_success_rate_pct(metrics: Dict[str, object]) -> float:
     return (fetch_success / docs * 100.0) if docs else 0.0
 
 
+def _warc_extract_success_rate_pct(metrics: Dict[str, object]) -> float:
+    docs = _metric_float(metrics, "doc_count_input")
+    extract_success = _metric_float(metrics, "doc_count_extract_success")
+    return (extract_success / docs * 100.0) if docs else 0.0
+
+
 def _warc_summary_metrics(path: Path) -> Dict[str, object]:
     frame = pd.read_csv(path)
     if "metric" not in frame.columns or "value" not in frame.columns:
@@ -105,11 +116,19 @@ def _warc_summary_metrics(path: Path) -> Dict[str, object]:
     return frame.set_index("metric")["value"].to_dict()
 
 
-def _warc_summary_is_accepted(config: Dict, summary_path: Path) -> Tuple[bool, float]:
+def _warc_summary_is_accepted(config: Dict, summary_path: Path) -> Tuple[bool, float, float]:
     metrics = _warc_summary_metrics(summary_path)
     fetch_success_rate_pct = _warc_fetch_success_rate_pct(metrics)
-    min_rate_pct = float(_warc_acceptance_cfg(config).get("min_fetch_success_rate_pct", 95.0))
-    return fetch_success_rate_pct >= min_rate_pct, fetch_success_rate_pct
+    extract_success_rate_pct = _warc_extract_success_rate_pct(metrics)
+    acceptance_cfg = _warc_acceptance_cfg(config)
+    min_fetch_rate_pct = float(acceptance_cfg.get("min_fetch_success_rate_pct", 95.0))
+    min_extract_rate_pct = float(acceptance_cfg.get("min_extract_success_rate_pct", 35.0))
+    return (
+        fetch_success_rate_pct >= min_fetch_rate_pct
+        and extract_success_rate_pct >= min_extract_rate_pct,
+        fetch_success_rate_pct,
+        extract_success_rate_pct,
+    )
 
 
 def _require_accepted_warc_summary(
@@ -120,25 +139,41 @@ def _require_accepted_warc_summary(
     year: int | str,
     track: str,
 ) -> None:
-    accepted, fetch_success_rate_pct = _warc_summary_is_accepted(config, summary_path)
+    accepted, fetch_success_rate_pct, extract_success_rate_pct = _warc_summary_is_accepted(
+        config, summary_path
+    )
     acceptance_cfg = _warc_acceptance_cfg(config)
-    min_rate_pct = float(acceptance_cfg.get("min_fetch_success_rate_pct", 95.0))
-    warn_rate_pct = float(acceptance_cfg.get("warn_fetch_success_rate_pct", 98.0))
-    if fetch_success_rate_pct < warn_rate_pct:
+    min_fetch_rate_pct = float(acceptance_cfg.get("min_fetch_success_rate_pct", 95.0))
+    warn_fetch_rate_pct = float(acceptance_cfg.get("warn_fetch_success_rate_pct", 98.0))
+    min_extract_rate_pct = float(acceptance_cfg.get("min_extract_success_rate_pct", 35.0))
+    warn_extract_rate_pct = float(acceptance_cfg.get("warn_extract_success_rate_pct", 40.0))
+    if fetch_success_rate_pct < warn_fetch_rate_pct:
         logger.warning(
             "WARC fetch success below warning threshold year=%s track=%s "
             "fetch_success_rate_pct=%.6f warn_below_pct=%.6f summary=%s",
             year,
             track,
             fetch_success_rate_pct,
-            warn_rate_pct,
+            warn_fetch_rate_pct,
+            summary_path,
+        )
+    if extract_success_rate_pct < warn_extract_rate_pct:
+        logger.warning(
+            "WARC extraction success below warning threshold year=%s track=%s "
+            "extract_success_rate_pct=%.6f warn_below_pct=%.6f summary=%s",
+            year,
+            track,
+            extract_success_rate_pct,
+            warn_extract_rate_pct,
             summary_path,
         )
     if not accepted:
         raise RuntimeError(
             "Rejected collection year after WARC extraction: "
             f"year={year} track={track} fetch_success_rate_pct={fetch_success_rate_pct:.6f} "
-            f"is below min_fetch_success_rate_pct={min_rate_pct:.6f}. "
+            f"min_fetch_success_rate_pct={min_fetch_rate_pct:.6f} "
+            f"extract_success_rate_pct={extract_success_rate_pct:.6f} "
+            f"min_extract_success_rate_pct={min_extract_rate_pct:.6f}. "
             f"Inspect {summary_path} before rerunning."
         )
 
@@ -148,10 +183,15 @@ def _latest_accepted_trend_summary(config: Dict, year: int | str) -> Path:
     summary_paths = sorted(warc_dir.glob("cc_collection_summary_*.csv"), reverse=True)
     rejected: List[str] = []
     for summary_path in summary_paths:
-        accepted, fetch_success_rate_pct = _warc_summary_is_accepted(config, summary_path)
+        accepted, fetch_success_rate_pct, extract_success_rate_pct = _warc_summary_is_accepted(
+            config, summary_path
+        )
         if accepted:
             return summary_path
-        rejected.append(f"{summary_path.name}:{fetch_success_rate_pct:.6f}%")
+        rejected.append(
+            f"{summary_path.name}:fetch={fetch_success_rate_pct:.6f}%"
+            f",extract={extract_success_rate_pct:.6f}%"
+        )
     if not summary_paths:
         raise FileNotFoundError(f"No trend WARC summary found for year={year} in {warc_dir}")
     raise RuntimeError(
@@ -165,6 +205,41 @@ def _accepted_trend_summaries_complete(config: Dict) -> bool:
         for year in _collection_years(config):
             _latest_accepted_trend_summary(config, year)
     except (FileNotFoundError, RuntimeError):
+        return False
+    return True
+
+
+def _latest_corpus_quality_paths(config: Dict) -> List[Path]:
+    corpus_root = collection_interim_dir(config) / "corpus_working"
+    selected_paths: List[Path] = []
+    missing_years: List[str] = []
+    for year in _collection_years(config):
+        year_dir = corpus_root / str(year)
+        selected_for_year = 0
+        for batch_dir in sorted(year_dir.glob("batch_*")):
+            if not batch_dir.is_dir():
+                continue
+            quality_paths = sorted(
+                (batch_dir / "quality").glob("cc_corpus_texts_document_quality_*.parquet")
+            )
+            if not quality_paths:
+                continue
+            selected_paths.append(quality_paths[-1])
+            selected_for_year += 1
+        if selected_for_year == 0:
+            missing_years.append(str(year))
+    if missing_years:
+        raise FileNotFoundError(
+            "No successful corpus quality output found for configured years: "
+            + ", ".join(missing_years)
+        )
+    return selected_paths
+
+
+def _corpus_quality_outputs_complete(config: Dict) -> bool:
+    try:
+        _latest_corpus_quality_paths(config)
+    except FileNotFoundError:
         return False
     return True
 
@@ -213,6 +288,130 @@ def _require_raw_wet_download_space(config: Dict, output_dir: Path) -> None:
             f"{free_gb:.2f} GiB available in {output_dir}, "
             f"requires at least {min_free_gb:.2f} GiB."
         )
+
+
+def _acquisition_retry_http_statuses(config: Dict) -> set[int]:
+    return {
+        int(status)
+        for status in _acquisition_cfg(config).get(
+            "retry_http_statuses",
+            [403, 408, 425, 429, 500, 502, 503, 504],
+        )
+    }
+
+
+def _acquisition_retry_backoff_s(config: Dict, attempt: int) -> float:
+    acquisition_cfg = _acquisition_cfg(config)
+    initial = max(0.0, float(acquisition_cfg.get("retry_initial_backoff_s", 2.0)))
+    maximum = max(initial, float(acquisition_cfg.get("retry_max_backoff_s", 30.0)))
+    return min(maximum, initial * (2 ** max(0, attempt - 1)))
+
+
+def _acquisition_max_attempts(config: Dict) -> int:
+    return max(1, int(_acquisition_cfg(config).get("max_attempts", 4)))
+
+
+def _acquisition_timeout_s(config: Dict) -> int:
+    return max(1, int(_acquisition_cfg(config).get("request_timeout_s", 120)))
+
+
+def _acquisition_request(url: str) -> Request:
+    return Request(url, headers={"User-Agent": "msc-nlp-therapy-speak/0.2"})
+
+
+def _acquisition_error_is_retryable(config: Dict, exc: Exception) -> bool:
+    if isinstance(exc, HTTPError):
+        return exc.code in _acquisition_retry_http_statuses(config)
+    return isinstance(exc, (URLError, TimeoutError, OSError))
+
+
+def _log_acquisition_retry(
+    logger, *, label: str, attempt: int, max_attempts: int, delay_s: float, exc
+):
+    if logger is None:
+        return
+    logger.warning(
+        "%s attempt %d/%d failed with %s: %s; retrying in %.3fs",
+        label,
+        attempt,
+        max_attempts,
+        type(exc).__name__,
+        exc,
+        delay_s,
+    )
+
+
+def _read_url_bytes_with_retries(
+    config: Dict,
+    *,
+    url: str,
+    logger,
+    label: str,
+) -> bytes:
+    max_attempts = _acquisition_max_attempts(config)
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with urlopen(
+                _acquisition_request(url), timeout=_acquisition_timeout_s(config)
+            ) as response:
+                return response.read()
+        except Exception as exc:
+            if attempt >= max_attempts or not _acquisition_error_is_retryable(config, exc):
+                raise
+            delay_s = _acquisition_retry_backoff_s(config, attempt)
+            _log_acquisition_retry(
+                logger,
+                label=label,
+                attempt=attempt,
+                max_attempts=max_attempts,
+                delay_s=delay_s,
+                exc=exc,
+            )
+            time.sleep(delay_s)
+    raise RuntimeError(f"Failed to read {url}")
+
+
+def _download_url_with_retries(
+    config: Dict,
+    *,
+    url: str,
+    dest: Path,
+    logger,
+    label: str,
+) -> None:
+    max_attempts = _acquisition_max_attempts(config)
+    temp_dest = dest.with_name(f"{dest.name}.part")
+    for attempt in range(1, max_attempts + 1):
+        temp_dest.unlink(missing_ok=True)
+        try:
+            with (
+                urlopen(
+                    _acquisition_request(url), timeout=_acquisition_timeout_s(config)
+                ) as response,
+                temp_dest.open("wb") as handle,
+            ):
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    handle.write(chunk)
+            temp_dest.replace(dest)
+            return
+        except Exception as exc:
+            temp_dest.unlink(missing_ok=True)
+            if attempt >= max_attempts or not _acquisition_error_is_retryable(config, exc):
+                raise
+            delay_s = _acquisition_retry_backoff_s(config, attempt)
+            _log_acquisition_retry(
+                logger,
+                label=label,
+                attempt=attempt,
+                max_attempts=max_attempts,
+                delay_s=delay_s,
+                exc=exc,
+            )
+            time.sleep(delay_s)
+    raise RuntimeError(f"Failed to download {url}")
 
 
 def _aws_s3_base(config: Dict) -> Tuple[str, str]:
@@ -451,27 +650,43 @@ def _latest_collection_manifest(year: int | str, track: str, batch: int | str) -
     return matches[-1]
 
 
-def _iter_wet_paths(crawl_id: str) -> Iterable[str]:
+def _iter_wet_paths(config: Dict, crawl_id: str, logger=None) -> Iterable[str]:
     url = f"{COMMONCRAWL_BASE_URL}/crawl-data/{crawl_id}/wet.paths.gz"
-    with urlopen(url) as response:
-        with gzip.GzipFile(fileobj=response) as gz:
-            for line in gz:
-                path = line.decode("utf-8").strip()
-                if path:
-                    yield path
+    payload = _read_url_bytes_with_retries(
+        config,
+        url=url,
+        logger=logger,
+        label=f"wet.paths.gz {crawl_id}",
+    )
+    with gzip.GzipFile(fileobj=io.BytesIO(payload)) as gz:
+        for line in gz:
+            path = line.decode("utf-8").strip()
+            if path:
+                yield path
 
 
-def _deterministic_wet_order(config: Dict, year: int | str, track: str) -> List[str]:
+def _deterministic_wet_order(
+    config: Dict,
+    year: int | str,
+    track: str,
+    logger=None,
+) -> List[str]:
     crawl_id = _crawl_id_for_year(config, year)
-    paths = list(_iter_wet_paths(crawl_id))
+    paths = list(_iter_wet_paths(config, crawl_id, logger=logger))
     seed = _stable_seed(int(config.get("project", {}).get("seed", 123)), f"{crawl_id}:{track}")
     rng = random.Random(seed)
     rng.shuffle(paths)
     return paths
 
 
-def _selected_paths(config: Dict, year: int | str, track: str, batch: int) -> List[str]:
-    ordered_paths = _deterministic_wet_order(config, year, track)
+def _selected_paths(
+    config: Dict,
+    year: int | str,
+    track: str,
+    batch: int,
+    logger=None,
+) -> List[str]:
+    ordered_paths = _deterministic_wet_order(config, year, track, logger=logger)
     size = _batch_size(config, track)
     start = 0 if track == "trend" else (batch - 1) * size
     end = start + size
@@ -586,7 +801,7 @@ def sample_collection_wet(
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), f"cc-collection-sample-{track}")
     crawl_id = _crawl_id_for_year(config, year)
-    selected = _selected_paths(config, year, track, batch_int)
+    selected = _selected_paths(config, year, track, batch_int, logger=logger)
     if not selected:
         raise ValueError(f"No WET paths selected for {track} {year} batch {batch_int}")
 
@@ -644,19 +859,13 @@ def download_collection_wet(
             downloaded += 1
             continue
         logger.info("Downloading %s -> %s", source_url, dest)
-        temp_dest = dest.with_name(f"{dest.name}.part")
-        temp_dest.unlink(missing_ok=True)
-        try:
-            with urlopen(source_url) as response, temp_dest.open("wb") as handle:
-                while True:
-                    chunk = response.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    handle.write(chunk)
-            temp_dest.replace(dest)
-        except Exception:
-            temp_dest.unlink(missing_ok=True)
-            raise
+        _download_url_with_retries(
+            config,
+            url=source_url,
+            dest=dest,
+            logger=logger,
+            label=f"WET download {local_filename}",
+        )
         downloaded += 1
     logger.info("Downloaded or confirmed %d WET files", downloaded)
     return downloaded
@@ -1050,7 +1259,13 @@ def run_collection_year(
                     "an accepted WARC summary."
                 )
         else:
-            processed_path = str(build_processed_corpus(config))
+            if _corpus_quality_outputs_complete(config):
+                processed_path = str(build_processed_corpus(config))
+            else:
+                logger.info(
+                    "Skipping processed corpus build until every configured year has "
+                    "at least one successful quality output."
+                )
         if processed_path:
             _record_step("build_processed", processed_path)
             processed_output_prefix = (
@@ -1134,18 +1349,12 @@ def build_processed_corpus(config: Dict) -> Path:
     out_dir = processed_corpus_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     frames: List[pd.DataFrame] = []
-    corpus_root = collection_interim_dir(config) / "corpus_working"
-    for corpus_path in corpus_root.glob(
-        "*/batch_*/quality/cc_corpus_texts_document_quality_*.parquet"
-    ):
+    for corpus_path in _latest_corpus_quality_paths(config):
         frame = pd.read_parquet(corpus_path)
         frame["source_corpus_path"] = str(corpus_path)
         frames.append(frame)
     out_path = out_dir / "corpus_documents.parquet"
-    if frames:
-        pd.concat(frames, ignore_index=True).to_parquet(out_path, index=False)
-    else:
-        pd.DataFrame().to_parquet(out_path, index=False)
+    pd.concat(frames, ignore_index=True).to_parquet(out_path, index=False)
     return out_path
 
 

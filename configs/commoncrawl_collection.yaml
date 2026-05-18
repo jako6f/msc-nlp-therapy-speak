@@ -54,6 +54,21 @@ collection:
   trend:
     fixed_wet_files_per_year: 50
 
+  acquisition:
+    request_timeout_s: 120
+    max_attempts: 4
+    retry_initial_backoff_s: 2.0
+    retry_max_backoff_s: 30.0
+    retry_http_statuses:
+      - 403
+      - 408
+      - 425
+      - 429
+      - 500
+      - 502
+      - 503
+      - 504
+
   raw_wet:
     min_free_gb_before_download: 10.0
     cleanup_after_successful_year: true
@@ -219,6 +234,8 @@ collection:
     acceptance:
       warn_fetch_success_rate_pct: 98.0
       min_fetch_success_rate_pct: 95.0
+      warn_extract_success_rate_pct: 40.0
+      min_extract_success_rate_pct: 35.0
 
   published_ts_tolerance_hours: 48
   published_ts_min_date: "1995-01-01"
