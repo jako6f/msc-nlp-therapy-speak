@@ -178,20 +178,27 @@ make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
 make corpus_expand YEAR=2024 BATCH=3 CONFIG=configs/commoncrawl_collection.yaml
 ```
 
-Each corpus batch uses:
+Batch 1 uses:
 
 ```text
 collection.corpus.initial_wet_batch_size
 ```
 
-The current first-pass cap is:
+Additional expansion batches use:
+
+```text
+collection.corpus.expansion_wet_batch_size
+```
+
+The configured first-pass planning cap is:
 
 ```text
 collection.corpus.max_wet_files_per_year_first_pass
 ```
 
-With 50-WET batches and a 250-WET cap, the practical first-pass maximum is five batches
-per year. Each successful `corpus_expand` run refreshes the processed corpus output.
+Keep cumulative first-pass WET files within that cap unless you deliberately decide to
+extend a year further. Each successful `corpus_expand` run refreshes the processed corpus
+output.
 
 Use expansion only for years whose final target-group document counts remain below the
 configured target or soft minimum.
@@ -302,6 +309,18 @@ find data/interim/collection -path "*/quality/cc_collection_summary_*.csv" | sor
 find data/interim/collection -path "*/metrics/cc_collection_throughput_summary_*.csv" | sort
 ```
 
+Each successful WARC stage is checked against the configured acceptance thresholds:
+
+```text
+collection.warc_validation.acceptance.warn_fetch_success_rate_pct
+collection.warc_validation.acceptance.min_fetch_success_rate_pct
+collection.warc_validation.acceptance.warn_extract_success_rate_pct
+collection.warc_validation.acceptance.min_extract_success_rate_pct
+```
+
+Inspect the latest throughput summary for `warc.fetch_success_rate_pct` and
+`warc.extract_success_rate_pct` when a year warns or fails before proceeding.
+
 ## Runtime Expectations
 
 Runtime depends on EC2 instance type, network throughput, and WET/WARC yield. Based on
@@ -323,6 +342,7 @@ Then either rerun the all-years command or rerun the affected year explicitly:
 
 ```bash
 make collection_year YEAR=2024 TRACK=trend BATCH=1 CONFIG=configs/commoncrawl_collection.yaml
+make collection_year YEAR=2024 TRACK=corpus BATCH=1 CONFIG=configs/commoncrawl_collection.yaml
 ```
 
 Existing WET downloads are skipped only while the raw files are still present. After a
@@ -336,4 +356,14 @@ If you run an ad hoc recovery loop manually, make it fail fast:
 for YEAR in 2016 2017 2018; do
   make trend_year YEAR=$YEAR CONFIG=configs/commoncrawl_collection.yaml || break
 done
+
+for YEAR in 2016 2017 2018; do
+  make corpus_year YEAR=$YEAR CONFIG=configs/commoncrawl_collection.yaml || break
+done
+```
+
+For a failed expansion batch, rerun the same deterministic batch number:
+
+```bash
+make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
 ```

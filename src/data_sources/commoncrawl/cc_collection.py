@@ -251,11 +251,19 @@ def _normalise_track(track: Optional[str]) -> str:
     return value
 
 
-def _batch_size(config: Dict, track: str) -> int:
+def _batch_bounds(config: Dict, track: str, batch: int) -> Tuple[int, int]:
     collection = _collection_cfg(config)
     if track == "trend":
-        return int(collection.get("trend", {}).get("fixed_wet_files_per_year", 50))
-    return int(collection.get("corpus", {}).get("initial_wet_batch_size", 50))
+        size = int(collection.get("trend", {}).get("fixed_wet_files_per_year", 50))
+        return 0, size
+
+    corpus_cfg = collection.get("corpus", {})
+    initial_size = int(corpus_cfg.get("initial_wet_batch_size", 50))
+    expansion_size = int(corpus_cfg.get("expansion_wet_batch_size", initial_size))
+    if batch <= 1:
+        return 0, initial_size
+    start = initial_size + (batch - 2) * expansion_size
+    return start, start + expansion_size
 
 
 def _batch_label(batch: int | str) -> str:
@@ -687,9 +695,7 @@ def _selected_paths(
     logger=None,
 ) -> List[str]:
     ordered_paths = _deterministic_wet_order(config, year, track, logger=logger)
-    size = _batch_size(config, track)
-    start = 0 if track == "trend" else (batch - 1) * size
-    end = start + size
+    start, end = _batch_bounds(config, track, batch)
     return ordered_paths[start:end]
 
 
