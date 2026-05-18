@@ -22,6 +22,9 @@ data/processed/manifests/*
 # logs / run outputs
 reports/logs/
 
+# locally managed reference PDFs
+paper/literature/
+
 # python
 __pycache__/
 *.pyc
