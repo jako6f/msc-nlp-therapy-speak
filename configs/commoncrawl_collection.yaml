@@ -202,6 +202,23 @@ collection:
     resiliparse_comments: false
     resiliparse_post_meta: false
     document_timeout_s: 300
+    request_timeout_s: 120
+    fetch_max_attempts: 4
+    fetch_retry_initial_backoff_s: 2.0
+    fetch_retry_max_backoff_s: 30.0
+    fetch_retry_http_statuses:
+      - 403
+      - 429
+      - 500
+      - 502
+      - 503
+      - 504
+    fetch_cooldown_after_consecutive_failures: 25
+    fetch_cooldown_s: 60.0
+    fetch_abort_after_consecutive_failures: 500
+    acceptance:
+      warn_fetch_success_rate_pct: 98.0
+      min_fetch_success_rate_pct: 95.0
 
   published_ts_tolerance_hours: 48
   published_ts_min_date: "1995-01-01"

@@ -169,6 +169,24 @@ def _warc_extraction_config(config: Dict, stage_key: str) -> Dict[str, object]:
         "resiliparse_comments": bool(warc_cfg.get("resiliparse_comments", True)),
         "resiliparse_post_meta": bool(warc_cfg.get("resiliparse_post_meta", True)),
         "document_timeout_s": int(warc_cfg.get("document_timeout_s", 300)),
+        "request_timeout_s": int(warc_cfg.get("request_timeout_s", 120)),
+        "fetch_max_attempts": int(warc_cfg.get("fetch_max_attempts", 4)),
+        "fetch_retry_initial_backoff_s": float(warc_cfg.get("fetch_retry_initial_backoff_s", 2.0)),
+        "fetch_retry_max_backoff_s": float(warc_cfg.get("fetch_retry_max_backoff_s", 30.0)),
+        "fetch_retry_http_statuses": {
+            int(status)
+            for status in warc_cfg.get(
+                "fetch_retry_http_statuses",
+                [403, 429, 500, 502, 503, 504],
+            )
+        },
+        "fetch_cooldown_after_consecutive_failures": int(
+            warc_cfg.get("fetch_cooldown_after_consecutive_failures", 25)
+        ),
+        "fetch_cooldown_s": float(warc_cfg.get("fetch_cooldown_s", 60.0)),
+        "fetch_abort_after_consecutive_failures": int(
+            warc_cfg.get("fetch_abort_after_consecutive_failures", 500)
+        ),
     }
 
 
@@ -226,26 +244,68 @@ def _lookup_outcome_from_candidates(
     )
 
 
-def _fetch_warc_payload(record: LookupRecord) -> Tuple[Optional[dict], str]:
+def _retry_backoff_s(attempt: int, extraction_cfg: Dict[str, object]) -> float:
+    initial = max(0.0, float(extraction_cfg.get("fetch_retry_initial_backoff_s", 2.0)))
+    maximum = max(initial, float(extraction_cfg.get("fetch_retry_max_backoff_s", 30.0)))
+    return min(maximum, initial * (2 ** max(0, attempt - 1)))
+
+
+def _fetch_warc_payload(
+    record: LookupRecord,
+    *,
+    extraction_cfg: Dict[str, object],
+) -> Tuple[Optional[dict], str, int, str, float, bool]:
     end_offset = record.offset + record.length - 1
     warc_url = f"{COMMONCRAWL_DATA_BASE_URL}/{record.filename}"
-    request = Request(
-        warc_url,
-        headers={
-            "Range": f"bytes={record.offset}-{end_offset}",
-            "User-Agent": "msc-nlp-therapy-speak/0.2",
-        },
-    )
+    max_attempts = max(1, int(extraction_cfg.get("fetch_max_attempts", 4)))
+    retry_http_statuses = {
+        int(status) for status in extraction_cfg.get("fetch_retry_http_statuses", set())
+    }
+    request_timeout_s = int(extraction_cfg.get("request_timeout_s", 120))
+    retry_delay_total_s = 0.0
+    last_error = ""
+    retryable_failure = False
+    payload: Optional[bytes] = None
+    attempt = 0
 
-    try:
-        with urlopen(request, timeout=120) as response:
-            payload = response.read()
-    except HTTPError as exc:
-        return None, f"warc_http_error:{exc.code}"
-    except URLError as exc:
-        return None, f"warc_url_error:{exc.reason}"
-    except Exception as exc:  # pragma: no cover - network/runtime dependent
-        return None, f"warc_error:{type(exc).__name__}"
+    for attempt in range(1, max_attempts + 1):
+        request = Request(
+            warc_url,
+            headers={
+                "Range": f"bytes={record.offset}-{end_offset}",
+                "User-Agent": "msc-nlp-therapy-speak/0.2",
+            },
+        )
+        try:
+            with urlopen(request, timeout=request_timeout_s) as response:
+                payload = response.read()
+            break
+        except HTTPError as exc:
+            last_error = f"warc_http_error:{exc.code}"
+            retryable_failure = exc.code in retry_http_statuses
+        except URLError as exc:
+            last_error = f"warc_url_error:{exc.reason}"
+            retryable_failure = True
+        except Exception as exc:  # pragma: no cover - network/runtime dependent
+            last_error = f"warc_error:{type(exc).__name__}"
+            retryable_failure = True
+
+        if not retryable_failure or attempt >= max_attempts:
+            return None, last_error, attempt, last_error, retry_delay_total_s, retryable_failure
+        delay_s = _retry_backoff_s(attempt, extraction_cfg)
+        retry_delay_total_s += delay_s
+        if delay_s > 0:
+            time.sleep(delay_s)
+
+    if payload is None:
+        return (
+            None,
+            last_error or "warc_error:empty_payload",
+            attempt,
+            last_error,
+            retry_delay_total_s,
+            retryable_failure,
+        )
 
     try:
         with gzip.GzipFile(fileobj=io.BytesIO(payload)) as gz:
@@ -266,11 +326,22 @@ def _fetch_warc_payload(record: LookupRecord) -> Tuple[Optional[dict], str]:
                         "html_text": content.decode("utf-8", errors="ignore"),
                     },
                     "ok",
+                    attempt,
+                    last_error,
+                    retry_delay_total_s,
+                    False,
                 )
     except Exception as exc:  # pragma: no cover - parsing/runtime dependent
-        return None, f"warc_parse_error:{type(exc).__name__}"
+        return (
+            None,
+            f"warc_parse_error:{type(exc).__name__}",
+            attempt,
+            last_error,
+            retry_delay_total_s,
+            False,
+        )
 
-    return None, "warc_empty_record"
+    return None, "warc_empty_record", attempt, last_error, retry_delay_total_s, False
 
 
 def _load_boto3():
@@ -858,6 +929,12 @@ def extract_pointer_cache(
     lookup_success_docs = 0
     fetch_success_docs = 0
     extract_success_docs = 0
+    consecutive_retryable_fetch_failures = 0
+    cooldown_after_failures = int(
+        extraction_cfg.get("fetch_cooldown_after_consecutive_failures", 25)
+    )
+    cooldown_s = float(extraction_cfg.get("fetch_cooldown_s", 60.0))
+    abort_after_failures = int(extraction_cfg.get("fetch_abort_after_consecutive_failures", 500))
 
     for doc_idx, (_, doc_row) in enumerate(unique_docs.iterrows(), start=1):
         crawl_id = str(doc_row["crawl_id"])
@@ -913,6 +990,10 @@ def extract_pointer_cache(
             "cdx_last_error": "",
             "cdx_retry_delay_total_s": 0.0,
             "cdx_cooldown_triggered": False,
+            "warc_fetch_attempts": 0,
+            "warc_fetch_last_error": "",
+            "warc_retry_delay_total_s": 0.0,
+            "warc_cooldown_triggered": False,
             "warc_validation_notes": lookup_note,
             "pointer_fetch_status": pointer_fetch_status,
             "pointer_content_mime_type": pointer_content_mime_type,
@@ -925,12 +1006,52 @@ def extract_pointer_cache(
         lookup_success_docs += 1
         try:
             with _DocumentTimeout(document_timeout_s):
-                fetched_payload, fetch_note = _fetch_warc_payload(record)
+                (
+                    fetched_payload,
+                    fetch_note,
+                    fetch_attempts,
+                    fetch_last_error,
+                    retry_delay_total_s,
+                    retryable_fetch_failure,
+                ) = _fetch_warc_payload(record, extraction_cfg=extraction_cfg)
+                row["warc_fetch_attempts"] = fetch_attempts
+                row["warc_fetch_last_error"] = fetch_last_error
+                row["warc_retry_delay_total_s"] = round(retry_delay_total_s, 3)
                 row["warc_validation_notes"] = fetch_note
                 if fetched_payload is None:
+                    if retryable_fetch_failure:
+                        consecutive_retryable_fetch_failures += 1
+                        if (
+                            cooldown_after_failures > 0
+                            and consecutive_retryable_fetch_failures % cooldown_after_failures == 0
+                        ):
+                            row["warc_cooldown_triggered"] = True
+                            logger.warning(
+                                "%s remote extraction cooling down after %d consecutive "
+                                "retryable WARC fetch failures | cooldown_s=%.1f "
+                                "last_note=%s",
+                                display_label,
+                                consecutive_retryable_fetch_failures,
+                                cooldown_s,
+                                fetch_note,
+                            )
+                            if cooldown_s > 0:
+                                time.sleep(cooldown_s)
+                        if (
+                            abort_after_failures > 0
+                            and consecutive_retryable_fetch_failures >= abort_after_failures
+                        ):
+                            raise RuntimeError(
+                                "Aborting WARC extraction after "
+                                f"{consecutive_retryable_fetch_failures} consecutive "
+                                f"retryable fetch failures; latest note={fetch_note}."
+                            )
+                    else:
+                        consecutive_retryable_fetch_failures = 0
                     doc_records.append(row)
                     continue
 
+                consecutive_retryable_fetch_failures = 0
                 fetch_success_docs += 1
                 row["warc_fetch_success"] = True
                 row["capture_ts"] = fetched_payload.get("capture_ts", "")
@@ -1031,10 +1152,22 @@ def extract_pointer_cache(
         "extractor_used",
         "extracted_text",
         "schema_types",
+        "warc_fetch_last_error",
     ):
         enriched_df[column] = enriched_df[column].fillna("")
     enriched_df["extracted_text_len"] = (
         pd.to_numeric(enriched_df["extracted_text_len"], errors="coerce").fillna(0).astype(int)
+    )
+    enriched_df["warc_fetch_attempts"] = (
+        pd.to_numeric(enriched_df["warc_fetch_attempts"], errors="coerce").fillna(0).astype(int)
+    )
+    enriched_df["warc_retry_delay_total_s"] = (
+        pd.to_numeric(enriched_df["warc_retry_delay_total_s"], errors="coerce")
+        .fillna(0.0)
+        .astype(float)
+    )
+    enriched_df["warc_cooldown_triggered"] = (
+        enriched_df["warc_cooldown_triggered"].fillna(False).astype(bool)
     )
 
     validated_warc_df = enriched_df.loc[enriched_df["is_validated_hits_warc"].fillna(False)].copy()
@@ -1061,6 +1194,9 @@ def extract_pointer_cache(
         "doc_count_lookup_failed": int(len(unique_docs) - lookup_success_docs),
         "doc_count_fetch_failed": int(lookup_success_docs - fetch_success_docs),
         "doc_count_extract_failed": int(fetch_success_docs - extract_success_docs),
+        "doc_count_fetch_retried": int((doc_df["warc_fetch_attempts"] > 1).sum()),
+        "doc_count_fetch_cooldowns": int(doc_df["warc_cooldown_triggered"].sum()),
+        "warc_retry_delay_total_s": round(float(doc_df["warc_retry_delay_total_s"].sum()), 6),
         "total_elapsed_sec": round(total_elapsed_sec, 6),
         "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
         "lookup_provider": "pointer_cache",

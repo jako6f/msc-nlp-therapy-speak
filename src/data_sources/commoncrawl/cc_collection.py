@@ -76,6 +76,99 @@ def _collection_years(config: Dict) -> List[int]:
     return sorted(years)
 
 
+def _warc_validation_cfg(config: Dict) -> Dict:
+    return _collection_cfg(config).get("warc_validation", {})
+
+
+def _warc_acceptance_cfg(config: Dict) -> Dict:
+    return _warc_validation_cfg(config).get("acceptance", {})
+
+
+def _metric_float(summary: Dict[str, object], key: str, default: float = 0.0) -> float:
+    value = summary.get(key, default)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _warc_fetch_success_rate_pct(metrics: Dict[str, object]) -> float:
+    docs = _metric_float(metrics, "doc_count_input")
+    fetch_success = _metric_float(metrics, "doc_count_fetch_success")
+    return (fetch_success / docs * 100.0) if docs else 0.0
+
+
+def _warc_summary_metrics(path: Path) -> Dict[str, object]:
+    frame = pd.read_csv(path)
+    if "metric" not in frame.columns or "value" not in frame.columns:
+        raise ValueError(f"Missing expected columns in {path}")
+    return frame.set_index("metric")["value"].to_dict()
+
+
+def _warc_summary_is_accepted(config: Dict, summary_path: Path) -> Tuple[bool, float]:
+    metrics = _warc_summary_metrics(summary_path)
+    fetch_success_rate_pct = _warc_fetch_success_rate_pct(metrics)
+    min_rate_pct = float(_warc_acceptance_cfg(config).get("min_fetch_success_rate_pct", 95.0))
+    return fetch_success_rate_pct >= min_rate_pct, fetch_success_rate_pct
+
+
+def _require_accepted_warc_summary(
+    config: Dict,
+    *,
+    summary_path: Path,
+    logger,
+    year: int | str,
+    track: str,
+) -> None:
+    accepted, fetch_success_rate_pct = _warc_summary_is_accepted(config, summary_path)
+    acceptance_cfg = _warc_acceptance_cfg(config)
+    min_rate_pct = float(acceptance_cfg.get("min_fetch_success_rate_pct", 95.0))
+    warn_rate_pct = float(acceptance_cfg.get("warn_fetch_success_rate_pct", 98.0))
+    if fetch_success_rate_pct < warn_rate_pct:
+        logger.warning(
+            "WARC fetch success below warning threshold year=%s track=%s "
+            "fetch_success_rate_pct=%.6f warn_below_pct=%.6f summary=%s",
+            year,
+            track,
+            fetch_success_rate_pct,
+            warn_rate_pct,
+            summary_path,
+        )
+    if not accepted:
+        raise RuntimeError(
+            "Rejected collection year after WARC extraction: "
+            f"year={year} track={track} fetch_success_rate_pct={fetch_success_rate_pct:.6f} "
+            f"is below min_fetch_success_rate_pct={min_rate_pct:.6f}. "
+            f"Inspect {summary_path} before rerunning."
+        )
+
+
+def _latest_accepted_trend_summary(config: Dict, year: int | str) -> Path:
+    warc_dir = collection_warc_dir(config, track="trend", year=year, batch=1)
+    summary_paths = sorted(warc_dir.glob("cc_collection_summary_*.csv"), reverse=True)
+    rejected: List[str] = []
+    for summary_path in summary_paths:
+        accepted, fetch_success_rate_pct = _warc_summary_is_accepted(config, summary_path)
+        if accepted:
+            return summary_path
+        rejected.append(f"{summary_path.name}:{fetch_success_rate_pct:.6f}%")
+    if not summary_paths:
+        raise FileNotFoundError(f"No trend WARC summary found for year={year} in {warc_dir}")
+    raise RuntimeError(
+        "No accepted trend WARC summary found for "
+        f"year={year}; rejected fetch-success rates: {', '.join(rejected)}"
+    )
+
+
+def _accepted_trend_summaries_complete(config: Dict) -> bool:
+    try:
+        for year in _collection_years(config):
+            _latest_accepted_trend_summary(config, year)
+    except (FileNotFoundError, RuntimeError):
+        return False
+    return True
+
+
 def _normalise_track(track: Optional[str]) -> str:
     value = (track or "trend").strip().lower()
     if value not in {"trend", "corpus"}:
@@ -466,9 +559,7 @@ def select_collection_crawls(config: Dict) -> Path:
             "start_year": int(window.get("fallback_start_year", 2016)),
             "end_year": end_year,
         },
-        "crawl_map": [
-            {"year": item["year"], "crawl_id": item["crawl_id"]} for item in selected
-        ],
+        "crawl_map": [{"year": item["year"], "crawl_id": item["crawl_id"]} for item in selected],
         "selected_crawls": selected,
         "rejected_unavailable_candidates": rejected_unavailable,
     }
@@ -622,9 +713,7 @@ def _collection_stage_config(
     try:
         manifest_path = _latest_collection_manifest(year, track, batch_int)
         entries = read_manifest(manifest_path)
-        adapted["inputs"] = {
-            "wet_filenames": [str(entry["local_filename"]) for entry in entries]
-        }
+        adapted["inputs"] = {"wet_filenames": [str(entry["local_filename"]) for entry in entries]}
     except FileNotFoundError:
         adapted["inputs"] = adapted.get("inputs", {})
 
@@ -658,17 +747,13 @@ def scan_collection(
 def export_collection_urls(
     config: Dict, *, year: int | str, track: Optional[str], batch: int | str
 ) -> Path:
-    return export_urls(
-        _collection_stage_config(config, year=year, track=track, batch=batch)
-    )
+    return export_urls(_collection_stage_config(config, year=year, track=track, batch=batch))
 
 
 def upload_collection_urls(
     config: Dict, *, year: int | str, track: Optional[str], batch: int | str
 ) -> Path:
-    return upload_urls_to_s3(
-        _collection_stage_config(config, year=year, track=track, batch=batch)
-    )
+    return upload_urls_to_s3(_collection_stage_config(config, year=year, track=track, batch=batch))
 
 
 def install_collection_indexes(config: Dict, url_export_uri: Optional[str] = None) -> Path:
@@ -852,9 +937,7 @@ def run_collection_year(
         "export_urls",
         export_collection_urls(config, year=year, track=track, batch=batch_int),
     )
-    upload_manifest_path = upload_collection_urls(
-        config, year=year, track=track, batch=batch_int
-    )
+    upload_manifest_path = upload_collection_urls(config, year=year, track=track, batch=batch_int)
     _record_step("upload_urls", upload_manifest_path)
 
     upload_manifest = _read_latest_url_upload_manifest(
@@ -892,17 +975,33 @@ def run_collection_year(
         config, "warc_output", track, str(year), batch_label, export_runid
     )
     warc_output_prefix = warc_output_prefix.rstrip("/") + "/"
-    _record_step(
-        "extract",
-        extract_collection(
-            config,
-            year=year,
-            track=track,
-            batch=batch_int,
-            pointer_cache_uri=pointer_cache_uri,
-            s3_output_prefix=warc_output_prefix,
-        ),
+    extract_path = extract_collection(
+        config,
+        year=year,
+        track=track,
+        batch=batch_int,
+        pointer_cache_uri=pointer_cache_uri,
+        s3_output_prefix=warc_output_prefix,
     )
+    _record_step("extract", extract_path)
+    extract_runid = _runid_from_path(extract_path, "cc_enriched_hits_", ".parquet")
+    warc_summary_path = (
+        collection_warc_dir(
+            config,
+            track=track,
+            year=year,
+            batch=batch_int,
+        )
+        / f"cc_collection_summary_{extract_runid}.csv"
+    )
+    _require_accepted_warc_summary(
+        config,
+        summary_path=warc_summary_path,
+        logger=logger,
+        year=year,
+        track=track,
+    )
+    _record_step("accept_warc", warc_summary_path)
     quality_summary_path = quality_collection(config, year=year, track=track, batch=batch_int)
     _record_step("quality", quality_summary_path)
 
@@ -943,15 +1042,22 @@ def run_collection_year(
     processed_output_prefix = ""
     if build_processed:
         if track == "trend":
-            processed_path = str(build_processed_trend(config))
+            if _accepted_trend_summaries_complete(config):
+                processed_path = str(build_processed_trend(config))
+            else:
+                logger.info(
+                    "Skipping processed trend build until every configured year has "
+                    "an accepted WARC summary."
+                )
         else:
             processed_path = str(build_processed_corpus(config))
-        _record_step("build_processed", processed_path)
-        processed_output_prefix = (
-            _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
-        )
-        _upload_paths_to_s3([Path(processed_path)], processed_output_prefix)
-        _record_step("upload_processed", processed_output_prefix)
+        if processed_path:
+            _record_step("build_processed", processed_path)
+            processed_output_prefix = (
+                _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
+            )
+            _upload_paths_to_s3([Path(processed_path)], processed_output_prefix)
+            _record_step("upload_processed", processed_output_prefix)
 
     metrics_output_prefix = (
         _collection_s3_uri(config, "metrics", track, str(year), batch_label, runid).rstrip("/")
@@ -1001,10 +1107,9 @@ def build_processed_trend(config: Dict) -> Path:
     out_dir = processed_trend_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     rows: List[Dict[str, object]] = []
-    trend_root = collection_interim_dir(config) / "trend_working"
-    for summary_path in trend_root.glob("*/warc/cc_collection_summary_*.csv"):
-        year = summary_path.parent.parent.name
-        metrics = pd.read_csv(summary_path).set_index("metric")["value"].to_dict()
+    for year in _collection_years(config):
+        summary_path = _latest_accepted_trend_summary(config, year)
+        metrics = _warc_summary_metrics(summary_path)
         docs_scanned = float(metrics.get("docs_scanned", 0) or 0)
         wet = float(metrics.get("validated_hits_wet", 0) or 0)
         warc = float(metrics.get("validated_hits_warc", 0) or 0)
