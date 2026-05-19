@@ -157,21 +157,10 @@ final.term_group.adhd.doc_count
 final.term_group.autism.doc_count
 ```
 
-The configured target is:
-
-```text
-collection.corpus.target_docs_per_target_group_year
-```
-
-The configured soft minimum is:
-
-```text
-collection.corpus.soft_min_docs_per_target_group_year
-```
-
 ## Expand Corpus Years
 
-If a year is below target after batch 1, run additional deterministic batches:
+If a year needs more target-group documents after batch 1, run additional
+deterministic batches:
 
 ```bash
 make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
@@ -190,18 +179,11 @@ Additional expansion batches use:
 collection.corpus.expansion_wet_batch_size
 ```
 
-The configured first-pass planning cap is:
+Track cumulative WET files per year against your external collection policy. Each
+successful `corpus_expand` run refreshes the processed corpus output.
 
-```text
-collection.corpus.max_wet_files_per_year_first_pass
-```
-
-Keep cumulative first-pass WET files within that cap unless you deliberately decide to
-extend a year further. Each successful `corpus_expand` run refreshes the processed corpus
-output.
-
-Use expansion only for years whose final target-group document counts remain below the
-configured target or soft minimum.
+Use expansion only for years that need additional target-group documents under that
+external policy.
 
 Raw WET files are transient working inputs. After a year completes successfully, the
 runner removes that year's local WET batch automatically. The manifests and downstream
