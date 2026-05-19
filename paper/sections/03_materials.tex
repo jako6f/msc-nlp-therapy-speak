@@ -1,0 +1,42 @@
+\section{Common Crawl}
+
+The primary textual material for this study is derived from Common Crawl, the largest freely available collection of web crawl data \parencite{baackCriticalAnalysisLargest2024}. Common Crawl is distributed in regular crawl releases and is widely used for large-scale NLP corpus construction, though it requires explicit filtering, language identification, and deduplication before analysis \parencite{wenzekCCNetExtractingHigh2019}. Common Crawl is therefore treated as an archival source for public web discourse, not as a representative sample of all online writing or of any population of speakers.
+
+The collection uses one frozen \texttt{CC-MAIN} crawl per calendar year from 2014 to 2026 from roughly the same time periods, giving stable cross-sectional snapshots of web text. The pipeline uses WARC Encapsulated Text (WET) files for efficient plaintext scanning and the raw WARC files for document validation and HTML-based main-text extraction \parencite{commoncrawlGetStarted2026}. WET files define the scanned denominator and identify candidate term hits; WARC records are retrieved only for candidate URLs.
+
+\begin{figure}[htbp]
+  \centering
+  % Source: ../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.tex
+  \includegraphics[width=\textwidth]{commoncrawl_pipeline/commoncrawl_collection_pipeline.pdf}
+  \caption{Common Crawl collection pipeline used to construct the trend and corpus materials.}
+  \label{fig:commoncrawl-pipeline}
+\end{figure}
+
+Figure~\ref{fig:commoncrawl-pipeline} summarises the material flow. Candidate documents pass through WET-stage triage, WARC pointer resolution, WARC HTML retrieval, main-text extraction, document-quality filtering, English filtering, and local deduplication. The pipeline produces a \emph{Trend Track} for diachronic rate estimates and a \emph{Corpus Track} for downstream semantic and contextual analysis.
+
+\section{Target Terms}
+
+Two target concepts were selected for diachronic lexical semantic change analysis: \textit{ADHD} and \textit{autism}. Target documents were retrieved using the matching expressions shown in Table~\ref{tab:target-patterns}. The abbreviation \texttt{ASD} was retained only when \textit{autism} occurred within $\pm$200 characters, reducing false positives from unrelated acronym use.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Target-term matching expressions.}
+  \label{tab:target-patterns}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Concept & Matching expressions \\
+    \midrule
+    ADHD & \texttt{\string\badhd\string\b}; \texttt{attention[-\string\s]?deficit} \\
+    Autism & \texttt{\string\bautism\string\b}; \texttt{\string\bautistic\string\b}; \texttt{autism[-\string\s]?spectrum}; \texttt{\string\bASD\string\b} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+For comparison, I selected three negative, non-clinical emotion terms with sufficient coverage and interpretable usage: \textit{frustration}, \textit{sadness}, and \textit{loneliness}. These terms are not exact semantic controls for ADHD and autism; they provide a baseline for separating target-specific change from broader shifts in negative affective language in Common Crawl.
+
+\section{NRC--VAD Lexicon}
+
+The affective analyses use the NRC Valence, Arousal, and Dominance (VAD) Lexicon v2.1 \parencite{mohammadNRCVADLexicon2025}. The lexicon provides real-valued ratings for approximately 55,000 English words and phrases. Scores range from 0 to 1, where higher values indicate greater valence, arousal, or dominance.
+
+This study uses valence to estimate whether target-term contexts become more positive or negative over time, and arousal to estimate changes in emotional intensity. Dominance is present in the source lexicon but is not used. The ratings were produced through Best--Worst Scaling, which yields fine-grained scores suitable for weighted diachronic collocate analysis.
