@@ -62,25 +62,6 @@ The WET stage is used for efficient coarse search. The WARC stage is the substan
 validation point because it retrieves the original HTML record and re-extracts document
 text before final quality filtering.
 
-## Key Files
-
-- `configs/commoncrawl_collection.yaml`: active collection configuration. It defines the
-  crawl map, sampling settings, term patterns, WET filters, WARC extraction settings,
-  document-quality gates, deduplication settings, output paths, and generic AWS/EC2
-  defaults.
-- `configs/local/aws.example.yaml`: template for private AWS/S3 settings.
-- `configs/local/aws.yaml`: untracked local override file. This is where account-specific
-  bucket, prefix, SSH key, or EC2 details belong.
-- `reports/commoncrawl_corpus_design_and_provenance.md`: public design and provenance
-  record. Read this for the rationale behind corpus scope, crawl selection, filtering,
-  validation, and known tradeoffs.
-- `reports/commoncrawl_single_year_runbook.md`: operational guide for one year, one track,
-  and one batch.
-- `reports/commoncrawl_all_years_runbook.md`: operational guide for all configured years.
-- `reports/commoncrawl_collection_crawl_map.json`: generated record of the frozen crawl map.
-- `environment.yml`: conda environment specification.
-- `AGENTS.md`: repository-level working instructions for Codex-style coding agents.
-
 ## Repository Structure
 
 ```text
