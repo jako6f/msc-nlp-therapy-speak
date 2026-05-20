@@ -1250,15 +1250,17 @@ def extract_pointer_cache(
     if s3_output_prefix:
         uploaded_uris = _upload_warc_outputs_to_s3(
             [
-                enriched_path,
-                validated_warc_path,
                 summary_path,
                 term_summary_path,
                 manifest_path,
             ],
             s3_output_prefix,
         )
-        logger.info("Uploaded %s remote extraction outputs to %s", display_label, s3_output_prefix)
+        logger.info(
+            "Uploaded %s remote extraction summary outputs to %s",
+            display_label,
+            s3_output_prefix,
+        )
         for uri in uploaded_uris:
             logger.info("Uploaded %s", uri)
 

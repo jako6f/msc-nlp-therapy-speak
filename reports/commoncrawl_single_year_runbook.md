@@ -170,8 +170,8 @@ data/processed/corpus/corpus_documents.parquet
 
 The high-level runner also uploads the key outputs to S3. By default, sync only
 lightweight CSV/JSON summaries, manifests, validation samples, and final processed outputs
-locally. Leave detailed per-run parquet artifacts in S3 unless you need them for debugging
-or manual audit.
+locally. Detailed WARC and per-batch quality parquets are not uploaded by the high-level
+runner; they are local handoff files that are cleaned after successful downstream handoff.
 
 The S3 mirror uses top-level collection folders, not the EC2 working folder names:
 
@@ -187,8 +187,8 @@ processed/<TRACK>/
 The final document-quality gate summaries, term summaries, validation samples, and
 WARC summaries are in the synced `warc_output/.../<url_export_runid>/` and
 `quality/.../<quality_runid>/` folders. The throughput summary and run manifest are in the
-synced `metrics/.../<runid>/` folder. Detailed `warc_output` and per-batch `quality`
-parquets remain in S3 by default.
+synced `metrics/.../<runid>/` folder. Detailed WARC and per-batch quality parquets are not
+retained by the high-level runner.
 
 Final processed outputs sync separately into:
 
@@ -211,14 +211,10 @@ aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy
 
 Use a narrower S3 prefix if you only need one year, track, or batch.
 
-If a diagnostic question requires detailed parquet artifacts, sync the narrowest possible
-prefix instead of the full collection tree. For example:
-
-```bash
-BPAD=$(printf "%03d" "$BATCH")
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/quality/$TRACK/$YEAR/batch_$BPAD/ data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD/ --exclude "*" --include "*.parquet"
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/warc_output/$TRACK/$YEAR/batch_$BPAD/ data/interim/collection/warc_output/$TRACK/$YEAR/batch_$BPAD/ --exclude "*" --include "*.parquet"
-```
+If a diagnostic question requires detailed parquet artifacts, rerun the affected
+year/batch with the lower-level extraction or quality command and inspect the local files
+before returning to the high-level runner. The standard S3 mirror intentionally keeps only
+lightweight summaries/manifests and final processed outputs.
 
 After syncing, the local S3-mirrored quality outputs are under:
 

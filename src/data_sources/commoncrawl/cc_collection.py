@@ -209,7 +209,7 @@ def _accepted_trend_summaries_complete(config: Dict) -> bool:
     return True
 
 
-def _latest_corpus_quality_paths(config: Dict) -> List[Path]:
+def _latest_corpus_quality_paths(config: Dict, *, require_all_years: bool = True) -> List[Path]:
     corpus_root = collection_interim_dir(config) / "corpus_working"
     selected_paths: List[Path] = []
     missing_years: List[str] = []
@@ -228,7 +228,7 @@ def _latest_corpus_quality_paths(config: Dict) -> List[Path]:
             selected_for_year += 1
         if selected_for_year == 0:
             missing_years.append(str(year))
-    if missing_years:
+    if missing_years and require_all_years:
         raise FileNotFoundError(
             "No successful corpus quality output found for configured years: "
             + ", ".join(missing_years)
@@ -238,10 +238,43 @@ def _latest_corpus_quality_paths(config: Dict) -> List[Path]:
 
 def _corpus_quality_outputs_complete(config: Dict) -> bool:
     try:
-        _latest_corpus_quality_paths(config)
+        _latest_corpus_quality_paths(config, require_all_years=True)
     except FileNotFoundError:
         return False
     return True
+
+
+def _corpus_source_parts(corpus_path: Path) -> Tuple[Optional[int], Optional[int]]:
+    parts = corpus_path.parts
+    try:
+        root_idx = parts.index("corpus_working")
+        year = int(parts[root_idx + 1])
+        batch = int(str(parts[root_idx + 2]).removeprefix("batch_"))
+        return year, batch
+    except (ValueError, IndexError):
+        return None, None
+
+
+def _corpus_source_parts_from_value(value: object) -> Tuple[Optional[int], Optional[int]]:
+    value_str = str(value or "").strip()
+    if not value_str or value_str.lower() == "nan":
+        return None, None
+    return _corpus_source_parts(Path(value_str))
+
+
+def _with_corpus_source_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    if "source_year" in frame.columns and "source_batch" in frame.columns:
+        return frame
+    if "source_corpus_path" not in frame.columns:
+        raise ValueError(
+            "Existing processed corpus is missing source_corpus_path; cannot safely "
+            "replace rerun corpus batches."
+        )
+    frame = frame.copy()
+    source_parts = frame["source_corpus_path"].map(_corpus_source_parts_from_value)
+    frame["source_year"] = source_parts.map(lambda value: value[0])
+    frame["source_batch"] = source_parts.map(lambda value: value[1])
+    return frame
 
 
 def _normalise_track(track: Optional[str]) -> str:
@@ -503,13 +536,61 @@ def _quality_output_paths(
 ) -> List[Path]:
     quality_dir = collection_quality_dir(config, track=track, year=year, batch=batch)
     paths = [
-        quality_dir / f"cc_document_quality_hits_{runid}.parquet",
-        quality_dir / f"cc_corpus_texts_document_quality_{runid}.parquet",
         quality_dir / f"cc_collection_summary_{runid}.csv",
         quality_dir / f"cc_collection_term_summary_{runid}.csv",
     ]
     paths.extend(sorted(quality_dir.glob(f"cc_val_sample*_{runid}.csv")))
     return paths
+
+
+def _warc_parquet_paths(
+    config: Dict, *, year: int | str, track: str, batch: int | str, runid: str
+) -> List[Path]:
+    warc_dir = collection_warc_dir(config, track=track, year=year, batch=batch)
+    return [
+        warc_dir / f"cc_enriched_hits_{runid}.parquet",
+        warc_dir / f"cc_validated_hits_warc_{runid}.parquet",
+    ]
+
+
+def _quality_parquet_paths(
+    config: Dict, *, year: int | str, track: str, batch: int | str, runid: str
+) -> List[Path]:
+    quality_dir = collection_quality_dir(config, track=track, year=year, batch=batch)
+    return [
+        quality_dir / f"cc_document_quality_hits_{runid}.parquet",
+        quality_dir / f"cc_corpus_texts_document_quality_{runid}.parquet",
+    ]
+
+
+def _delete_existing_paths(paths: Iterable[Path], *, logger, label: str) -> int:
+    removed = 0
+    for path in paths:
+        if not path.exists():
+            continue
+        path.unlink()
+        removed += 1
+    if removed:
+        logger.info("Removed %d local %s files", removed, label)
+    return removed
+
+
+def _cleanup_corpus_quality_sources(config: Dict, *, logger) -> int:
+    corpus_paths = _latest_corpus_quality_paths(config, require_all_years=False)
+    parquet_paths: List[Path] = []
+    for corpus_path in corpus_paths:
+        runid = _runid_from_path(
+            corpus_path,
+            "cc_corpus_texts_document_quality_",
+            ".parquet",
+        )
+        parquet_paths.append(corpus_path)
+        parquet_paths.append(corpus_path.with_name(f"cc_document_quality_hits_{runid}.parquet"))
+    return _delete_existing_paths(
+        parquet_paths,
+        logger=logger,
+        label="corpus quality parquet",
+    )
 
 
 def _throughput_summary_path(
@@ -1242,6 +1323,48 @@ def run_collection_year(
         quality_output_prefix,
     )
     _record_step("upload_quality", quality_output_prefix)
+    _record_step(
+        "cleanup_warc_parquet",
+        _delete_existing_paths(
+            _warc_parquet_paths(
+                config,
+                year=year,
+                track=track,
+                batch=batch_int,
+                runid=extract_runid,
+            ),
+            logger=logger,
+            label="WARC parquet",
+        ),
+    )
+    if track == "trend":
+        _record_step(
+            "cleanup_quality_parquet",
+            _delete_existing_paths(
+                _quality_parquet_paths(
+                    config,
+                    year=year,
+                    track=track,
+                    batch=batch_int,
+                    runid=quality_runid,
+                ),
+                logger=logger,
+                label="trend quality parquet",
+            ),
+        )
+    else:
+        detailed_quality_path = (
+            collection_quality_dir(config, track=track, year=year, batch=batch_int)
+            / f"cc_document_quality_hits_{quality_runid}.parquet"
+        )
+        _record_step(
+            "cleanup_quality_detail_parquet",
+            _delete_existing_paths(
+                [detailed_quality_path],
+                logger=logger,
+                label="corpus quality detail parquet",
+            ),
+        )
     if bool(_raw_wet_cfg(config).get("cleanup_after_successful_year", True)):
         removed_wet_files = cleanup_collection_wet(
             config,
@@ -1265,7 +1388,10 @@ def run_collection_year(
                     "an accepted WARC summary."
                 )
         else:
-            if _corpus_quality_outputs_complete(config):
+            corpus_processed_exists = (
+                processed_corpus_dir(config) / "corpus_documents.parquet"
+            ).exists()
+            if _corpus_quality_outputs_complete(config) or corpus_processed_exists:
                 processed_path = str(build_processed_corpus(config))
             else:
                 logger.info(
@@ -1279,6 +1405,11 @@ def run_collection_year(
             )
             _upload_paths_to_s3([Path(processed_path)], processed_output_prefix)
             _record_step("upload_processed", processed_output_prefix)
+            if track == "corpus":
+                _record_step(
+                    "cleanup_corpus_quality_parquet",
+                    _cleanup_corpus_quality_sources(config, logger=logger),
+                )
 
     metrics_output_prefix = (
         _collection_s3_uri(config, "metrics", track, str(year), batch_label, runid).rstrip("/")
@@ -1354,18 +1485,38 @@ def build_processed_trend(config: Dict) -> Path:
 def build_processed_corpus(config: Dict) -> Path:
     out_dir = processed_corpus_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "corpus_documents.parquet"
+    corpus_paths = _latest_corpus_quality_paths(config, require_all_years=not out_path.exists())
     frames: List[pd.DataFrame] = []
-    for corpus_path in _latest_corpus_quality_paths(config):
+    if out_path.exists():
+        existing_frame = _with_corpus_source_columns(pd.read_parquet(out_path))
+        if corpus_paths:
+            replacement_sources = {
+                _corpus_source_parts(corpus_path) for corpus_path in corpus_paths
+            }
+            source_keys = list(
+                zip(existing_frame["source_year"], existing_frame["source_batch"])
+            )
+            existing_frame = existing_frame.loc[
+                [source_key not in replacement_sources for source_key in source_keys]
+            ].copy()
+        frames.append(existing_frame)
+    for corpus_path in corpus_paths:
         frame = pd.read_parquet(corpus_path)
         frame["source_corpus_path"] = str(corpus_path)
+        source_year, source_batch = _corpus_source_parts(corpus_path)
+        frame["source_year"] = source_year
+        frame["source_batch"] = source_batch
         frames.append(frame)
-    out_path = out_dir / "corpus_documents.parquet"
+    if not frames:
+        raise FileNotFoundError("No corpus quality parquet inputs or processed corpus found.")
     pd.concat(frames, ignore_index=True).to_parquet(out_path, index=False)
     return out_path
 
 
 def run_collection_track(config: Dict, *, track: str) -> None:
     track = _normalise_track(track)
+    logger = _setup_logger(Path("reports/logs"), f"cc-collection-run-{track}")
     for year in _collection_years(config):
         run_collection_year(config, year=year, track=track, batch=1, build_processed=False)
     if track == "trend":
@@ -1374,3 +1525,5 @@ def run_collection_track(config: Dict, *, track: str) -> None:
         processed_path = build_processed_corpus(config)
     processed_output_prefix = _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
     _upload_paths_to_s3([processed_path], processed_output_prefix)
+    if track == "corpus":
+        _cleanup_corpus_quality_sources(config, logger=logger)

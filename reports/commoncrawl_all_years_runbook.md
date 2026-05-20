@@ -185,9 +185,12 @@ successful `corpus_expand` run refreshes the processed corpus output.
 Use expansion only for years that need additional target-group documents under that
 external policy.
 
-Raw WET files are transient working inputs. After a year completes successfully, the
-runner removes that year's local WET batch automatically. The manifests and downstream
-outputs remain durable, and failed years keep their WET files for immediate recovery.
+Raw WET files and detailed parquet handoff files are transient working inputs. After a
+year completes successfully, the runner removes that year's local WET batch and local
+WARC parquets automatically. Corpus text parquets are kept only until they have been
+absorbed into `data/processed/corpus/corpus_documents.parquet`, then removed locally.
+The CSV/JSON summaries, manifests, validation samples, and final processed outputs remain
+durable.
 
 ## Output Layout
 
@@ -224,8 +227,8 @@ metrics/cc_collection_run_manifest_<runid>.json
 
 The high-level runners also upload key outputs to S3. By default, sync only lightweight
 CSV/JSON summaries, manifests, validation samples, and final processed outputs locally.
-Leave detailed per-run parquet artifacts in S3 unless you need them for debugging or
-manual audit.
+Detailed WARC and per-batch quality parquets are not uploaded by the high-level runner;
+they are local handoff files that are cleaned after successful downstream handoff.
 
 After the lightweight S3 sync, the local interim mirror has this layout:
 
@@ -240,8 +243,8 @@ data/interim/collection/metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
 The final document-quality gate summaries, term summaries, validation samples, and
 WARC summaries are in the synced `warc_output/.../<url_export_runid>/` and
 `quality/.../<quality_runid>/` folders. Throughput summaries and run manifests are in the
-synced `metrics/.../<runid>/` folders. Detailed `warc_output` and per-batch `quality`
-parquets remain in S3 by default.
+synced `metrics/.../<runid>/` folders. Detailed WARC and per-batch quality parquets are
+not retained by the high-level runner.
 
 Final processed outputs are not part of the interim mirror. Sync them separately into:
 
@@ -264,13 +267,10 @@ aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy
 
 Use a narrower S3 prefix if you only need a specific track, year, or batch.
 
-If a diagnostic question requires detailed parquet artifacts, sync the narrowest possible
-prefix instead of the full collection tree. For example:
-
-```bash
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/quality/corpus/2024/batch_001/ data/interim/collection/quality/corpus/2024/batch_001/ --exclude "*" --include "*.parquet"
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/warc_output/corpus/2024/batch_001/ data/interim/collection/warc_output/corpus/2024/batch_001/ --exclude "*" --include "*.parquet"
-```
+If a diagnostic question requires detailed parquet artifacts, rerun the affected
+year/batch with the lower-level extraction or quality command and inspect the local files
+before returning to the high-level runner. The standard S3 mirror intentionally keeps only
+lightweight summaries/manifests and final processed outputs.
 
 After syncing, inspect synced document-quality gate outputs locally with:
 
