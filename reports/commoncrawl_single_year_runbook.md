@@ -168,9 +168,12 @@ data/processed/trend/trend_rates.csv
 data/processed/corpus/corpus_documents.parquet
 ```
 
-The high-level runner also uploads the key outputs to S3 so they can be synced back to
-your local machine. The S3 mirror uses top-level collection folders, not the EC2 working
-folder names:
+The high-level runner also uploads the key outputs to S3. By default, sync only
+lightweight CSV/JSON summaries, manifests, validation samples, and final processed outputs
+locally. Leave detailed per-run parquet artifacts in S3 unless you need them for debugging
+or manual audit.
+
+The S3 mirror uses top-level collection folders, not the EC2 working folder names:
 
 ```text
 url_exports/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
@@ -182,8 +185,17 @@ processed/<TRACK>/
 ```
 
 The final document-quality gate summaries, term summaries, validation samples, and
-filtered parquet outputs are in the synced `quality/.../<quality_runid>/` folder. The
-throughput summary and run manifest are in the synced `metrics/.../<runid>/` folder.
+WARC summaries are in the synced `warc_output/.../<url_export_runid>/` and
+`quality/.../<quality_runid>/` folders. The throughput summary and run manifest are in the
+synced `metrics/.../<runid>/` folder. Detailed `warc_output` and per-batch `quality`
+parquets remain in S3 by default.
+
+Final processed outputs sync separately into:
+
+```text
+data/processed/trend/trend_rates.csv
+data/processed/corpus/corpus_documents.parquet
+```
 
 ## Sync Outputs To Local Machine
 
@@ -193,12 +205,20 @@ artifacts from S3 on your local machine:
 
 ```bash
 cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
-aws s3 sync \
-  s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ \
-  data/interim/collection/
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ data/interim/collection/ --exclude "*" --include "*.csv" --include "*.json" --exclude "processed/*"
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/processed/ data/processed/
 ```
 
 Use a narrower S3 prefix if you only need one year, track, or batch.
+
+If a diagnostic question requires detailed parquet artifacts, sync the narrowest possible
+prefix instead of the full collection tree. For example:
+
+```bash
+BPAD=$(printf "%03d" "$BATCH")
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/quality/$TRACK/$YEAR/batch_$BPAD/ data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD/ --exclude "*" --include "*.parquet"
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/warc_output/$TRACK/$YEAR/batch_$BPAD/ data/interim/collection/warc_output/$TRACK/$YEAR/batch_$BPAD/ --exclude "*" --include "*.parquet"
+```
 
 After syncing, the local S3-mirrored quality outputs are under:
 
