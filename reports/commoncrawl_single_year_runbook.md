@@ -205,7 +205,7 @@ artifacts from S3 on your local machine:
 
 ```bash
 cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ data/interim/collection/ --exclude "*" --include "*.csv" --include "*.json" --exclude "processed/*"
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ data/interim/collection/ --exclude "processed/*" --exclude "*.parquet"
 aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/processed/ data/processed/
 ```
 
