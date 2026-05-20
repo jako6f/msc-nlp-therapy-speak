@@ -1,0 +1,1 @@
+Across 13 annual Common Crawl snapshots from 2014 to 2026, the trend track scans 27.7 million WET records and retains 78,899 WARC-validated term hits; the corpus track scans 28.1 million WET records and yields 42,975 analysis-ready documents, including 10,998 target documents (3,907 ADHD; 8,558 autism) (provisional).

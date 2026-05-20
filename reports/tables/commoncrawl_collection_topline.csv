@@ -1,0 +1,3 @@
+track,year_count,year_range,wet_records_scanned,wet_validated_hits,warc_validated_hits,final_documents,target_documents,adhd_documents,autism_documents,report_note
+trend,13,2014-2026,27702075,171833,78899,,,,,Fixed-effort annual trend track; final documents are not the trend denominator.
+corpus,13,2014-2026,28079891,174874,81139,42975,10998,3907,8558,Quality-gated corpus track for downstream semantic and contextual analysis.
