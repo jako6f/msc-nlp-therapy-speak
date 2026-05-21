@@ -1,7 +1,0 @@
-check,passed,detail
-trend years match configured crawl map,True,"found=[2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]; expected=[2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]"
-trend has no duplicate years,True,duplicate_years=[]
-corpus summaries cover every configured year,True,"found=[2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]; expected=[2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]"
-processed corpus has no duplicate crawl_id/url rows,True,duplicate_rows=0
-processed corpus row count matches accepted quality summaries,True,processed=42975; summaries=42975
-processed target document count matches accepted quality summaries,True,processed=10998; summaries=10998
