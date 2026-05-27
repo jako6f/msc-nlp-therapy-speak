@@ -24,8 +24,13 @@ completed_summary() {
   local year="$1"
   local batch="$2"
   local batch_label
+  local quality_dir
   batch_label="$(printf "%03d" "$batch")"
-  find "data/interim/collection/corpus_working/$year/batch_$batch_label/quality" \
+  quality_dir="data/interim/collection/corpus_working/$year/batch_$batch_label/quality"
+  if [ ! -d "$quality_dir" ]; then
+    return 0
+  fi
+  find "$quality_dir" \
     -maxdepth 1 \
     -type f \
     -name "cc_collection_summary_*.csv" \
