@@ -2,7 +2,6 @@ CONFIG ?= configs/commoncrawl_collection.yaml
 YEAR ?=
 TRACK ?= corpus
 BATCH ?= 1
-PLAN ?=
 
 env:
 	@echo "Activate env: conda activate msc-nlp"
@@ -41,9 +40,6 @@ corpus_year:
 
 corpus_expand:
 	$(MAKE) collection_year YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
-
-corpus_expand_plan:
-	CONFIG=$(CONFIG) scripts/run_corpus_expansion_plan.sh $(PLAN)
 
 trend:
 	python -m src.cli cc-collection-run --config $(CONFIG) --track trend
