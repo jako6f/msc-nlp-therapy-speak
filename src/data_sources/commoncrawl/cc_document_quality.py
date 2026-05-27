@@ -76,6 +76,47 @@ def _load_language_identifier():
         return identifier.classify
 
 
+def _classify_language_safely(
+    text: str,
+    classify,
+    *,
+    max_chars: int,
+) -> Dict[str, object]:
+    text = str(text or "")
+    if max_chars > 0:
+        classification_text = text[:max_chars]
+    else:
+        classification_text = text
+
+    try:
+        language_code, language_score = classify(classification_text)
+    except (
+        AssertionError,
+        OverflowError,
+        RuntimeError,
+        TypeError,
+        UnicodeError,
+        ValueError,
+    ) as exc:
+        return {
+            "language_code": "",
+            "language_score": 0.0,
+            "language_error": type(exc).__name__,
+            "language_input_chars": len(text),
+            "language_classified_chars": len(classification_text),
+            "language_text_truncated": len(classification_text) < len(text),
+        }
+
+    return {
+        "language_code": str(language_code),
+        "language_score": float(language_score),
+        "language_error": "",
+        "language_input_chars": len(text),
+        "language_classified_chars": len(classification_text),
+        "language_text_truncated": len(classification_text) < len(text),
+    }
+
+
 def _load_datatrove_quality_filters(datatrove_cfg: Dict):
     try:
         from datatrove.data import Document
@@ -641,22 +682,48 @@ def document_quality_hits(config: Dict) -> Path:
         raise ValueError(f"No {display_label} documents survived document-quality filtering.")
 
     classify = _load_language_identifier()
+    language_cfg = config.get("collection_stage", {}).get("language", {})
+    language_keep = {
+        str(value).strip()
+        for value in language_cfg.get("keep", ["en"])
+        if str(value).strip()
+    }
+    if not language_keep:
+        language_keep = {"en"}
+    language_max_chars = int(language_cfg.get("max_classification_chars", 50000))
     language_rows: List[Dict[str, object]] = []
     for _, doc_row in cleanup_docs.iterrows():
         extracted_text = str(doc_row["extracted_text"])
-        language_code, language_score = classify(extracted_text)
+        language_result = _classify_language_safely(
+            extracted_text,
+            classify,
+            max_chars=language_max_chars,
+        )
+        language_code = str(language_result["language_code"])
         language_rows.append(
             {
                 "crawl_id": doc_row["crawl_id"],
                 "url": doc_row["url"],
                 "language_code": language_code,
-                "language_score": float(language_score),
-                "is_english": language_code == "en",
+                "language_score": float(language_result["language_score"]),
+                "language_error": str(language_result["language_error"]),
+                "language_input_chars": int(language_result["language_input_chars"]),
+                "language_classified_chars": int(language_result["language_classified_chars"]),
+                "language_text_truncated": bool(language_result["language_text_truncated"]),
+                "is_english": language_code in language_keep,
                 "normalized_text": _normalize_text_for_dedup(extracted_text),
             }
         )
 
     language_df = pd.DataFrame(language_rows)
+    language_error_docs_count = int(language_df["language_error"].ne("").sum())
+    language_truncated_docs_count = int(language_df["language_text_truncated"].sum())
+    if language_error_docs_count:
+        logger.warning(
+            "Language ID failed for %d %s documents; marking them non-English.",
+            language_error_docs_count,
+            display_label,
+        )
     dedup_cfg = config.get("collection_stage", {}).get("dedup", {})
     ngram_size = int(dedup_cfg.get("ngram_size", 5))
     jaccard_threshold = float(dedup_cfg.get("jaccard_threshold", 0.9))
@@ -729,6 +796,7 @@ def document_quality_hits(config: Dict) -> Path:
     filtered_df = filtered_df.merge(doc_annotations, on=DOC_KEY_COLUMNS, how="left")
     for column, fallback in (
         ("language_code", ""),
+        ("language_error", ""),
         ("normalized_text_hash", ""),
         ("dedup_cluster_id", ""),
         ("dedup_reason", ""),
@@ -737,7 +805,14 @@ def document_quality_hits(config: Dict) -> Path:
     filtered_df["language_score"] = pd.to_numeric(
         filtered_df["language_score"], errors="coerce"
     ).fillna(0.0)
+    for column in ("language_input_chars", "language_classified_chars"):
+        filtered_df[column] = (
+            pd.to_numeric(filtered_df[column], errors="coerce").fillna(0).astype(int)
+        )
     filtered_df["is_english"] = filtered_df["is_english"].fillna(False).astype(bool)
+    filtered_df["language_text_truncated"] = (
+        filtered_df["language_text_truncated"].fillna(False).astype(bool)
+    )
     filtered_df["is_duplicate"] = filtered_df["is_duplicate"].fillna(False).astype(bool)
     filtered_df["is_dedup_representative"] = (
         filtered_df["is_dedup_representative"].fillna(False).astype(bool)
@@ -951,6 +1026,15 @@ def document_quality_hits(config: Dict) -> Path:
         .value_counts()
         .to_dict()
     )
+    quality_hit_mask = filtered_df["is_validated_hits_warc"].fillna(False) & filtered_df[
+        "passes_document_quality"
+    ].fillna(False)
+    language_error_hits_count = int(
+        (quality_hit_mask & filtered_df["language_error"].ne("")).sum()
+    )
+    language_truncated_hits_count = int(
+        (quality_hit_mask & filtered_df["language_text_truncated"].fillna(False)).sum()
+    )
 
     doc_metrics = {
         "doc_count_warc_validated": int(validated_docs.shape[0]),
@@ -1012,6 +1096,12 @@ def document_quality_hits(config: Dict) -> Path:
         "removed_by_dedup_hits": int(english_hits_total - dedup_rep_hits_total),
         "removed_by_lang_docs": int(quality_docs_count - english_docs_count),
         "removed_by_dedup_docs": int(english_docs_count - len(corpus_df)),
+        "language_id.max_classification_chars": language_max_chars,
+        "language_id.keep": "|".join(sorted(language_keep)),
+        "language_id.error_docs": language_error_docs_count,
+        "language_id.error_hits": language_error_hits_count,
+        "language_id.truncated_docs": language_truncated_docs_count,
+        "language_id.truncated_hits": language_truncated_hits_count,
     }
     for reason in sorted(reason_doc_counts):
         safe_reason = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(reason))

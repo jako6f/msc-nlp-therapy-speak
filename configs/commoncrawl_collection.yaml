@@ -269,6 +269,7 @@ collection:
   # 6. English filtering and deduplication
   language:
     provider: "py3langid"
+    max_classification_chars: 50000
     keep:
       - "en"
 

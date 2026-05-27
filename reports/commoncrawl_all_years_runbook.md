@@ -185,6 +185,22 @@ successful `corpus_expand` run refreshes the processed corpus output.
 Use expansion only for years that need additional target-group documents under that
 external policy.
 
+For multi-year expansion plans, prefer the resumable plan runner over pasting a long
+manual loop into `tmux`. It writes a durable driver log, skips batches that already have
+a document-quality summary, and exits with the failed year/batch if a batch fails:
+
+```bash
+make corpus_expand_plan CONFIG=configs/commoncrawl_collection.yaml PLAN="2021:3:4 2022:2:4 2023:2:4"
+```
+
+For long EC2 runs, keep the failed pane visible:
+
+```bash
+tmux new -s collection
+tmux set-option remain-on-exit on
+make corpus_expand_plan CONFIG=configs/commoncrawl_collection.yaml PLAN="2021:3:4 2022:2:4 2023:2:4"
+```
+
 Raw WET files and detailed parquet handoff files are transient working inputs. After a
 year completes successfully, the runner removes that year's local WET batch and local
 WARC parquets automatically. Corpus text parquets are kept only until they have been
@@ -363,4 +379,14 @@ For a failed expansion batch, rerun the same deterministic batch number:
 
 ```bash
 make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
+```
+
+If the failed batch left partial local working files and raw WET downloads, inspect them
+first and then remove only that failed batch before rerunning:
+
+```bash
+find data/interim/collection/corpus_working/2024/batch_002 -type f | sort
+ls data/raw/wet/*corpus_2024_b002*.wet.gz 2>/dev/null
+rm -rf data/interim/collection/corpus_working/2024/batch_002
+rm -f data/raw/wet/*corpus_2024_b002*.wet.gz data/manifests/cc_collection_wet_corpus_2024_b002_*.jsonl
 ```
