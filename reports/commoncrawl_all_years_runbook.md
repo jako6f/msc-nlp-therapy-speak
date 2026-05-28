@@ -184,7 +184,7 @@ successful `corpus_expand` run writes that batch's collection artifacts only. Bu
 processed corpus once after the full expansion plan completes:
 
 ```bash
-python -m src.cli cc-collection-build-corpus --config configs/commoncrawl_collection.yaml
+make corpus_build_processed CONFIG=configs/commoncrawl_collection.yaml
 ```
 
 Use expansion only for years that need additional target-group documents under that

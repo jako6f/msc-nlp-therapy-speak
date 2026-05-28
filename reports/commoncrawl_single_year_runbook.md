@@ -130,7 +130,7 @@ Single-year and expansion runs do not rebuild final processed outputs by default
 all required corpus batches are complete, build the processed corpus once:
 
 ```bash
-python -m src.cli cc-collection-build-corpus --config configs/commoncrawl_collection.yaml
+make corpus_build_processed CONFIG=configs/commoncrawl_collection.yaml
 ```
 
 Raw WET files are transient working inputs. After the year completes successfully, the
