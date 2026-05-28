@@ -1,85 +1,54 @@
 # Common Crawl Single-Year Collection Runbook
 
-This runbook explains how to run the full pipeline for one year, track, and batch.
-Use it for smoke tests, targeted reruns, failure recovery, and corpus expansion batches.
+This runbook is the operational guide for running one year, track, and batch. Use it for
+smoke tests, targeted reruns, failure recovery, and corpus expansion batches.
 
-## Scope
+## 1. Prepare EC2
 
-The single-year command runs the complete pipeline:
-
-```text
-sample WET files
-download WET files
-scan WET text for candidate hits
-export and upload URL candidates
-install Common Crawl secondary indexes
-start the local index server
-resolve WARC pointers
-fetch WARC HTML and extract main text
-run document quality, English filtering, and deduplication
-refresh processed trend/corpus outputs
-```
-
-## Prerequisites
-
-Run on the EC2 collection host unless you are deliberately testing local-only code.
-
-From your local machine:
+Connect to EC2:
 
 ```bash
 ssh -i /path/to/commoncrawl-collection-key.pem ec2-user@YOUR_EC2_HOSTNAME
 ```
 
-On EC2:
+Set up the repo and environment:
 
 ```bash
 cd ~/msc-nlp-therapy-speak
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate msc-nlp
 git pull origin main
+git status --short
 ```
 
-The local AWS config must exist on the EC2 host:
+Confirm the local AWS config exists:
 
 ```bash
 test -f configs/local/aws.yaml
 ```
 
-That file is intentionally not tracked by Git. It supplies the private S3 bucket/prefix
-and any local AWS details needed by `configs/commoncrawl_collection.yaml`.
+## 2. Preflight
 
-## Preflight
-
-Run preflight before a collection run:
+Run:
 
 ```bash
 make sanity
 make collection_preflight
 ```
 
-`make collection_preflight` checks:
-
-- The configured collection years.
-- The configured S3 bucket and prefix.
-- AWS caller identity.
-- S3 write/delete access under the configured prefix.
-- Available disk headroom before local raw-WET download.
-- The local index-server port and pidfile state.
-
-If port `8080` is already occupied by an old collection index server, stop the recorded
-pidfile process:
+If preflight reports an old collection index server, stop it:
 
 ```bash
 make collection_stop_index_server
 ```
 
-If another unrelated process is using port `8080`, inspect it manually before killing it:
+If port `8080` is occupied by something unexpected, inspect it before killing anything:
 
 ```bash
 ss -ltnp | grep ':8080' || true
 ```
 
-## Run In Tmux
+## 3. Use Tmux
 
 Use `tmux` for long runs:
 
@@ -87,34 +56,36 @@ Use `tmux` for long runs:
 tmux new -s collection
 ```
 
-If your SSH connection drops:
+Optional but useful: keep failed panes visible for diagnosis.
+
+```bash
+tmux set-option remain-on-exit on
+```
+
+Detach with `Ctrl-b`, then `d`. Reattach with:
 
 ```bash
 tmux attach -t collection
 ```
 
-## Run One Year
+## 4. Run One Year Or Batch
 
-Set the year, track, and batch explicitly:
+Set the run parameters:
 
 ```bash
 YEAR=2024
-TRACK=trend
+TRACK=corpus
 BATCH=1
 CONFIG=configs/commoncrawl_collection.yaml
 ```
 
-Run the complete single-year pipeline:
+Run the configured year/track/batch:
 
 ```bash
 make collection_year YEAR=$YEAR TRACK=$TRACK BATCH=$BATCH CONFIG=$CONFIG
 ```
 
-After installing the relevant Common Crawl index files, this command restarts only the
-index-server process recorded in the configured pidfile. This avoids stale server state
-when moving between crawls.
-
-Convenience aliases are available:
+Convenience aliases:
 
 ```bash
 make trend_year YEAR=2024 CONFIG=configs/commoncrawl_collection.yaml
@@ -122,143 +93,28 @@ make corpus_year YEAR=2024 CONFIG=configs/commoncrawl_collection.yaml
 make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
 ```
 
-Use `trend_year` for a fixed annual trend sample. Use `corpus_year` for corpus batch 1.
-Use `corpus_expand` for additional deterministic corpus batches after inspecting whether
-the year has reached the target document counts.
+Use:
+
+- `trend_year` for a fixed annual trend sample.
+- `corpus_year` for corpus batch 1.
+- `corpus_expand` for additional deterministic corpus batches.
 
 Single-year and expansion runs do not rebuild final processed outputs by default. After
-all required corpus batches are complete, build the processed corpus once:
+all required corpus expansion batches are complete, build the processed corpus once:
 
 ```bash
 make corpus_build_processed CONFIG=configs/commoncrawl_collection.yaml
 ```
 
-Raw WET files are transient working inputs. After the year completes successfully, the
-runner removes that year's local WET batch automatically. The deterministic manifest and
-downstream outputs remain durable; if the year fails before completion, its WET files are
-kept for immediate recovery.
-
-## Outputs
-
-On EC2, working outputs are written under the track-specific working directory.
-
-For `TRACK=trend`, outputs are written under:
-
-```text
-data/interim/collection/trend_working/<YEAR>/
-```
-
-For `TRACK=corpus`, outputs are written under:
-
-```text
-data/interim/collection/corpus_working/<YEAR>/batch_<BATCH>/
-```
-
-The most useful files are:
-
-```text
-wet_scan/cc_scan_summary_<runid>.csv
-url_exports/cc_collection_url_upload_manifest_<runid>.json
-pointer_cache/cc_pointer_cache_summary_<runid>.csv
-warc/cc_collection_summary_<runid>.csv
-quality/cc_collection_summary_<runid>.csv
-quality/cc_collection_term_summary_<runid>.csv
-quality/cc_val_sample30_<runid>.csv
-metrics/cc_collection_throughput_summary_<runid>.csv
-metrics/cc_collection_run_manifest_<runid>.json
-```
-
-Processed outputs are refreshed after a successful run:
-
-```text
-data/processed/trend/trend_rates.csv
-data/processed/corpus/corpus_documents.parquet
-```
-
-The high-level runner also uploads the key outputs to S3. By default, sync only
-lightweight CSV/JSON summaries, manifests, validation samples, and final processed outputs
-locally. Detailed WARC and per-batch quality parquets are not uploaded by the high-level
-runner; they are local handoff files that are cleaned after successful downstream handoff.
-
-The S3 mirror uses top-level collection folders, not the EC2 working folder names:
-
-```text
-url_exports/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
-pointer_cache/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
-warc_output/<TRACK>/<YEAR>/batch_<BATCH>/<url_export_runid>/
-quality/<TRACK>/<YEAR>/batch_<BATCH>/<quality_runid>/
-metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
-processed/<TRACK>/
-```
-
-The final document-quality gate summaries, term summaries, validation samples, and
-WARC summaries are in the synced `warc_output/.../<url_export_runid>/` and
-`quality/.../<quality_runid>/` folders. The throughput summary and run manifest are in the
-synced `metrics/.../<runid>/` folder. Detailed WARC and per-batch quality parquets are not
-retained by the high-level runner.
-
-Final processed outputs sync separately into:
-
-```text
-data/processed/trend/trend_rates.csv
-data/processed/corpus/corpus_documents.parquet
-```
-
-## Sync Outputs To Local Machine
-
-Do not use GitHub to move collection outputs from EC2 to your local machine. GitHub is
-only for tracked code, config, and documentation. After a successful EC2 run, sync data
-artifacts from S3 on your local machine:
-
-```bash
-cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ data/interim/collection/ --exclude "processed/*" --exclude "*.parquet"
-aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/processed/ data/processed/
-```
-
-Use a narrower S3 prefix if you only need one year, track, or batch.
-
-If a diagnostic question requires detailed parquet artifacts, rerun the affected
-year/batch with the lower-level extraction or quality command and inspect the local files
-before returning to the high-level runner. The standard S3 mirror intentionally keeps only
-lightweight summaries/manifests and final processed outputs.
-
-After syncing, the local S3-mirrored quality outputs are under:
-
-```text
-data/interim/collection/quality/<TRACK>/<YEAR>/batch_<BATCH>/<quality_runid>/
-```
-
-The synced throughput summary and run manifest are under:
-
-```text
-data/interim/collection/metrics/<TRACK>/<YEAR>/batch_<BATCH>/<runid>/
-```
-
-For example:
-
-```bash
-BPAD=$(printf "%03d" "$BATCH")
-find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
-  -name "cc_collection_summary_*.csv" | sort | tail -n1 | xargs cat
-find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
-  -name "cc_collection_term_summary_*.csv" | sort | tail -n1 | xargs cat
-find "data/interim/collection/quality/$TRACK/$YEAR/batch_$BPAD" \
-  -name "cc_val_sample30_*.csv" | sort | tail -n1
-find "data/interim/collection/metrics/$TRACK/$YEAR/batch_$BPAD" \
-  -name "cc_collection_throughput_summary_*.csv" | sort | tail -n1 | xargs cat
-```
-
-## Inspect Latest Results
+## 5. Inspect Results
 
 For trend:
 
 ```bash
 BASE=data/interim/collection/trend_working/$YEAR
-find "$BASE/quality" -maxdepth 1 -type f -name "cc_collection_summary_*.csv" | sort | tail -n1 | xargs cat
-find "$BASE/quality" -maxdepth 1 -type f -name "cc_collection_term_summary_*.csv" | sort | tail -n1 | xargs cat
-find "$BASE/metrics" -maxdepth 1 -type f -name "cc_collection_throughput_summary_*.csv" | sort | tail -n1 | xargs cat
-find "$BASE/quality" -maxdepth 1 -type f -name "cc_val_sample30_*.csv" | sort | tail -n1
+find "$BASE/quality" -maxdepth 1 -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/quality" -maxdepth 1 -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/metrics" -maxdepth 1 -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
 ```
 
 For corpus:
@@ -266,26 +122,52 @@ For corpus:
 ```bash
 BPAD=$(printf "%03d" "$BATCH")
 BASE=data/interim/collection/corpus_working/$YEAR/batch_$BPAD
-find "$BASE/quality" -maxdepth 1 -type f -name "cc_collection_summary_*.csv" | sort | tail -n1 | xargs cat
-find "$BASE/quality" -maxdepth 1 -type f -name "cc_collection_term_summary_*.csv" | sort | tail -n1 | xargs cat
-find "$BASE/metrics" -maxdepth 1 -type f -name "cc_collection_throughput_summary_*.csv" | sort | tail -n1 | xargs cat
-find "$BASE/quality" -maxdepth 1 -type f -name "cc_val_sample30_*.csv" | sort | tail -n1
+find "$BASE/quality" -maxdepth 1 -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/quality" -maxdepth 1 -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/metrics" -maxdepth 1 -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
 ```
 
-## Failure Recovery
-
-The high-level command is the default interface. If a run fails mid-way, inspect:
+Validation samples are written as:
 
 ```text
-reports/logs/
-data/interim/collection/.../metrics/cc_collection_run_manifest_<runid>.json
+quality/cc_val_sample30_<runid>.csv
 ```
 
-If the failure happened before WARC resolution, rerunning the same high-level command is
-usually acceptable. Existing WET downloads are skipped while the raw files are still
-present; after a successful year, a later rerun redownloads them from the saved manifest.
+## 6. Sync Outputs Locally
 
-If the failure happened after URL upload and you need specialist manual recovery, inspect
-the relevant log and manifest first, then call the underlying CLI command directly with the
-exact S3 URI or local path you want to resume from. These recovery commands are intentionally
-not exposed as public Make targets because the high-level command is the supported interface.
+Do not use GitHub for collection outputs. Sync data artifacts from S3 to your local
+machine:
+
+```bash
+cd /Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/ data/interim/collection/ --exclude "processed/*" --exclude "*.parquet"
+aws s3 sync s3://msc-nlp-therapy-speak-823916751170-us-east-1-an/msc-nlp-therapy-speak/collection/processed/ data/processed/
+```
+
+Use a narrower S3 prefix if you only need one track, year, or batch.
+
+## 7. Basic Recovery
+
+If a run fails, inspect the latest logs:
+
+```bash
+ls -lt reports/logs | head -30
+tail -120 "$(ls -t reports/logs/*.log | head -1)"
+```
+
+Check whether any collection process is still running:
+
+```bash
+ps aux | grep -E 'python -m src.cli cc-collection-run-year|make corpus_expand|make collection_year' | grep -v grep
+```
+
+Rerun the same year or batch with the same command. Examples:
+
+```bash
+make trend_year YEAR=2024 CONFIG=configs/commoncrawl_collection.yaml
+make corpus_year YEAR=2024 CONFIG=configs/commoncrawl_collection.yaml
+make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
+```
+
+For failed corpus expansion batches, only delete partial local files if you have confirmed
+the batch did not produce a valid `quality/cc_collection_summary_*.csv`.
