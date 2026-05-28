@@ -126,6 +126,13 @@ Use `trend_year` for a fixed annual trend sample. Use `corpus_year` for corpus b
 Use `corpus_expand` for additional deterministic corpus batches after inspecting whether
 the year has reached the target document counts.
 
+Single-year and expansion runs do not rebuild final processed outputs by default. After
+all required corpus batches are complete, build the processed corpus once:
+
+```bash
+python -m src.cli cc-collection-build-corpus --config configs/commoncrawl_collection.yaml
+```
+
 Raw WET files are transient working inputs. After the year completes successfully, the
 runner removes that year's local WET batch automatically. The deterministic manifest and
 downstream outputs remain durable; if the year fails before completion, its WET files are

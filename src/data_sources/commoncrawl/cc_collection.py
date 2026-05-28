@@ -1198,7 +1198,7 @@ def run_collection_year(
     year: int | str,
     track: Optional[str],
     batch: int | str = 1,
-    build_processed: bool = True,
+    build_processed: bool = False,
 ) -> Path:
     track = _normalise_track(track)
     batch_int = int(batch)
@@ -1410,6 +1410,12 @@ def run_collection_year(
                     "cleanup_corpus_quality_parquet",
                     _cleanup_corpus_quality_sources(config, logger=logger),
                 )
+    else:
+        logger.info(
+            "Skipping processed %s build for single year/batch run. "
+            "Run the track-level collection or explicit processed builder to finalize once.",
+            track,
+        )
 
     metrics_output_prefix = (
         _collection_s3_uri(config, "metrics", track, str(year), batch_label, runid).rstrip("/")

@@ -197,6 +197,15 @@ def main() -> None:
     )
     _add_config_arg(p_run_year)
     _add_year_track_batch_args(p_run_year)
+    p_run_year.add_argument(
+        "--build-processed",
+        action="store_true",
+        help=(
+            "Also rebuild processed outputs after this single year/batch. By default, "
+            "single-year runs only collect the batch; use cc-collection-run or "
+            "cc-collection-build-* to finalize processed outputs once."
+        ),
+    )
 
     p_stop = sub.add_parser(
         "cc-collection-stop-index-server",
@@ -278,7 +287,13 @@ def main() -> None:
         run_collection_track(cfg, track=args.track)
         return
     if args.command == "cc-collection-run-year":
-        run_collection_year(cfg, year=args.year, track=args.track, batch=args.batch)
+        run_collection_year(
+            cfg,
+            year=args.year,
+            track=args.track,
+            batch=args.batch,
+            build_processed=args.build_processed,
+        )
         return
     if args.command == "cc-collection-stop-index-server":
         stop_collection_index_server(cfg)
