@@ -100,7 +100,8 @@ Use:
 - `corpus_expand` for additional deterministic corpus batches.
 
 Single-year and expansion runs do not rebuild final processed outputs by default. After
-all required corpus expansion batches are complete, build the processed corpus once:
+all required corpus expansion batches are complete, build the processed corpus once and
+upload it to the configured S3 collection prefix:
 
 ```bash
 make corpus_build_processed CONFIG=configs/commoncrawl_collection.yaml

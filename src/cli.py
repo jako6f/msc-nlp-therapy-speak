@@ -24,6 +24,7 @@ from src.data_sources.commoncrawl import (
     start_collection_index_server,
     stop_collection_index_server,
     upload_collection_urls,
+    upload_processed_output,
 )
 from src.pathing import (
     collection_interim_dir,
@@ -177,12 +178,22 @@ def main() -> None:
         help="Build processed trend outputs from collection working artifacts.",
     )
     _add_config_arg(p_build_trend)
+    p_build_trend.add_argument(
+        "--upload",
+        action="store_true",
+        help="Upload the processed trend output to the configured collection S3 prefix.",
+    )
 
     p_build_corpus = sub.add_parser(
         "cc-collection-build-corpus",
         help="Build processed corpus outputs from collection working artifacts.",
     )
     _add_config_arg(p_build_corpus)
+    p_build_corpus.add_argument(
+        "--upload",
+        action="store_true",
+        help="Upload the processed corpus output to the configured collection S3 prefix.",
+    )
 
     p_run_track = sub.add_parser(
         "cc-collection-run",
@@ -278,10 +289,16 @@ def main() -> None:
         quality_collection(cfg, year=args.year, track=args.track, batch=args.batch)
         return
     if args.command == "cc-collection-build-trend":
-        build_processed_trend(cfg)
+        processed_path = build_processed_trend(cfg)
+        if args.upload:
+            for uri in upload_processed_output(cfg, track="trend", path=processed_path):
+                print(f"Uploaded {uri}")
         return
     if args.command == "cc-collection-build-corpus":
-        build_processed_corpus(cfg)
+        processed_path = build_processed_corpus(cfg)
+        if args.upload:
+            for uri in upload_processed_output(cfg, track="corpus", path=processed_path):
+                print(f"Uploaded {uri}")
         return
     if args.command == "cc-collection-run":
         run_collection_track(cfg, track=args.track)

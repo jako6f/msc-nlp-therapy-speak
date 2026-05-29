@@ -474,6 +474,10 @@ def _collection_s3_uri(config: Dict, *parts: str) -> str:
     return f"s3://{bucket}/{key}" if key else f"s3://{bucket}"
 
 
+def _processed_output_prefix(config: Dict, track: str) -> str:
+    return _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
+
+
 def _parse_s3_uri(uri: str) -> Tuple[str, str]:
     if not uri.startswith("s3://"):
         raise ValueError(f"Expected S3 URI, got: {uri}")
@@ -496,6 +500,14 @@ def _upload_paths_to_s3(local_paths: Iterable[Path], s3_output_prefix: str) -> L
         s3_client.upload_file(str(local_path), bucket, key)
         uploaded_uris.append(f"s3://{bucket}/{key}")
     return uploaded_uris
+
+
+def upload_processed_output(config: Dict, *, track: str, path: Path) -> List[str]:
+    track = _normalise_track(track)
+    local_path = Path(path)
+    if not local_path.exists():
+        raise FileNotFoundError(f"Processed output not found: {local_path}")
+    return _upload_paths_to_s3([local_path], _processed_output_prefix(config, track))
 
 
 def _runid_from_path(path: Path, prefix: str, suffix: str) -> str:
@@ -1400,10 +1412,8 @@ def run_collection_year(
                 )
         if processed_path:
             _record_step("build_processed", processed_path)
-            processed_output_prefix = (
-                _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
-            )
-            _upload_paths_to_s3([Path(processed_path)], processed_output_prefix)
+            processed_output_prefix = _processed_output_prefix(config, track)
+            upload_processed_output(config, track=track, path=Path(processed_path))
             _record_step("upload_processed", processed_output_prefix)
             if track == "corpus":
                 _record_step(
@@ -1529,7 +1539,6 @@ def run_collection_track(config: Dict, *, track: str) -> None:
         processed_path = build_processed_trend(config)
     else:
         processed_path = build_processed_corpus(config)
-    processed_output_prefix = _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
-    _upload_paths_to_s3([processed_path], processed_output_prefix)
+    upload_processed_output(config, track=track, path=processed_path)
     if track == "corpus":
         _cleanup_corpus_quality_sources(config, logger=logger)

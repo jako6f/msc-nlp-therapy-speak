@@ -137,7 +137,8 @@ collection.corpus.expansion_wet_batch_size
 ```
 
 `make corpus_expand` does not rebuild the final processed corpus. After all expansion
-batches are complete, build it once:
+batches are complete, build it once and upload it to the configured S3 collection
+prefix:
 
 ```bash
 make corpus_build_processed CONFIG=configs/commoncrawl_collection.yaml

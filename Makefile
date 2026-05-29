@@ -42,7 +42,7 @@ corpus_expand:
 	$(MAKE) collection_year YEAR=$(YEAR) TRACK=corpus BATCH=$(BATCH) CONFIG=$(CONFIG)
 
 corpus_build_processed:
-	python -m src.cli cc-collection-build-corpus --config $(CONFIG)
+	python -m src.cli cc-collection-build-corpus --config $(CONFIG) --upload
 
 trend:
 	python -m src.cli cc-collection-run --config $(CONFIG) --track trend

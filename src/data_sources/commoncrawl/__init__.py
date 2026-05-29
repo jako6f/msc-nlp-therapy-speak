@@ -16,6 +16,7 @@ from .cc_collection import (
     start_collection_index_server,
     stop_collection_index_server,
     upload_collection_urls,
+    upload_processed_output,
 )
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     "start_collection_index_server",
     "stop_collection_index_server",
     "upload_collection_urls",
+    "upload_processed_output",
 ]
