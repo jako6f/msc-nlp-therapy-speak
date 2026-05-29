@@ -277,6 +277,67 @@ def _with_corpus_source_columns(frame: pd.DataFrame) -> pd.DataFrame:
     return frame
 
 
+def _normalise_corpus_source_key(
+    year: object, batch: object
+) -> Tuple[Optional[int], Optional[int]]:
+    try:
+        if pd.isna(year) or pd.isna(batch):
+            return None, None
+        return int(year), int(batch)
+    except (TypeError, ValueError):
+        return None, None
+
+
+def _processed_corpus_sources(path: Path) -> Tuple[set[Tuple[int, int]], set[str]]:
+    import pyarrow.parquet as pq  # type: ignore
+
+    parquet_file = pq.ParquetFile(path)
+    names = set(parquet_file.schema_arrow.names)
+    source_paths: set[str] = set()
+    source_keys: set[Tuple[int, int]] = set()
+
+    if "source_corpus_path" in names:
+        frame = pd.read_parquet(path, columns=["source_corpus_path"])
+        source_paths = {
+            str(value).strip()
+            for value in frame["source_corpus_path"].dropna().unique()
+            if str(value).strip()
+        }
+        for source_path in source_paths:
+            year, batch = _corpus_source_parts(Path(source_path))
+            if year is not None and batch is not None:
+                source_keys.add((year, batch))
+        return source_keys, source_paths
+
+    if {"source_year", "source_batch"}.issubset(names):
+        frame = pd.read_parquet(path, columns=["source_year", "source_batch"])
+        for year, batch in zip(frame["source_year"], frame["source_batch"]):
+            source_key = _normalise_corpus_source_key(year, batch)
+            if source_key[0] is not None and source_key[1] is not None:
+                source_keys.add((source_key[0], source_key[1]))
+        return source_keys, source_paths
+
+    raise ValueError(
+        "Existing processed corpus is missing source metadata; cannot safely update it."
+    )
+
+
+def _corpus_frame_source_keys(frame: pd.DataFrame) -> List[Tuple[Optional[int], Optional[int]]]:
+    if "source_year" in frame.columns and "source_batch" in frame.columns:
+        return [
+            _normalise_corpus_source_key(year, batch)
+            for year, batch in zip(frame["source_year"], frame["source_batch"])
+        ]
+    if "source_corpus_path" not in frame.columns:
+        raise ValueError(
+            "Processed corpus frame is missing source metadata; cannot safely update it."
+        )
+    return [
+        _corpus_source_parts_from_value(source_path)
+        for source_path in frame["source_corpus_path"]
+    ]
+
+
 def _normalise_track(track: Optional[str]) -> str:
     value = (track or "trend").strip().lower()
     if value not in {"trend", "corpus"}:
@@ -1499,34 +1560,85 @@ def build_processed_trend(config: Dict) -> Path:
 
 
 def build_processed_corpus(config: Dict) -> Path:
+    import pyarrow as pa  # type: ignore
+    import pyarrow.parquet as pq  # type: ignore
+
     out_dir = processed_corpus_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "corpus_documents.parquet"
-    corpus_paths = _latest_corpus_quality_paths(config, require_all_years=not out_path.exists())
-    frames: List[pd.DataFrame] = []
+    try:
+        corpus_paths = _latest_corpus_quality_paths(config, require_all_years=True)
+    except FileNotFoundError:
+        if out_path.exists():
+            return out_path
+        raise
+
+    source_paths = {str(path) for path in corpus_paths}
+    source_keys = {_corpus_source_parts(corpus_path) for corpus_path in corpus_paths}
+    source_keys = {
+        (year, batch)
+        for year, batch in source_keys
+        if year is not None and batch is not None
+    }
+
     if out_path.exists():
-        existing_frame = _with_corpus_source_columns(pd.read_parquet(out_path))
-        if corpus_paths:
-            replacement_sources = {
-                _corpus_source_parts(corpus_path) for corpus_path in corpus_paths
-            }
-            source_keys = list(
-                zip(existing_frame["source_year"], existing_frame["source_batch"])
-            )
-            existing_frame = existing_frame.loc[
-                [source_key not in replacement_sources for source_key in source_keys]
-            ].copy()
-        frames.append(existing_frame)
-    for corpus_path in corpus_paths:
-        frame = pd.read_parquet(corpus_path)
-        frame["source_corpus_path"] = str(corpus_path)
-        source_year, source_batch = _corpus_source_parts(corpus_path)
-        frame["source_year"] = source_year
-        frame["source_batch"] = source_batch
-        frames.append(frame)
-    if not frames:
-        raise FileNotFoundError("No corpus quality parquet inputs or processed corpus found.")
-    pd.concat(frames, ignore_index=True).to_parquet(out_path, index=False)
+        existing_keys, existing_source_paths = _processed_corpus_sources(out_path)
+        if existing_source_paths and source_paths.issubset(existing_source_paths):
+            return out_path
+        if not existing_source_paths and source_keys.issubset(existing_keys):
+            return out_path
+
+    temp_path = out_dir / f".{out_path.name}.tmp"
+    temp_path.unlink(missing_ok=True)
+    writer: Optional[pq.ParquetWriter] = None
+    schema: Optional[pa.Schema] = None
+
+    def _write_frame(frame: pd.DataFrame) -> None:
+        nonlocal writer, schema
+        if frame.empty:
+            return
+        table = pa.Table.from_pandas(frame, preserve_index=False)
+        if writer is None:
+            schema = table.schema
+            writer = pq.ParquetWriter(temp_path, schema)
+        else:
+            assert schema is not None
+            table = table.select(schema.names).cast(schema, safe=False)
+        writer.write_table(table)
+
+    try:
+        if out_path.exists():
+            existing_keys, _ = _processed_corpus_sources(out_path)
+            retained_keys = existing_keys - source_keys
+            if retained_keys:
+                parquet_file = pq.ParquetFile(out_path)
+                for batch in parquet_file.iter_batches(batch_size=5000):
+                    frame = pa.Table.from_batches([batch]).to_pandas()
+                    keep_mask = [
+                        source_key in retained_keys
+                        for source_key in _corpus_frame_source_keys(frame)
+                    ]
+                    if any(keep_mask):
+                        _write_frame(frame.loc[keep_mask].copy())
+
+        for corpus_path in corpus_paths:
+            frame = pd.read_parquet(corpus_path)
+            frame["source_corpus_path"] = str(corpus_path)
+            source_year, source_batch = _corpus_source_parts(corpus_path)
+            frame["source_year"] = source_year
+            frame["source_batch"] = source_batch
+            _write_frame(frame)
+
+        if writer is None:
+            raise FileNotFoundError("No corpus quality parquet inputs or processed corpus found.")
+    except Exception:
+        temp_path.unlink(missing_ok=True)
+        raise
+    finally:
+        if writer is not None:
+            writer.close()
+
+    temp_path.replace(out_path)
     return out_path
 
 
