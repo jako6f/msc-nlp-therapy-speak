@@ -52,7 +52,7 @@ collection:
       crawl_id: "CC-MAIN-2026-17"
 
   trend:
-    fixed_wet_files_per_year: 50
+    fixed_wet_files_per_year: 100
 
   acquisition:
     request_timeout_s: 120
