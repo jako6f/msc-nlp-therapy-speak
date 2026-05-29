@@ -116,7 +116,7 @@ In all, this project contributes by extending concept creep and therapy-speak re
 
 Consistent with the gravity of the literature (Baes, Vylomova, et al. 2023; Baes, Haslam, et al. 2023; Xiao et al. 2023; Iacob and Uban 2026; Vylomova and Haslam 2021), we hypothesise that ADHD and autism have become more frequent and their collocates milder and broader since 2014. Given the absence of prior findings, the present study adopts a conservative approach and proposes no direction regarding changes in sentiment or thematic content among terms collocating with the target terms.
 
-# Data
+# Data and Materials
 
 ## Common Crawl
 

@@ -1,0 +1,26 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Abstract}{ii}{chapter*.1}%
+\contentsline {chapter}{Acknowledgements}{iii}{chapter*.1}%
+\contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Related Work}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Lexical Semantic Change of Mental-Health-Related Concepts}{3}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Factors Influencing Concept Creep of Mental-Health-Related Terms}{4}{subsection.2.1.1}%
+\contentsline {section}{\numberline {2.2}Computational Approaches to Studying Diachronic Lexical Semantic Change}{5}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Empirical Gap}{5}{section.2.3}%
+\contentsline {section}{\numberline {2.4}The Current Study}{6}{section.2.4}%
+\contentsline {chapter}{\numberline {3}Data and Materials}{8}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Common Crawl}{8}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Preprocessing}{9}{subsection.3.1.1}%
+\contentsline {section}{\numberline {3.2}Target Terms}{10}{section.3.2}%
+\contentsline {section}{\numberline {3.3}NRC--VAD Lexicon}{10}{section.3.3}%
+\contentsline {chapter}{\numberline {4}Methods}{11}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Salience (Prevalence)}{11}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Intensity (Vertical Creep)}{11}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Breadth (Horizontal Creep)}{11}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Sentiment (Connotation)}{11}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Thematic Evolution}{12}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Analytic Strategy}{12}{section.4.6}%
+\contentsline {chapter}{\numberline {5}Results}{13}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Discussion}{14}{chapter.6}%
+\contentsline {chapter}{\numberline {7}Conclusion}{15}{chapter.7}%
+\contentsline {chapter}{Appendices}{20}{appendix*.8}%

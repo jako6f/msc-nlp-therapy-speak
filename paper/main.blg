@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: bibs/compling.bst
+Database file #1: bibs/msc-nlp-therapy-speak.bib
+Warning--empty year in CloudComputingServices
+Warning--missing publisher in jm3
+You've used 40 entries,
+            2855 wiz_defined-function locations,
+            863 strings with 16015 characters,
+and the built_in function-call counts, 26556 in all, are:
+= -- 2055
+> -- 1490
+< -- 24
++ -- 511
+- -- 447
+* -- 2018
+:= -- 4148
+add.period$ -- 157
+call.type$ -- 40
+change.case$ -- 355
+chr.to.int$ -- 40
+cite$ -- 42
+duplicate$ -- 1947
+empty$ -- 1769
+format.name$ -- 572
+if$ -- 5213
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 403
+newline$ -- 201
+num.names$ -- 167
+pop$ -- 757
+preamble$ -- 1
+purify$ -- 302
+quote$ -- 0
+skip$ -- 620
+stack$ -- 0
+substring$ -- 1207
+swap$ -- 1008
+text.length$ -- 7
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 351
+warning$ -- 2
+while$ -- 182
+width$ -- 0
+write$ -- 518
+(There were 2 warnings)
