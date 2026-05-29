@@ -60,9 +60,11 @@ Second, therapy-speak may contribute to the psychiatrisation of everyday sufferi
 
 This latter concern—the erosion of meaning in psychotherapy terms—is the focus of the present study, which investigates diachronic lexical semantic change in the terms ADHD and autism. These two terms stand out, arguably more than any others, when considering psychotherapy-related terms that have permeated mainstream discourse (Medaris 2024). From January to May 2024, ADHD was the subject of 25,080 media articles, compared with 5775 articles during the equivalent period in 2014 (Martin et al. 2025). In May 2026, adhd and autism had been hashtagged in more than 5.2 million and 3.9 million videos on TikTok, respectively.
 
-The following literature review first synthesises empirical evidence on lexical semantic change (LSC) in mental-health-related terms over recent decades, before reviewing the computational approaches used to study these processes and identifying the gap addressed by this project.
+The following related work chapter first synthesises empirical evidence on lexical semantic change (LSC) in mental-health-related terms over recent decades, before reviewing the computational approaches used to study these processes and identifying the gap addressed by this project.
 
-# Literature Review
+# Related Work
+
+## Lexical Semantic Change of Mental-Health-Related Concepts
 
 Lexical semantic change (LSC) refers to shifts in a word’s meaning while its grammatical function remains stable, and constitutes a common form of language change (Campbell 2013). For example, cloud, initially a meteorological term, broadened in usage to refer to internet-based data storage.
 
@@ -114,7 +116,7 @@ In all, this project contributes by extending concept creep and therapy-speak re
 
 Consistent with the gravity of the literature (Baes, Vylomova, et al. 2023; Baes, Haslam, et al. 2023; Xiao et al. 2023; Iacob and Uban 2026; Vylomova and Haslam 2021), we hypothesise that ADHD and autism have become more frequent and their collocates milder and broader since 2014. Given the absence of prior findings, the present study adopts a conservative approach and proposes no direction regarding changes in sentiment or thematic content among terms collocating with the target terms.
 
-# Materials
+# Data
 
 ## Common Crawl
 
@@ -128,6 +130,8 @@ Common Crawl is the largest freely available public archive of web crawl data an
 To collect the data for this study, we built a Common Crawl collection pipeline designed to extract high-quality general discourse for the analysis of diachronic lexical-semantic change in specific target terms, here ADHD and autism, against matched baseline terms. The collection workflow is illustrated in Figure <a href="#fig:commoncrawl-pipeline" data-reference-type="ref" data-reference="fig:commoncrawl-pipeline">3.1</a>. Target and baseline terms are processed together so that yearly denominators, sampling logic, and quality filters remain comparable across term groups. The pipeline uses Common Crawl’s two main file formats sequentially. WET files provide compact extracted plaintext and are therefore used for large-scale term scanning and yearly prevalence denominators, but they lack the HTML structure and metadata needed for stronger validation. Candidate documents are therefore resolved to their corresponding WARC records, which preserve the archived web response, including HTML and headers. Although WARC processing is slower, it enables main-text extraction, term-survival validation, and metadata recovery. This WET-first, WARC-second design keeps the pipeline economical by reserving expensive WARC processing for candidate documents only.
 
 The design consists of two linked tracks. The trend track uses fixed-effort annual samples to estimate how frequently target and baseline terms appear over time. The corpus track builds a larger, quality-gated document corpus for downstream NLP analysis. To reduce the risk that a small number of large websites dominate the corpus, domain caps are applied at 50 WET-validated hit rows per registered domain per Common Crawl crawl. Intermediate summaries and manifests are retained so that each year, crawl, track, and batch remains auditable. The pipeline is designed to run end-to-end on AWS EC2, using S3 as the durable storage and transfer layer for intermediate and final collection artefacts. Yearly crawl selection is deterministic: one Common Crawl snapshot is selected per year near a fixed annual anchor date and then frozen in a crawl map.
+
+Several software choices are methodologically consequential because they affect corpus membership. WET and WARC records are parsed with `warcio`, WARC pointers are resolved through a local `pywb`-based index server, archived HTML is converted to main text with Trafilatura and Resiliparse, and post-extraction filtering uses DataTrove quality filters followed by English-language filtering with `py3langid`.
 
 The data collection spans 13 annual Common Crawl snapshots from 2014 to 2026. In the trend track, the pipeline scanned 27.7 million WET records \[provisional\] and retained 78,899 WARC-validated term hits \[provisional\]. In the corpus track, it scanned 28.1 million WET records \[provisional\] and retained 42,975 analysis-ready documents \[provisional\]. Target-term coverage comprises 10,998 target documents \[provisional\], including 3,907 ADHD documents \[provisional\] and 8,558 autism documents \[provisional\]. The collection was run on an AWS `m7i-flex.large` instance, featuring 2 vCPUs, 8 GiB of RAM, and up to 12.5 Gbps network bandwidth (AWS, n.d.). On this instance type, corpus throughput was approximately one hour per million scanned WET records \[provisional\].
 
@@ -158,7 +162,7 @@ The affective analyses use the NRC Valence, Arousal, and Dominance (VAD) Lexicon
 
 This study uses valence to estimate whether target-term contexts become more positive or negative over time, and arousal to estimate changes in emotional intensity. Dominance is present in the source lexicon but is not used. The ratings were produced through Best–Worst Scaling, where annotators are given four items (4-tuple) and asked which item is the Best (highest in terms of the property of interest) and which is the Worst (least in terms of the property of interest).
 
-# Method
+# Methods
 
 ## Salience (Prevalence)
 

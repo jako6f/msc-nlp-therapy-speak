@@ -31,20 +31,9 @@
 %% Nice font (as in original template)
 \usepackage{mathpazo}
 
-%% Quotes (recommended with biblatex)
-\usepackage[autostyle=true]{csquotes}
-
-%% APA 7 references (biblatex-apa)
-%% Compilation: pdflatex → biber → pdflatex → pdflatex
-\usepackage[
-  backend=biber,
-  style=apa,
-  sortcites=true,
-  doi=true,
-  isbn=false,
-  url=true
-]{biblatex}
-\DeclareLanguageMapping{english}{english-apa}
+%% CL-compatible author-year citations
+%% Compilation: pdflatex → bibtex → pdflatex → pdflatex
+\usepackage[round,authoryear]{natbib}
 
 %% Graphics path: no-copy–paste integration
 %% Figure exports live under ../reports/figures/{pilot-dev,trend,corpus}/

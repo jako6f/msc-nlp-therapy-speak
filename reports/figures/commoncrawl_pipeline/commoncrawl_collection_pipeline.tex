@@ -70,54 +70,54 @@
 
 % Column 1: crawl frame and WET acquisition.
 \node[wetstage] (crawl) {
-  \textbf{Frozen crawl map}\\[-0.15em]
-  {\scriptsize one Common Crawl crawl per year}
+  \textbf{Select annual crawls}\\[-0.15em]
+  {\scriptsize one frozen snapshot per year}
 };
 \node[wetstage, below=of crawl] (sample) {
-  \textbf{Deterministic WET sampling}\\[-0.15em]
-  {\scriptsize trend fixed sample; corpus initial/expansion batches}
+  \textbf{Sample WET files}\\[-0.15em]
+  {\scriptsize fixed trend sample; corpus batches}
 };
 \node[wetstage, below=of sample] (download) {
-  \textbf{Download WET files}\\[-0.15em]
-  {\scriptsize retry/backoff, disk preflight, cleanup after success}
+  \textbf{Acquire plaintext}\\[-0.15em]
+  {\scriptsize compact WET records for broad scanning}
 };
 
 % Column 2: WET candidate discovery.
 \node[wetstage, right=1.30cm of crawl] (scan) {
-  \textbf{Scan WET text}\\[-0.15em]
-  {\scriptsize target, baseline, and context patterns}
+  \textbf{Find term candidates}\\[-0.15em]
+  {\scriptsize target and baseline matches}
 };
 \node[wetstage, below=of scan] (triage) {
-  \textbf{Coarse WET triage}\\[-0.15em]
-  {\scriptsize min length, boilerplate signatures, URL denylist, domain cap}
+  \textbf{Screen obvious noise}\\[-0.15em]
+  {\scriptsize boilerplate, listings, weak pages, domain caps}
 };
 \node[wetstage, below=of triage] (urls) {
-  \textbf{Candidate URL export}\\[-0.15em]
-  {\scriptsize unique crawl--URL rows uploaded to S3}
+  \textbf{Export candidate URLs}\\[-0.15em]
+  {\scriptsize unique crawl--URL rows for validation}
 };
 
 % Column 3: WARC validation and enrichment.
 \node[warcstage, right=1.30cm of scan] (resolve) {
-  \textbf{Resolve WARC pointers}\\[-0.15em]
-  {\scriptsize local Common Crawl index server}
+  \textbf{Locate archived pages}\\[-0.15em]
+  {\scriptsize resolve WARC file, offset, and length}
 };
 \node[warcstage, below=of resolve] (fetch) {
-  \textbf{Fetch WARC HTML}\\[-0.15em]
-  {\scriptsize byte ranges with retry, cooldown, and abort safeguards}
+  \textbf{Fetch archived HTML}\\[-0.15em]
+  {\scriptsize byte-range retrieval from WARC files}
 };
 \node[warcstage, below=of fetch] (extract) {
-  \textbf{Extract main text}\\[-0.15em]
-  {\scriptsize Trafilatura extraction, publication-date recovery, hit revalidation}
+  \textbf{Extract and re-check text}\\[-0.15em]
+  {\scriptsize main content, dates, surviving term hits}
 };
 
 % Column 4: quality gate.
 \node[qualitystage, right=1.30cm of resolve] (quality) {
-  \textbf{Document-quality gate}\\[-0.15em]
-  {\scriptsize substantive text, DataTrove/FineWeb-style filters}
+  \textbf{Apply quality filters}\\[-0.15em]
+  {\scriptsize substantive text and web-corpus heuristics}
 };
 \node[qualitystage, below=of quality] (langdedup) {
-  \textbf{English filter and near-dedup}\\[-0.15em]
-  {\scriptsize local deduplication before final outputs}
+  \textbf{Keep English and deduplicate}\\[-0.15em]
+  {\scriptsize language filter and near-duplicate removal}
 };
 
 % Column 5: final products.
@@ -150,15 +150,15 @@
 % Stage grouping boxes.
 \begin{scope}[on background layer]
   \node[group, fit=(crawl) (sample) (download),
-    label={[group label]above:WET acquisition}] {};
+    label={[group label]above:Crawl selection}] {};
   \node[group, fit=(scan) (triage) (urls),
     label={[group label]above:Candidate discovery}] {};
   \node[group, fit=(resolve) (fetch) (extract),
-    label={[group label]above:WARC validation and enrichment}] {};
+    label={[group label]above:Archived-page validation}] {};
   \node[group, fit=(quality) (langdedup),
-    label={[group label]above:Quality gate}] {};
+    label={[group label]above:Final filtering}] {};
   \node[group, fit=(trend) (corpus),
-    label={[group label]above:Final products}] {};
+    label={[group label]above:Analysis outputs}] {};
 \end{scope}
 
 \end{tikzpicture}

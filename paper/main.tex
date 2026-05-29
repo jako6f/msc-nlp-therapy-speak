@@ -34,9 +34,6 @@
 % Load adapted Trinity template preamble
 \input{template/preamble.tex}
 
-% Bibliography file
-\addbibresource{bibs/msc-nlp-therapy-speak.bib}
-
 \begin{document}
 
 % =============================================================================
@@ -86,13 +83,13 @@ I would like to thank my supervisor, Dr Tom Paskhalis, for guidance throughout t
 \chapter{Introduction}
 \input{sections/01_introduction.tex}
 
-\chapter{Literature Review}
+\chapter{Related Work}
 \input{sections/02_literature_review.tex}
 
-\chapter{Materials}
+\chapter{Data}
 \input{sections/03_materials.tex}
 
-\chapter{Method}
+\chapter{Methods}
 \input{sections/04_method.tex}
 
 \chapter{Results}
@@ -108,7 +105,8 @@ I would like to thank my supervisor, Dr Tom Paskhalis, for guidance throughout t
 % References
 % =============================================================================
 \backmatter
-\printbibliography
+\bibliographystyle{bibs/compling}
+\bibliography{bibs/msc-nlp-therapy-speak}
 
 % =============================================================================
 % Appendices (optional)
