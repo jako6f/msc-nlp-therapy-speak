@@ -1,20 +1,20 @@
 row_type,track,year,year_count,year_range,batch_count,instance_type,wet_records_scanned,wet_validated_hits,warc_validated_hits,final_documents,target_documents,adhd_documents,autism_documents,total_elapsed_hours,hours_per_million_wet_records,throughput_observed_wet_records_scanned,throughput_observed_year_count,throughput_complete,wet_elapsed_hours,warc_elapsed_hours,document_quality_elapsed_hours,warc_fetch_success_rate_pct,warc_extract_success_rate_pct,report_note
-track_total,corpus,,13,2014-2026,13,m7i-flex.large,28079891,174874,81139,42975,10998,3907,8558,27.896,0.993,28079891,13,True,5.686,15.289,6.921,99.783,43.009,Quality-gated corpus track.
-year,corpus,2014,,,1,m7i-flex.large,2752682,16935,7654,4020,1135,376,895,2.687,0.976,2752682,1,True,0.364,1.502,0.821,99.965,43.566,Annual accepted collection output.
-year,corpus,2015,,,1,m7i-flex.large,2747625,14937,6826,3566,952,276,768,2.263,0.823,2747625,1,True,0.376,1.238,0.649,99.929,44.577,Annual accepted collection output.
-year,corpus,2016,,,1,m7i-flex.large,2926997,22733,10908,5803,1273,371,1022,3.682,1.258,2926997,1,True,0.605,1.572,1.505,99.898,47.252,Annual accepted collection output.
-year,corpus,2017,,,1,m7i-flex.large,2218484,13245,6025,3122,856,287,675,1.964,0.885,2218484,1,True,0.511,1.014,0.438,99.927,44.925,Annual accepted collection output.
-year,corpus,2018,,,1,m7i-flex.large,2371677,13796,6219,3178,751,242,595,1.932,0.815,2371677,1,True,0.473,1.018,0.441,99.835,44.682,Annual accepted collection output.
-year,corpus,2019,,,1,m7i-flex.large,2189497,14159,6800,3538,1043,396,834,2.503,1.143,2189497,1,True,0.45,1.209,0.844,99.965,46.962,Annual accepted collection output.
-year,corpus,2020,,,1,m7i-flex.large,2508726,16864,7249,3669,971,375,762,2.666,1.063,2508726,1,True,0.596,1.521,0.548,99.955,43.009,Annual accepted collection output.
-year,corpus,2021,,,1,m7i-flex.large,2425330,15674,6973,3637,886,323,708,2.414,0.996,2425330,1,True,0.557,1.372,0.485,99.969,44.396,Annual accepted collection output.
-year,corpus,2022,,,1,m7i-flex.large,2110040,13428,6125,3339,814,330,595,2.137,1.013,2110040,1,True,0.475,1.252,0.41,99.783,45.225,Annual accepted collection output.
-year,corpus,2023,,,1,m7i-flex.large,1904226,10933,5235,2877,755,310,542,1.728,0.908,1904226,1,True,0.432,1.008,0.289,99.844,47.699,Annual accepted collection output.
-year,corpus,2024,,,1,m7i-flex.large,1515131,8163,3913,2216,534,223,381,1.265,0.835,1515131,1,True,0.334,0.746,0.184,99.941,47.956,Annual accepted collection output.
-year,corpus,2025,,,1,m7i-flex.large,1342156,7494,3758,2086,610,199,482,1.482,1.104,1342156,1,True,0.285,1.031,0.166,99.885,50.701,Annual accepted collection output.
-year,corpus,2026,,,1,m7i-flex.large,1067320,6513,3454,1924,418,199,299,1.174,1.1,1067320,1,True,0.229,0.805,0.14,99.925,53.85,Annual accepted collection output.
-track_total,trend,,13,2014-2026,13,m7i-flex.large,27702075,171833,78899,,,,,25.124,0.959,26189694,12,False,5.079,13.552,6.493,97.787,42.498,Fixed-effort annual trend track.
-year,trend,2014,,,1,m7i-flex.large,2654179,16265,7241,,,,,2.583,0.973,2654179,1,True,0.349,1.482,0.752,99.956,43.207,Annual accepted collection output.
+track_total,corpus,,13,2014-2026,54,m7i-flex.large,109973847,676405,315410,167520,43379,15620,33675,89.105,0.934,95374312,11,False,18.775,48.909,21.421,99.783,42.654,Quality-gated corpus track.
+year,corpus,2014,,,3,m7i-flex.large,8222757,50481,22841,12124,3360,1121,2633,8.052,0.979,8222757,1,True,1.088,4.36,2.603,99.942,43.566,Annual accepted collection output.
+year,corpus,2015,,,4,m7i-flex.large,10531523,56985,25663,13534,3613,1124,2892,8.557,0.813,10531523,1,True,1.399,4.755,2.403,99.907,43.108,Annual accepted collection output.
+year,corpus,2016,,,3,m7i-flex.large,8768306,68499,32591,17471,4015,1242,3197,10.856,1.238,8768306,1,True,1.78,4.607,4.468,99.893,46.352,Annual accepted collection output.
+year,corpus,2017,,,4,m7i-flex.large,8871512,53277,24402,12693,3262,1122,2599,7.883,0.889,8871512,1,True,1.976,4.025,1.881,99.927,44.893,Annual accepted collection output.
+year,corpus,2018,,,5,m7i-flex.large,11816293,70241,31262,15738,4075,1347,3214,9.906,0.838,11816293,1,True,2.269,5.499,2.137,99.802,42.895,Annual accepted collection output.
+year,corpus,2019,,,3,m7i-flex.large,6562726,42722,20805,10618,3273,1292,2611,,,,0,False,,,,,,Annual accepted collection output.
+year,corpus,2020,,,3,m7i-flex.large,7450904,49960,21521,10895,2917,1114,2274,8.229,1.104,7450904,1,True,1.723,4.898,1.607,99.918,42.654,Annual accepted collection output.
+year,corpus,2021,,,4,m7i-flex.large,9660307,62686,27911,14629,3702,1323,2881,9.395,0.973,9660307,1,True,2.152,5.341,1.903,99.905,43.834,Annual accepted collection output.
+year,corpus,2022,,,4,m7i-flex.large,8450550,53599,24292,13497,3368,1298,2527,7.959,0.942,8450550,1,True,1.833,4.569,1.556,99.783,44.883,Annual accepted collection output.
+year,corpus,2023,,,4,m7i-flex.large,7616698,42723,20439,11235,2902,1142,2129,6.385,0.838,7616698,1,True,1.651,3.627,1.107,99.844,47.004,Annual accepted collection output.
+year,corpus,2024,,,5,m7i-flex.large,7576437,41341,20214,11018,2771,1149,2039,5.907,0.78,7576437,1,True,1.594,3.417,0.895,99.881,47.78,Annual accepted collection output.
+year,corpus,2025,,,6,m7i-flex.large,8036809,44681,22599,12492,3689,1275,2887,,,,0,False,,,,,,Annual accepted collection output.
+year,corpus,2026,,,6,m7i-flex.large,6409025,39210,20870,11576,2432,1071,1792,5.978,0.933,6409025,1,True,1.308,3.812,0.859,99.925,52.706,Annual accepted collection output.
+track_total,trend,,13,2014-2026,13,m7i-flex.large,27702075,171833,78899,,,,,28.695,1.096,26189694,12,False,5.436,14.804,8.454,97.787,42.498,Fixed-effort annual trend track.
+year,trend,2014,,,1,m7i-flex.large,2654179,16265,7241,,,,,6.154,2.319,2654179,1,True,0.707,2.734,2.713,99.931,46.367,Annual accepted collection output.
 year,trend,2015,,,1,m7i-flex.large,2595430,13908,6128,,,,,2.134,0.822,2595430,1,True,0.342,1.16,0.631,99.048,42.918,Annual accepted collection output.
 year,trend,2016,,,1,m7i-flex.large,2842421,22248,10439,,,,,3.389,1.192,2842421,1,True,0.569,1.465,1.355,99.855,46.397,Annual accepted collection output.
 year,trend,2017,,,1,m7i-flex.large,2215705,13306,5986,,,,,1.878,0.848,2215705,1,True,0.487,0.951,0.44,98.792,44.483,Annual accepted collection output.

@@ -6,8 +6,10 @@
 * The conceptual frame follows Baes et al.’s SIBling framework because it treats semantic change as something to characterise, not merely detect: instead of collapsing change into one aggregate vector-drift score, it separates interpretable dimensions of Sentiment, Breadth, and Intensity, here supplemented by Salience and Thematic content. This responds to the broader gap noted in semantic-change research, where detection has received more attention than characterisation. ([ACL Anthology][2]; [arXiv][5])
 * The five operational measures are: **Salience** as relative mention frequency, **Intensity** as affective arousal/severity of target contexts, **Breadth** as contextual dispersion, **Sentiment** as affective valence of target contexts, and **Thematic evolution** as topic structure over time.
 * The main empirical comparison is not simply “ADHD/autism changed” but whether ADHD/autism trajectories exceed or differ from broader background drift in comparator terms.
+* Across dimensions, the main analysis treats **ADHD** and **Autism** separately. Raw target forms are aggregated into conceptual target groups for the main estimates, while raw-form diagnostics are retained to check whether one form drives a trajectory.
+* Comparator terms are included throughout the analysis as separate baseline series (`frustration`, `sadness`, `loneliness`). A composite baseline may be reported only after inspecting the individual baselines for compatible sample sizes, coverage, and trajectories.
 * The design deliberately keeps the measures interpretable: count-based prevalence, lexicon-based VAD indices, target-aware contextual dispersion, and topic modelling.
-* The main operational change from Baes et al. is that **NRC-VAD v2.1** replaces Warriner et al.’s VAD norms for Intensity and Sentiment because it has wider English coverage, includes common multi-word expressions, and reports human-rated valence, arousal, and dominance scores for more than 55,000 English words and phrases. ([arXiv][1])
+* The first operational change from Baes et al. is that **NRC-VAD v2.1** replaces Warriner et al.’s VAD norms for Intensity and Sentiment because it has wider English coverage, includes common multi-word expressions, and reports human-rated valence, arousal, and dominance scores for more than 55,000 English words and phrases. ([arXiv][1])
 * The second operational change is that **XL-LEXEME** replaces a generic sentence embedder for Breadth, because it produces target-aware word-in-context representations rather than general sentence vectors. ([ACL Anthology][3])
 * The third operational change is that Thematic evolution will use **bottom-up BERTopic** rather than Baes et al.’s top-down pathologisation dictionary; whether XL-LEXEME embeddings should also feed BERTopic remains a later modelling decision. ([ACL Anthology][2])
 
@@ -21,31 +23,31 @@ For this project, Salience is the frequency with which ADHD/autism-related expre
 
 ### Operational definition (my pipeline)
 
-For each target group $g$ and year $Y$, compute annual relative frequency as:
+For each analysis unit $u$ and year $Y$, compute annual relative frequency using the same token denominator for target groups and comparator terms:
 
 $$
 \begin{aligned}
-\text{Salience}^{\text{WET}}_{g,Y}
+\text{Salience}^{\text{WET}}_{u,Y}
 &=
-\frac{H^{\text{WET}}_{g,Y}}{D_Y}, \\
-\text{Salience}^{\text{WARC}}_{g,Y}
+\frac{H^{\text{WET}}_{u,Y}}{T_Y}, \\
+\text{Salience}^{\text{WARC}}_{u,Y}
 &=
-\frac{H^{\text{WARC}}_{g,Y}}{D_Y}, \\
-\text{Retention}_{g,Y}
+\frac{H^{\text{WARC}}_{u,Y}}{T_Y}, \\
+\text{Retention}_{u,Y}
 &=
-\frac{H^{\text{WARC}}_{g,Y}}{H^{\text{WET}}_{g,Y}}.
+\frac{H^{\text{WARC}}_{u,Y}}{H^{\text{WET}}_{u,Y}}.
 \end{aligned}
 $$
 
-where $H^{\text{WET}}_{g,Y}$ is the number of WET-validated hits for target group $g$ in year $Y$, $H^{\text{WARC}}_{g,Y}$ is the number of WARC-validated hits, and $D_Y$ is the number of scanned documents in year $Y$. Retention is defined only when $H^{\text{WET}}_{g,Y} > 0$. If desired, salience can be rescaled to hits per 10,000 scanned documents by multiplying by 10,000.
+where $H^{\text{WET}}_{u,Y}$ is the number of WET-validated hits for analysis unit $u$ in year $Y$, $H^{\text{WARC}}_{u,Y}$ is the number of WARC-validated hits, and $T_Y$ is the annual WET token denominator for the documents entering term matching. Retention is defined only when $H^{\text{WET}}_{u,Y} > 0$. The reported rate should normally be rescaled to hits per million WET tokens.
 
-The first rate preserves the cheap WET-stage denominator. The second rate is the cleaner WARC-validated trend signal. The third rate is a retention/validation ratio showing how much WARC validation changes the WET signal. This matches the WET-first, WARC-second corpus design already established for the project. 
+This aligns the salience measure more closely with Baes et al.’s normalised target frequency while preserving the project’s WET-first, WARC-second validation design. WARC salience is the cleaner substantive trend signal; WET salience and candidate-hit rates remain important diagnostics for checking whether validation changes the temporal pattern. Document-denominated rates are retained as supplementary diagnostics because the collection pipeline naturally records scanned-document counts.
 
-Target groups:
+Analysis units:
 
 * ADHD: `adhd`, `attention[-\s]?deficit`
 * Autism: `autism`, `autistic`, `autism[-\s]?spectrum`, and disambiguated `ASD`
-* Comparators: currently `frustration`, `sadness`, `loneliness`
+* Baselines: `frustration`, `sadness`, `loneliness`
 
 ### High-level implementation plan (step-by-step; no code)
 
@@ -53,7 +55,7 @@ Target groups:
 
 * Annual Common Crawl WET scan outputs.
 * WARC validation outputs.
-* Per-year denominators: documents scanned, possibly tokens scanned if available.
+* Per-year denominators: tokens and documents entering the WET scan/matching stage.
 * Term-level hit tables with year, crawl ID, URL/domain, target group, raw term, validation status.
 * Comparator-term results processed through the same pipeline.
 
@@ -66,17 +68,17 @@ Target groups:
 
 #### Computation steps
 
-1. Aggregate scanned-document counts by year.
-2. Aggregate WET candidate hits and WET-validated hits by year, target group, and raw term.
-3. Aggregate WARC-validated hits by year, target group, and raw term.
-4. Compute relative frequencies using the same denominator for all target and comparator groups.
+1. Aggregate scanned-token and scanned-document counts by year.
+2. Aggregate WET candidate hits and WET-validated hits by year, analysis unit, and raw term.
+3. Aggregate WARC-validated hits by year, analysis unit, and raw term.
+4. Compute token-denominated relative frequencies using the same denominator for all target and comparator groups.
 5. Compute WARC/WET retention rates to assess how much validation changes the temporal pattern.
 6. Produce annual time series for ADHD, autism, and comparator terms.
 7. Where useful, normalise each term’s trajectory to its own baseline period to compare temporal shape rather than absolute frequency.
 
 #### Outputs (tables/figures)
 
-* Annual table: year, target group, docs scanned, WET hits, WARC hits, WET rate, WARC rate, WARC/WET retention.
+* Annual table: year, analysis unit, tokens scanned, docs scanned, WET hits, WARC hits, token-denominated rates, document-denominated diagnostic rates, WARC/WET retention.
 * Line plot: WET and WARC relative frequencies over time.
 * Line plot: ADHD/autism versus comparator trajectories.
 * Domain concentration table: top domains per year and target group.
@@ -113,28 +115,42 @@ For this project, Intensity is an annual measure of how emotionally activated or
 
 ### Operational definition (my pipeline)
 
-For each target group and year:
+For each analysis unit and year:
 
 * extract ±5-word collocate windows around target mentions;
 * match collocates to **NRC-VAD v2.1**;
 * compute an annual weighted mean **arousal** score;
 * where feasible, compute a secondary severity-oriented modifier/collocate subindex using a small transparent severity lexicon.
 
-Formally, for target group $g$ in year $Y$:
+Formally, for analysis unit $u$ in year $Y$:
 
 $$
-\text{Intensity}_{g,Y}
+\text{Intensity}_{u,Y}
 =
 \frac{
-\sum_{w \in C_{g,Y}} f_{w,g,Y} \cdot A(w)
+\sum_{w \in C_{u,Y}} f_{w,u,Y} \cdot A(w)
 }{
-\sum_{w \in C_{g,Y}} f_{w,g,Y}
+\sum_{w \in C_{u,Y}} f_{w,u,Y}
 }
 $$
 
-where $C_{g,Y}$ is the set of NRC-VAD-matched collocates appearing in the target windows for group $g$ in year $Y$, $f_{w,g,Y}$ is the frequency of collocate $w$, and $A(w)$ is the NRC-VAD arousal score for $w$.
+where $C_{u,Y}$ is the set of NRC-VAD-matched collocates appearing in the target windows for analysis unit $u$ in year $Y$, $f_{w,u,Y}$ is the frequency of collocate $w$, and $A(w)$ is the NRC-VAD arousal score for $w$.
 
 This departs from Baes et al.’s use of Warriner et al. because NRC-VAD v2.1 has human-rated valence, arousal, and dominance scores for more than 55,000 English words and phrases, including common multi-word expressions; scores are continuous and suitable for weighted annual aggregation. ([arXiv][1])
+
+#### Supplementary Baes-style severity/intensifier check
+
+Baes et al. also compute an intensity-oriented modifier index from dependency-parsed adjective modifiers of the target term. This is worth implementing here as a supplementary validity check rather than as the primary Intensity measure. The practical version is to dependency-parse only target-containing sentences or short target-centred passages, then count fixed severity/intensifier modifiers that directly modify the target or its head construction.
+
+For analysis unit $u$ in year $Y$:
+
+$$
+\text{SeverityModifier}_{u,Y}
+=
+\frac{M_{u,Y}}{H^{\text{WARC}}_{u,Y}}
+$$
+
+where $M_{u,Y}$ is the count of WARC-validated target mentions with a fixed severity/intensifier modifier and $H^{\text{WARC}}_{u,Y}$ is the number of WARC-validated target mentions. This check is useful if it converges with the NRC-VAD arousal trajectory; disagreement should be interpreted substantively rather than treated as a failure.
 
 ### High-level implementation plan (step-by-step; no code)
 
@@ -144,7 +160,7 @@ This departs from Baes et al.’s use of Warriner et al. because NRC-VAD v2.1 ha
 * Target mention table with document ID, year, target group, raw target form, sentence/context location.
 * Tokenised and optionally lemmatised text.
 * NRC-VAD v2.1 lexicon.
-* Optional small severity/intensifier lexicon, fixed before analysis.
+* Small severity/intensifier lexicon, fixed before analysis, for the supplementary modifier check.
 
 #### Preprocessing assumptions
 
@@ -164,7 +180,7 @@ This departs from Baes et al.’s use of Warriner et al. because NRC-VAD v2.1 ha
 
 4. Match collocates or phrases to NRC-VAD arousal scores.
 
-5. Count matched collocates by year, target group, and term.
+5. Count matched collocates by year, analysis unit, and term.
 
 6. Compute the annual weighted mean arousal score using the formula above.
 
@@ -175,7 +191,7 @@ This departs from Baes et al.’s use of Warriner et al. because NRC-VAD v2.1 ha
    * coverage rate;
    * number of unique matched collocates.
 
-8. If using a severity/intensifier subindex, compute it separately as the proportion of target mentions with a severity/intensifier term in the local window or directly modifying the target where dependency parsing is available.
+8. Compute the supplementary Baes-style severity/intensifier modifier index where dependency parses are reliable.
 
 9. Model the annual trajectory with simple trend summaries and plots, not just first-versus-last comparisons.
 
@@ -185,7 +201,7 @@ This departs from Baes et al.’s use of Warriner et al. because NRC-VAD v2.1 ha
 * Coverage table by year and target group.
 * Top arousal-contributing collocates per decade or year group.
 * Line plot of annual arousal trajectories.
-* Optional severity/intensifier subindex plot.
+* Supplementary severity/intensifier modifier plot.
 * Bootstrap confidence intervals for annual scores if sample sizes permit.
 
 #### Diagnostics / sanity checks
@@ -199,7 +215,7 @@ This departs from Baes et al.’s use of Warriner et al. because NRC-VAD v2.1 ha
 
 #### Efficiency notes for ~1,000–1,500 docs per term per year
 
-The collocate-based VAD calculation is computationally light. The main cost is preprocessing and quality control. With 1,000–1,500 documents per term-year, the procedure is feasible on a laptop once documents and mention offsets are available. Dependency parsing for a severity-modifier subindex is more expensive and should remain secondary unless already available.
+The collocate-based VAD calculation is computationally light. Dependency parsing is more expensive but feasible if restricted to target-containing sentences or short passages. The modifier index should remain supplementary because it is higher precision but narrower than the arousal index.
 
 ### Key assumptions + likely failure modes
 
@@ -220,21 +236,21 @@ For this project, Breadth is the central distributional semantic measure. It ask
 
 ### Operational definition (my pipeline)
 
-For each target group and year:
+For each analysis unit and year:
 
-* sample a fixed number of target-containing sentences or target-centred sentence windows;
+* use all usable target-containing contexts up to a fixed annual cap;
 * mark the target span;
 * encode the marked contexts using **XL-LEXEME**;
-* compute contextual dispersion as average pairwise cosine distance within each target-year sample.
+* compute contextual dispersion as average pairwise cosine distance within each unit-year sample.
 
-Formally, for target group $g$ in year $Y$, with $N_{g,Y}$ sampled target-containing contexts and XL-LEXEME vectors $\mathbf{v}_1, \ldots, \mathbf{v}_{N_{g,Y}}$:
+Formally, for analysis unit $u$ in year $Y$, with $N_{u,Y}$ sampled target-containing contexts and XL-LEXEME vectors $\mathbf{v}_1, \ldots, \mathbf{v}_{N_{u,Y}}$:
 
 $$
-\text{Breadth}_{g,Y}
+\text{Breadth}_{u,Y}
 =
-\frac{2}{N_{g,Y}(N_{g,Y}-1)}
-\sum_{i=1}^{N_{g,Y}-1}
-\sum_{j=i+1}^{N_{g,Y}}
+\frac{2}{N_{u,Y}(N_{u,Y}-1)}
+\sum_{i=1}^{N_{u,Y}-1}
+\sum_{j=i+1}^{N_{u,Y}}
 \left(
 1 -
 \frac{\mathbf{v}_i \cdot \mathbf{v}_j}
@@ -247,11 +263,11 @@ Higher values indicate greater average contextual dissimilarity among target use
 As an auxiliary Breadth diagnostic, adjacent-year drift can also be computed using Cassotti et al.’s cross-period average-distance logic: ([ACL Anthology][3])
 
 $$
-\text{Drift}_{g,Y \rightarrow Y+1}
+\text{Drift}_{u,Y \rightarrow Y+1}
 =
-\frac{1}{N_{g,Y}N_{g,Y+1}}
-\sum_{i=1}^{N_{g,Y}}
-\sum_{j=1}^{N_{g,Y+1}}
+\frac{1}{N_{u,Y}N_{u,Y+1}}
+\sum_{i=1}^{N_{u,Y}}
+\sum_{j=1}^{N_{u,Y+1}}
 \delta
 \left(
 \mathbf{v}^{Y}_i,
@@ -281,11 +297,11 @@ This replaces Baes et al.’s generic sentence-embedding approach with a target-
 * Target-containing sentences with year, target group, raw target form, document ID, and domain.
 * Target-span offsets or reliable target-span matching.
 * Pretrained XL-LEXEME model and tokenizer.
-* Fixed sampling parameters per target group and year.
+* Fixed sampling parameters per target group, baseline term, and year.
 
 #### Preprocessing assumptions
 
-* Use sentence-level or short target-centred context windows, not whole documents.
+* Use target-containing sentences as the primary unit, with target sentence plus adjacent sentence(s) as a fallback when the sentence is too short or underspecified.
 * Explicitly mark the target span using XL-LEXEME’s expected target delimiters.
 * Keep raw sentence context sufficiently intact; excessive lemmatisation or stopword removal is inappropriate for contextual embeddings.
 * Treat ADHD and autism separately before any aggregate reporting.
@@ -294,13 +310,13 @@ This replaces Baes et al.’s generic sentence-embedding approach with a target-
 
 #### Computation steps
 
-1. Extract all valid target-containing sentences for each target group and year.
+1. Extract all valid target-containing sentences for each analysis unit and year.
 2. Remove duplicate or near-duplicate sentences.
-3. If more than the annual cap is available, sample a fixed number of sentences per target group-year, ideally stratifying lightly by domain to reduce domination.
+3. If more than the annual cap is available, use a domain-stratified random sample; a provisional cap of 2,000 contexts per target group-year or baseline-term-year is reasonable subject to a CPU benchmark.
 4. Mark the target span in each sentence.
 5. Encode each marked sentence with XL-LEXEME.
-6. Compute pairwise cosine distances among embeddings within each target group-year.
-7. Average pairwise distances to obtain the annual Breadth score.
+6. Compute annual contextual dispersion from L2-normalised embeddings, using the closed-form mean-pairwise cosine distance rather than materialising all pairwise distances except for diagnostics.
+7. Average distances to obtain the annual Breadth score.
 8. Repeat sampling several times or bootstrap contexts to obtain uncertainty intervals.
 9. Produce annual trajectories for ADHD, autism, and comparator terms.
 10. Optionally compute adjacent-year or anchor-period distances as auxiliary diagnostics, but keep the primary Breadth measure as within-year contextual dispersion.
@@ -331,7 +347,7 @@ XL-LEXEME inference is more expensive than a lightweight sentence-transformer mo
 * 500 contexts/year produces 124,750 pairwise distances;
 * 1,500 contexts/year produces over 1.1 million pairwise distances.
 
-A practical MSc configuration is therefore to sample a fixed number of contexts per target-year, repeat or bootstrap the sampling, and store embeddings for reuse. GPU inference is preferable, but batched CPU inference may be acceptable for capped samples.
+A practical MSc configuration is therefore to use all available contexts up to a fixed annual cap, store embeddings for reuse, and compute uncertainty from resampling over documents where possible. GPU inference is preferable, but batched CPU inference may be acceptable for capped samples after a small benchmark.
 
 ### Key assumptions + likely failure modes
 
@@ -353,25 +369,25 @@ For this project, Sentiment measures whether ADHD/autism-related discourse becom
 
 ### Operational definition (my pipeline)
 
-For each target group and year:
+For each analysis unit and year:
 
 * extract ±5-word collocate windows around target mentions;
 * match collocates to **NRC-VAD v2.1**;
 * compute an annual weighted mean **valence** score.
 
-Formally, for target group $g$ in year $Y$:
+Formally, for analysis unit $u$ in year $Y$:
 
 $$
-\text{Sentiment}_{g,Y}
+\text{Sentiment}_{u,Y}
 =
 \frac{
-\sum_{w \in C_{g,Y}} f_{w,g,Y} \cdot V(w)
+\sum_{w \in C_{u,Y}} f_{w,u,Y} \cdot V(w)
 }{
-\sum_{w \in C_{g,Y}} f_{w,g,Y}
+\sum_{w \in C_{u,Y}} f_{w,u,Y}
 }
 $$
 
-where $C_{g,Y}$ is the set of NRC-VAD-matched collocates appearing in the target windows for group $g$ in year $Y$, $f_{w,g,Y}$ is the frequency of collocate $w$, and $V(w)$ is the NRC-VAD valence score for $w$.
+where $C_{u,Y}$ is the set of NRC-VAD-matched collocates appearing in the target windows for analysis unit $u$ in year $Y$, $f_{w,u,Y}$ is the frequency of collocate $w$, and $V(w)$ is the NRC-VAD valence score for $w$.
 
 This mirrors the Intensity procedure but uses NRC-VAD valence rather than arousal. NRC-VAD v2.1 provides continuous VAD scores and is available through Mohammad’s NRC-VAD project page. ([arXiv][1])
 
@@ -395,7 +411,7 @@ This mirrors the Intensity procedure but uses NRC-VAD valence rather than arousa
 1. Extract ±5-token windows around each target mention.
 2. Remove target spans and non-lexical tokens.
 3. Match collocates or phrases to NRC-VAD valence scores.
-4. Count matched collocates by target group and year.
+4. Count matched collocates by analysis unit and year.
 5. Compute the annual weighted mean valence score using the formula above.
 6. Record annual coverage and unique matched-collocate counts.
 7. Compare ADHD/autism trajectories with comparator terms.
@@ -441,7 +457,7 @@ For this project, the thematic layer should be bottom-up because the relevant AD
 
 ### Operational definition (my pipeline)
 
-Use BERTopic on the Corpus Track to estimate annual topic structure for target-containing documents or target-centred passages:
+Use BERTopic on the Corpus Track to estimate annual topic structure from target-centred passages:
 
 1. embeddings;
 2. UMAP dimensionality reduction;
@@ -460,7 +476,7 @@ The embedding choice remains an explicit modelling decision. Standard document/s
 * WARC-extracted, English, deduplicated Corpus Track documents.
 * Year metadata for each document.
 * Target group and raw target-form metadata.
-* Clean text field: full document, paragraph, or target-centred passage.
+* Clean text field: target-centred passage, with full document or paragraph variants retained only as robustness checks if useful.
 * BERTopic stack: embedding model, UMAP, HDBSCAN, c-TF-IDF.
 * Stopword list and optional domain-specific term handling.
 
@@ -468,11 +484,7 @@ The embedding choice remains an explicit modelling decision. Standard document/s
 
 * Topic modelling should use substantive text, not WET snippets.
 
-* The unit of analysis must be chosen before fitting:
-
-  * full documents capture broader discourse themes but risk diluting target-specific usage;
-  * target-centred passages improve target relevance but may produce shorter, noisier documents;
-  * sentence windows are efficient but may be too short for stable topic modelling.
+* The provisional modelling unit is a target-centred passage, such as the target-containing sentence plus adjacent sentence context. Full documents capture broader discourse themes but risk diluting target-specific usage, while sentence-only windows may be too short for stable topic modelling.
 
 * ADHD and autism should initially be modelled separately or at least compared separately after modelling.
 
@@ -482,7 +494,7 @@ The embedding choice remains an explicit modelling decision. Standard document/s
 
 #### Computation steps
 
-1. Select the modelling unit: full document, paragraph, or target-centred passage.
+1. Build target-centred passages and keep enough metadata to inspect whether topics differ by target group, raw form, year, and domain.
 2. Clean text minimally: remove obvious boilerplate residue, excessive whitespace, and near-duplicates, while preserving lexical content.
 3. Generate embeddings using the selected embedding model.
 4. Reduce dimensionality with UMAP.
@@ -491,7 +503,7 @@ The embedding choice remains an explicit modelling decision. Standard document/s
 7. Manually inspect topic labels using top terms and representative documents.
 8. Use `topics_over_time` with annual bins.
 9. Plot topic prevalence trajectories by year.
-10. Compare ADHD/autism topic trajectories with comparator-term topic trajectories only if the topics are substantively comparable.
+10. Compare ADHD/autism topic trajectories with comparator-term topic trajectories only if the topic spaces are substantively comparable after inspection.
 
 #### Outputs (tables/figures)
 
@@ -540,13 +552,14 @@ The MVP should prioritise a complete, interpretable pipeline over maximal modell
 2. **Intensity**
 
    * annual NRC-VAD arousal index from ±5-token collocates;
+   * supplementary Baes-style severity/intensifier modifier index;
    * coverage diagnostics;
    * manual inspection of high- and low-arousal examples.
 
 3. **Breadth**
 
    * annual XL-LEXEME contextual dispersion;
-   * fixed context sample per target-year;
+   * all usable contexts up to a fixed annual cap;
    * bootstrap or repeated-sample uncertainty;
    * comparator-term trajectories.
 
@@ -568,15 +581,15 @@ The MVP should analyse annual trajectories visually and statistically, but the c
 
 * **Optional:** run a standard sentence embedder for Breadth as a robustness check against XL-LEXEME.
 * **Optional:** add a chronologically shuffled null for Breadth.
-* **Optional:** add a severity/intensifier subindex to supplement NRC-VAD arousal.
+* **Optional:** compare the dependency-based severity/intensifier index with a simpler window-based severity lexicon if parsing quality is uneven.
 * **Optional:** compare BERTopic with XL-LEXEME embeddings versus a standard document/sentence embedder if time and compute allow.
 * **Optional:** stratify trajectories by domain class or broad page genre if reliable labels become available.
 * **Optional:** use bootstrapped confidence intervals across all semantic indices, not only Breadth.
 
 ### Compact checklist of deliverables
 
-* [ ] Annual Salience table and plot: WET rate, WARC rate, WARC/WET retention.
-* [ ] Annual Intensity table and plot: NRC-VAD arousal index plus coverage.
+* [ ] Annual Salience table and plot: token-denominated WET rate, WARC rate, document-rate diagnostics, WARC/WET retention.
+* [ ] Annual Intensity table and plot: NRC-VAD arousal index, severity/intensifier check, and coverage.
 * [ ] Annual Breadth table and plot: XL-LEXEME contextual dispersion plus uncertainty.
 * [ ] Annual Sentiment table and plot: NRC-VAD valence index plus coverage.
 * [ ] BERTopic topic inventory: labels, top terms, representative documents.
