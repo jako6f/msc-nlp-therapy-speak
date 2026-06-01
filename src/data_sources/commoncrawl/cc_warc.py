@@ -723,6 +723,9 @@ def _build_publication_date_rows(publication_metrics: Dict[str, object]) -> List
 
 def _build_warc_summary_rows(
     docs_scanned: int,
+    docs_minlen: int,
+    tokens_scanned: int,
+    tokens_minlen: int,
     candidate_hits: int,
     validated_hits_wet: int,
     validated_hits_warc: int,
@@ -736,6 +739,21 @@ def _build_warc_summary_rows(
             "docs_scanned",
             docs_scanned,
             "Documents scanned in the WET input files.",
+        ),
+        _summary_row(
+            "docs_minlen",
+            docs_minlen,
+            "Documents that passed the WET minimum character-length filter.",
+        ),
+        _summary_row(
+            "tokens_scanned",
+            tokens_scanned,
+            "Whitespace-token count across scanned WET conversion documents.",
+        ),
+        _summary_row(
+            "tokens_minlen",
+            tokens_minlen,
+            "Whitespace-token count across minimum-length WET conversion documents.",
         ),
         _summary_row(
             "candidate_hits",
@@ -1174,6 +1192,9 @@ def extract_pointer_cache(
     publication_metrics = _compute_publication_date_metrics(doc_df)
     source_summary = _load_metric_map(input_summary_path)
     docs_scanned_total = _metric_int(source_summary, "docs_scanned", 0)
+    docs_minlen_total = _metric_int(source_summary, "docs_minlen", 0)
+    tokens_scanned_total = _metric_int(source_summary, "tokens_scanned", 0)
+    tokens_minlen_total = _metric_int(source_summary, "tokens_minlen", 0)
     candidate_hits_total = _metric_int(source_summary, "candidate_hits", 0)
     validated_hits_wet_total = len(enriched_df)
     validated_hits_warc_total = len(validated_warc_df)
@@ -1221,6 +1242,9 @@ def extract_pointer_cache(
         summary_path,
         _build_warc_summary_rows(
             docs_scanned=docs_scanned_total,
+            docs_minlen=docs_minlen_total,
+            tokens_scanned=tokens_scanned_total,
+            tokens_minlen=tokens_minlen_total,
             candidate_hits=candidate_hits_total,
             validated_hits_wet=validated_hits_wet_total,
             validated_hits_warc=validated_hits_warc_total,

@@ -159,7 +159,7 @@ Key scan parameters:
 | `filters.context_window_chars` | `200` | Store compact match context for inspection. |
 | `filters.asd_disambiguation_window_chars` | `200` | Retain `ASD` only when local context supports autism relevance. |
 
-The WET stage stores candidate-hit rows, term summaries, domain summaries, removed-audit samples, and validation samples. This makes the cheap scan inspectable before WARC work.
+The WET stage stores candidate-hit rows, term summaries, domain summaries, removed-audit samples, and validation samples. This makes the cheap scan inspectable before WARC work. For the trend track, the WET scan also records document and whitespace-token denominators so salience can be reported both per scanned document and per scanned token. The processed trend output keeps the combined annual row but also includes separate rows for `term_role`, `term_group`, and `matched_term`, allowing target and baseline trajectories to be modelled separately.
 
 ## 8. WET Triage and Cost-Control Filters
 

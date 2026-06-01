@@ -931,6 +931,9 @@ def document_quality_hits(config: Dict) -> Path:
     summary_in_path = enrich_dir / f"cc_{label}_summary_{enrich_runid}.csv"
     summary_in = _load_metric_map(summary_in_path) if summary_in_path.exists() else {}
     docs_scanned = _metric_int(summary_in, "docs_scanned", 0)
+    docs_minlen = _metric_int(summary_in, "docs_minlen", 0)
+    tokens_scanned = _metric_int(summary_in, "tokens_scanned", 0)
+    tokens_minlen = _metric_int(summary_in, "tokens_minlen", 0)
     candidate_hits = _metric_int(summary_in, "candidate_hits", 0)
 
     validated_docs = filtered_df.loc[
@@ -1122,6 +1125,9 @@ def document_quality_hits(config: Dict) -> Path:
 
     summary_rows = _build_warc_summary_rows(
         docs_scanned=docs_scanned,
+        docs_minlen=docs_minlen,
+        tokens_scanned=tokens_scanned,
+        tokens_minlen=tokens_minlen,
         candidate_hits=candidate_hits,
         validated_hits_wet=validated_hits_wet_total,
         validated_hits_warc=validated_hits_warc_total,

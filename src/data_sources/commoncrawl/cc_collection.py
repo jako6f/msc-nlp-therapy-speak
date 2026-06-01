@@ -1536,26 +1536,168 @@ def build_processed_trend(config: Dict) -> Path:
     out_dir = processed_trend_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     rows: List[Dict[str, object]] = []
+
+    def _safe_rate(numerator: float, denominator: float, scale: float = 1.0) -> float:
+        return (numerator / denominator) * scale if denominator else 0.0
+
+    def _add_trend_rows(
+        *,
+        year: int,
+        summary_path: Path,
+        term_summary_path: Path,
+        metrics: Dict[str, object],
+        term_df: pd.DataFrame,
+    ) -> None:
+        docs_scanned = float(metrics.get("docs_scanned", 0) or 0)
+        docs_minlen = float(metrics.get("docs_minlen", 0) or 0)
+        tokens_scanned = float(metrics.get("tokens_scanned", 0) or 0)
+        tokens_minlen = float(metrics.get("tokens_minlen", 0) or 0)
+
+        def append_row(
+            *,
+            aggregation_level: str,
+            term_role: str,
+            term_group: str,
+            matched_term: str,
+            candidate_hits: float,
+            validated_hits_wet: float,
+            validated_hits_warc: float,
+        ) -> None:
+            rows.append(
+                {
+                    "year": year,
+                    "aggregation_level": aggregation_level,
+                    "term_role": term_role,
+                    "term_group": term_group,
+                    "matched_term": matched_term,
+                    "docs_scanned": docs_scanned,
+                    "docs_minlen": docs_minlen,
+                    "tokens_scanned": tokens_scanned,
+                    "tokens_minlen": tokens_minlen,
+                    "candidate_hits": candidate_hits,
+                    "validated_hits_wet": validated_hits_wet,
+                    "validated_hits_warc": validated_hits_warc,
+                    "candidate_hits_per_doc": _safe_rate(candidate_hits, docs_scanned),
+                    "validated_hits_wet_per_doc": _safe_rate(validated_hits_wet, docs_scanned),
+                    "validated_hits_warc_per_doc": _safe_rate(validated_hits_warc, docs_scanned),
+                    "candidate_hits_per_10k_docs": _safe_rate(candidate_hits, docs_scanned, 10_000),
+                    "validated_hits_wet_per_10k_docs": _safe_rate(
+                        validated_hits_wet, docs_scanned, 10_000
+                    ),
+                    "validated_hits_warc_per_10k_docs": _safe_rate(
+                        validated_hits_warc, docs_scanned, 10_000
+                    ),
+                    "candidate_hits_per_million_tokens": _safe_rate(
+                        candidate_hits, tokens_scanned, 1_000_000
+                    ),
+                    "validated_hits_wet_per_million_tokens": _safe_rate(
+                        validated_hits_wet, tokens_scanned, 1_000_000
+                    ),
+                    "validated_hits_warc_per_million_tokens": _safe_rate(
+                        validated_hits_warc, tokens_scanned, 1_000_000
+                    ),
+                    "candidate_hits_per_million_minlen_tokens": _safe_rate(
+                        candidate_hits, tokens_minlen, 1_000_000
+                    ),
+                    "validated_hits_wet_per_million_minlen_tokens": _safe_rate(
+                        validated_hits_wet, tokens_minlen, 1_000_000
+                    ),
+                    "validated_hits_warc_per_million_minlen_tokens": _safe_rate(
+                        validated_hits_warc, tokens_minlen, 1_000_000
+                    ),
+                    "warc_over_wet_validation_rate": _safe_rate(
+                        validated_hits_warc, validated_hits_wet
+                    ),
+                    "summary_path": str(summary_path),
+                    "term_summary_path": str(term_summary_path),
+                }
+            )
+
+        append_row(
+            aggregation_level="all",
+            term_role="",
+            term_group="",
+            matched_term="",
+            candidate_hits=float(metrics.get("candidate_hits", 0) or 0),
+            validated_hits_wet=float(metrics.get("validated_hits_wet", 0) or 0),
+            validated_hits_warc=float(metrics.get("validated_hits_warc", 0) or 0),
+        )
+
+        if term_df.empty:
+            return
+
+        for aggregation_level, group_cols in (
+            ("term_role", ["term_role"]),
+            ("term_group", ["term_role", "term_group"]),
+            ("matched_term", ["term_role", "term_group", "matched_term"]),
+        ):
+            grouped = (
+                term_df.groupby(group_cols, dropna=False)
+                .agg(
+                    candidate_hits=("candidate_hits", "sum"),
+                    validated_hits_wet=("validated_hits_wet", "sum"),
+                    validated_hits_warc=("validated_hits_warc", "sum"),
+                )
+                .reset_index()
+            )
+            for row in grouped.to_dict(orient="records"):
+                append_row(
+                    aggregation_level=aggregation_level,
+                    term_role=str(row.get("term_role", "") or ""),
+                    term_group=str(row.get("term_group", "") or ""),
+                    matched_term=str(row.get("matched_term", "") or ""),
+                    candidate_hits=float(row.get("candidate_hits", 0) or 0),
+                    validated_hits_wet=float(row.get("validated_hits_wet", 0) or 0),
+                    validated_hits_warc=float(row.get("validated_hits_warc", 0) or 0),
+                )
+
     for year in _collection_years(config):
         summary_path = _latest_accepted_trend_summary(config, year)
+        runid = _runid_from_path(summary_path, "cc_collection_summary_", ".csv")
+        term_summary_path = summary_path.with_name(f"cc_collection_term_summary_{runid}.csv")
         metrics = _warc_summary_metrics(summary_path)
-        docs_scanned = float(metrics.get("docs_scanned", 0) or 0)
-        wet = float(metrics.get("validated_hits_wet", 0) or 0)
-        warc = float(metrics.get("validated_hits_warc", 0) or 0)
-        rows.append(
-            {
-                "year": year,
-                "docs_scanned": docs_scanned,
-                "validated_hits_wet": wet,
-                "validated_hits_warc": warc,
-                "validated_hits_wet_per_doc": wet / docs_scanned if docs_scanned else 0.0,
-                "validated_hits_warc_per_doc": warc / docs_scanned if docs_scanned else 0.0,
-                "warc_over_wet_validation_rate": warc / wet if wet else 0.0,
-                "summary_path": str(summary_path),
-            }
+        if not term_summary_path.exists():
+            raise FileNotFoundError(f"Missing trend term summary: {term_summary_path}")
+
+        term_df = pd.read_csv(term_summary_path)
+        manifest_path = summary_path.with_name(f"cc_collection_extract_manifest_{runid}.json")
+        source_runid = ""
+        if manifest_path.exists():
+            source_runid = str(json.loads(manifest_path.read_text()).get("source_runid", ""))
+        scan_term_path = (
+            collection_track_working_dir(config, track="trend", year=year, batch=1)
+            / "wet_scan"
+            / f"cc_term_summary_{source_runid}.csv"
+        )
+        if source_runid and scan_term_path.exists():
+            scan_terms = pd.read_csv(scan_term_path)
+            scan_terms = scan_terms.loc[scan_terms["crawl_id"].ne("ALL")].copy()
+            scan_terms = (
+                scan_terms.groupby(["term_role", "term_group", "matched_term"], dropna=False)
+                .agg(candidate_hits=("candidate_hits", "sum"))
+                .reset_index()
+            )
+            term_df = term_df.merge(
+                scan_terms,
+                on=["term_role", "term_group", "matched_term"],
+                how="left",
+            )
+        else:
+            term_df["candidate_hits"] = 0
+        term_df["candidate_hits"] = pd.to_numeric(
+            term_df["candidate_hits"], errors="coerce"
+        ).fillna(0)
+        _add_trend_rows(
+            year=int(year),
+            summary_path=summary_path,
+            term_summary_path=term_summary_path,
+            metrics=metrics,
+            term_df=term_df,
         )
     out_path = out_dir / "trend_rates.csv"
-    pd.DataFrame(rows).sort_values("year").to_csv(out_path, index=False)
+    pd.DataFrame(rows).sort_values(
+        ["year", "aggregation_level", "term_role", "term_group", "matched_term"]
+    ).to_csv(out_path, index=False)
     return out_path
 
 

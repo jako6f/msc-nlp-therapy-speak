@@ -75,6 +75,7 @@ CANDIDATE_HIT_COLUMNS = [
     "term_pattern",
     "context_snippet",
     "doc_char_len",
+    "doc_token_count",
     "text_len",
     "triage_rule_signature_hard",
     "triage_rule_directory_index",
@@ -266,6 +267,8 @@ def _new_counter_bucket() -> Dict[str, int]:
     return {
         "docs_scanned": 0,
         "docs_minlen": 0,
+        "tokens_scanned": 0,
+        "tokens_minlen": 0,
         "candidate_hits": 0,
         "validated_hits_wet": 0,
         "removed_domaincap": 0,
@@ -516,6 +519,7 @@ def _build_hit_row(
     term: CompiledTerm,
     context_snippet: str,
     doc_char_len: int,
+    doc_token_count: int,
     triage_rule_signature_hard: bool,
     triage_rule_directory_index: bool,
     triage_rule_negative_page_type_url: bool,
@@ -536,6 +540,7 @@ def _build_hit_row(
         "term_pattern": term.term_pattern,
         "context_snippet": context_snippet,
         "doc_char_len": doc_char_len,
+        "doc_token_count": doc_token_count,
         "text_len": doc_char_len,
         "triage_rule_signature_hard": triage_rule_signature_hard,
         "triage_rule_directory_index": triage_rule_directory_index,
@@ -674,6 +679,16 @@ def _build_scan_summary_rows(
             "Documents that passed the minimum character-length filter.",
         ),
         _summary_row(
+            "tokens_scanned",
+            combined["tokens_scanned"],
+            "Whitespace-token count across all scanned conversion documents.",
+        ),
+        _summary_row(
+            "tokens_minlen",
+            combined["tokens_minlen"],
+            "Whitespace-token count across documents that passed the minimum length filter.",
+        ),
+        _summary_row(
             "candidate_hits",
             combined["candidate_hits"],
             "Term matches before downstream filtering and domain caps.",
@@ -786,6 +801,8 @@ def _build_scan_summary_rows(
 
     for crawl_id in sorted(counters_by_crawl):
         slice_docs_scanned = counters_by_crawl[crawl_id]["docs_scanned"]
+        slice_tokens_scanned = counters_by_crawl[crawl_id]["tokens_scanned"]
+        slice_tokens_minlen = counters_by_crawl[crawl_id]["tokens_minlen"]
         slice_candidate_hits = counters_by_crawl[crawl_id]["candidate_hits"]
         slice_validated_hits_wet = counters_by_crawl[crawl_id]["validated_hits_wet"]
         prefix = f"slice.{crawl_id}"
@@ -795,6 +812,16 @@ def _build_scan_summary_rows(
                     f"{prefix}.docs_scanned",
                     slice_docs_scanned,
                     "Slice-level scanned documents for this crawl_id.",
+                ),
+                _summary_row(
+                    f"{prefix}.tokens_scanned",
+                    slice_tokens_scanned,
+                    "Slice-level whitespace-token count across scanned documents.",
+                ),
+                _summary_row(
+                    f"{prefix}.tokens_minlen",
+                    slice_tokens_minlen,
+                    "Slice-level whitespace-token count across minimum-length documents.",
                 ),
                 _summary_row(
                     f"{prefix}.candidate_hits",
@@ -1003,11 +1030,16 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
 
                 combined["docs_scanned"] += 1
                 crawl_counters["docs_scanned"] += 1
+                doc_token_count = len(text.split())
+                combined["tokens_scanned"] += doc_token_count
+                crawl_counters["tokens_scanned"] += doc_token_count
                 text_len = len(text)
                 if text_len < min_chars:
                     continue
                 combined["docs_minlen"] += 1
                 crawl_counters["docs_minlen"] += 1
+                combined["tokens_minlen"] += doc_token_count
+                crawl_counters["tokens_minlen"] += doc_token_count
 
                 domain_start = time.perf_counter()
                 domain = extract_registered_domain(url)
@@ -1109,6 +1141,7 @@ def scan_wet_files(config: Dict, config_path: Path) -> Path:
                         term=term,
                         context_snippet=stored_snippet,
                         doc_char_len=text_len,
+                        doc_token_count=doc_token_count,
                         triage_rule_signature_hard=triage_rule_signature_hard,
                         triage_rule_directory_index=triage_rule_directory_index,
                         triage_rule_negative_page_type_url=triage_rule_negative_page_type_url,
