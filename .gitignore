@@ -1,5 +1,6 @@
 # data (never commit raw crawl data)
 data/raw/
+data/external/NRC-VAD-Lexicon-v2.1/
 data/interim/*
 !data/interim/pilot-dev/
 !data/interim/pilot-dev/**
@@ -24,6 +25,9 @@ reports/logs/
 
 # locally managed reference PDFs
 paper/literature/
+
+# locally cloned external reference code
+external/reference/
 
 # python
 __pycache__/
