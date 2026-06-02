@@ -541,46 +541,6 @@ BERTopic is feasible at this scale if run separately for major target groups and
 * **Failure mode:** XL-LEXEME embeddings may be too target-specific or context-window-specific for ordinary BERTopic topic coherence; standard sentence/document embeddings may be more suitable, but this should be determined by diagnostics rather than assumed.
 * **Failure mode:** `topics_over_time` smooths or aggregates topic terms in ways that can imply stability where actual topic composition shifts.
 
-## 6. Integrated outputs and minimal viable run
-
-### Minimal viable configuration (MVP) for an MSc
-
-The MVP should prioritise a complete, interpretable pipeline over maximal modelling complexity.
-
-1. **Salience**
-
-   * annual WET and WARC relative-frequency trajectories;
-   * ADHD, autism, and comparator terms;
-   * domain and retention diagnostics.
-
-2. **Intensity**
-
-   * annual NRC-VAD arousal index from ±5-token collocates;
-   * supplementary Baes-style severity/intensifier modifier index;
-   * coverage diagnostics;
-   * manual inspection of high- and low-arousal examples.
-
-3. **Breadth**
-
-   * annual XL-LEXEME contextual dispersion;
-   * all usable contexts up to a fixed annual cap;
-   * bootstrap or repeated-sample uncertainty;
-   * comparator-term trajectories.
-
-4. **Sentiment**
-
-   * annual NRC-VAD valence index from the same collocate windows as Intensity;
-   * coverage diagnostics;
-   * top contributing collocates.
-
-5. **Thematic evolution**
-
-   * one BERTopic model configuration per main target group or a carefully justified combined model;
-   * annual `topics_over_time`;
-   * manual topic validation with representative documents.
-
-The MVP should analyse annual trajectories visually and statistically, but the core claim should be based on convergence across measures rather than any single metric.
-
 ### Optional enhancements
 
 * **Optional:** run a standard sentence embedder for Breadth as a robustness check against XL-LEXEME.
@@ -590,17 +550,6 @@ The MVP should analyse annual trajectories visually and statistically, but the c
 * **Optional:** stratify trajectories by domain class or broad page genre if reliable labels become available.
 * **Optional:** use bootstrapped confidence intervals across all semantic indices, not only Breadth.
 
-### Compact checklist of deliverables
-
-* [ ] Annual Salience table and plot: token-denominated WET rate, WARC rate, document-rate diagnostics, WARC/WET retention.
-* [ ] Annual Intensity table and plot: NRC-VAD arousal index, severity/intensifier check, and coverage.
-* [ ] Annual Breadth table and plot: XL-LEXEME contextual dispersion plus uncertainty.
-* [ ] Annual Sentiment table and plot: NRC-VAD valence index plus coverage.
-* [ ] BERTopic topic inventory: labels, top terms, representative documents.
-* [ ] Topic-over-time plot for major ADHD/autism themes.
-* [ ] Comparator-term trajectories for Salience, Intensity, Breadth, and Sentiment.
-* [ ] Diagnostics appendix: domain concentration, sample sizes, VAD coverage, WARC retention, topic outlier rate.
-* [ ] Short manual-validation appendix with representative contexts for key years, high-change periods, and major topics.
 
 [1]: https://arxiv.org/abs/2503.23547?utm_source=chatgpt.com "NRC VAD Lexicon v2: Norms for Valence, Arousal, and Dominance for over 55k English Terms"
 [2]: https://aclanthology.org/2024.acl-long.76/ "A Multidimensional Framework for Evaluating Lexical Semantic Change with Social Science Applications"
