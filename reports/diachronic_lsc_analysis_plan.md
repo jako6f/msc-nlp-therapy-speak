@@ -13,6 +13,10 @@
 * The second operational change is that **XL-LEXEME** replaces a generic sentence embedder for Breadth, because it produces target-aware word-in-context representations rather than general sentence vectors. ([ACL Anthology][3])
 * The third operational change is that Thematic evolution will use **bottom-up BERTopic** rather than Baes et al.’s top-down pathologisation dictionary; whether XL-LEXEME embeddings should also feed BERTopic remains a later modelling decision. ([ACL Anthology][2])
 
+### Shared semantic context contract
+
+For Sentiment, Intensity, Breadth, and Thematic analyses, the primary annual axis is document publication year (`lsc_year = published_year`), not Common Crawl source/capture year. The shared context table therefore keeps only WARC-validated, English, deduplicated contexts with parseable `published_ts` in the 2014-2026 analysis window. `source_year` remains provenance metadata for crawl-composition diagnostics, not the main diachronic variable.
+
 ## 1. Measure 1 — Salience (Prevalence)
 
 ### Concept (Baes et al. framing)
