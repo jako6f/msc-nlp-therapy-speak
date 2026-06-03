@@ -113,8 +113,8 @@ For trend:
 
 ```bash
 BASE=data/interim/collection/trend_working/$YEAR
-find "$BASE/quality" -maxdepth 1 -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
-find "$BASE/quality" -maxdepth 1 -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/warc" -maxdepth 1 -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/warc" -maxdepth 1 -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
 find "$BASE/metrics" -maxdepth 1 -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
 ```
 

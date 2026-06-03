@@ -98,7 +98,8 @@ Purpose: estimate rates over time with fixed effort per year.
 
 Configuration:
 
-- fixed WET files per year: `50`
+- fixed WET files per year: configured in `collection.trend.fixed_wet_files_per_year`
+- corpus document-quality stage: disabled by default for trend
 
 Trend outputs should report three rates:
 
@@ -110,6 +111,8 @@ Rationale:
 
 - WET rates are cheaper and have the cleanest denominator.
 - WARC rates are cleaner but more expensive.
+- Corpus-style document quality is reserved for the corpus track; trend rates use accepted
+  WARC-validated summaries so the annual denominator remains the fixed WET sample.
 - WARC/WET retention quantifies how much stricter validation changes the trend signal.
 
 ### Corpus Track
@@ -352,7 +355,7 @@ For every final run, the following should be retained:
 - URL export manifest;
 - pointer-cache manifest;
 - WARC extraction manifest;
-- document-quality summary;
+- document-quality summary for corpus runs;
 - throughput summary;
 - processed-output manifest.
 

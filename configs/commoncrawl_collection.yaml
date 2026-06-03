@@ -53,6 +53,7 @@ collection:
 
   trend:
     fixed_wet_files_per_year: 100
+    run_document_quality: false
 
   acquisition:
     request_timeout_s: 120

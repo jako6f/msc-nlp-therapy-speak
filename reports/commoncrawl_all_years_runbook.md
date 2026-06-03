@@ -97,6 +97,9 @@ This writes the final trend output:
 data/processed/trend/trend_rates.csv
 ```
 
+The trend track estimates annual term rates from accepted WARC-validated hit summaries.
+It does not run the heavier corpus document-quality stage by default.
+
 ## 5. Run Corpus First Pass
 
 Run corpus batch 1 for all configured years:

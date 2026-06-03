@@ -30,7 +30,7 @@ from src.pathing import (
 )
 
 from .cc_acquire import COMMONCRAWL_BASE_URL, _setup_logger, _stable_seed, read_manifest
-from .cc_document_quality import document_quality_hits
+from .cc_document_quality import _write_throughput_summary, document_quality_hits
 from .cc_resolve import (
     export_urls,
     install_indexes_remote,
@@ -207,6 +207,13 @@ def _accepted_trend_summaries_complete(config: Dict) -> bool:
     except (FileNotFoundError, RuntimeError):
         return False
     return True
+
+
+def _run_document_quality_for_track(config: Dict, *, track: str) -> bool:
+    track_cfg = _collection_cfg(config).get(track, {})
+    if "run_document_quality" in track_cfg:
+        return bool(track_cfg.get("run_document_quality"))
+    return track != "trend"
 
 
 def _latest_corpus_quality_paths(config: Dict, *, require_all_years: bool = True) -> List[Path]:
@@ -1371,31 +1378,67 @@ def run_collection_year(
         track=track,
     )
     _record_step("accept_warc", warc_summary_path)
-    quality_summary_path = quality_collection(config, year=year, track=track, batch=batch_int)
-    _record_step("quality", quality_summary_path)
+    quality_runid = ""
+    quality_output_prefix = ""
+    quality_uploaded_uris: List[str] = []
+    throughput_runid = extract_runid
+    throughput_summary_path = _throughput_summary_path(
+        config,
+        year=year,
+        track=track,
+        batch=batch_int,
+        runid=throughput_runid,
+    )
+    if _run_document_quality_for_track(config, track=track):
+        quality_summary_path = quality_collection(config, year=year, track=track, batch=batch_int)
+        _record_step("quality", quality_summary_path)
 
-    quality_runid = _runid_from_path(
-        quality_summary_path,
-        "cc_collection_summary_",
-        ".csv",
-    )
-    quality_output_prefix = (
-        _collection_s3_uri(config, "quality", track, str(year), batch_label, quality_runid).rstrip(
-            "/"
+        quality_runid = _runid_from_path(
+            quality_summary_path,
+            "cc_collection_summary_",
+            ".csv",
         )
-        + "/"
-    )
-    quality_uploaded_uris = _upload_paths_to_s3(
-        _quality_output_paths(
+        throughput_runid = quality_runid
+        throughput_summary_path = _throughput_summary_path(
             config,
             year=year,
             track=track,
             batch=batch_int,
-            runid=quality_runid,
-        ),
-        quality_output_prefix,
-    )
-    _record_step("upload_quality", quality_output_prefix)
+            runid=throughput_runid,
+        )
+        quality_output_prefix = (
+            _collection_s3_uri(
+                config, "quality", track, str(year), batch_label, quality_runid
+            ).rstrip("/")
+            + "/"
+        )
+        quality_uploaded_uris = _upload_paths_to_s3(
+            _quality_output_paths(
+                config,
+                year=year,
+                track=track,
+                batch=batch_int,
+                runid=quality_runid,
+            ),
+            quality_output_prefix,
+        )
+        _record_step("upload_quality", quality_output_prefix)
+    else:
+        throughput_summary_path.parent.mkdir(parents=True, exist_ok=True)
+        _write_throughput_summary(
+            throughput_summary_path,
+            config=config,
+            runid=throughput_runid,
+            document_quality_summary={},
+            document_quality_elapsed_sec=0.0,
+        )
+        logger.info(
+            "Skipping document quality for year=%s track=%s; using accepted WARC summary "
+            "for processed trend outputs.",
+            year,
+            track,
+        )
+        _record_step("skip_quality", warc_summary_path)
     _record_step(
         "cleanup_warc_parquet",
         _delete_existing_paths(
@@ -1491,13 +1534,6 @@ def run_collection_year(
     metrics_output_prefix = (
         _collection_s3_uri(config, "metrics", track, str(year), batch_label, runid).rstrip("/")
         + "/"
-    )
-    throughput_summary_path = _throughput_summary_path(
-        config,
-        year=year,
-        track=track,
-        batch=batch_int,
-        runid=quality_runid,
     )
     _record_step("upload_metrics", metrics_output_prefix)
     manifest_payload = {
