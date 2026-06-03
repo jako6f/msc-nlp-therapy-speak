@@ -17,6 +17,15 @@ dependencies:
   - tldextract
   - warcio
   - py3langid
+  - pytorch
+  - transformers<5
+  - tokenizers
+  - safetensors
+  - huggingface_hub>=0.34,<1
+  - sentence-transformers
+  - scikit-learn
+  - tqdm
+  - nbconvert
   - ruff
   - pip:
       - datatrove==0.9.0
