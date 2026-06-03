@@ -26,11 +26,10 @@ from src.pathing import (
     collection_warc_dir,
     processed_corpus_dir,
     processed_manifest_dir,
-    processed_trend_dir,
 )
 
 from .cc_acquire import COMMONCRAWL_BASE_URL, _setup_logger, _stable_seed, read_manifest
-from .cc_document_quality import _write_throughput_summary, document_quality_hits
+from .cc_document_quality import document_quality_hits
 from .cc_resolve import (
     export_urls,
     install_indexes_remote,
@@ -178,46 +177,8 @@ def _require_accepted_warc_summary(
         )
 
 
-def _latest_accepted_trend_summary(config: Dict, year: int | str) -> Path:
-    warc_dir = collection_warc_dir(config, track="trend", year=year, batch=1)
-    summary_paths = sorted(warc_dir.glob("cc_collection_summary_*.csv"), reverse=True)
-    rejected: List[str] = []
-    for summary_path in summary_paths:
-        accepted, fetch_success_rate_pct, extract_success_rate_pct = _warc_summary_is_accepted(
-            config, summary_path
-        )
-        if accepted:
-            return summary_path
-        rejected.append(
-            f"{summary_path.name}:fetch={fetch_success_rate_pct:.6f}%"
-            f",extract={extract_success_rate_pct:.6f}%"
-        )
-    if not summary_paths:
-        raise FileNotFoundError(f"No trend WARC summary found for year={year} in {warc_dir}")
-    raise RuntimeError(
-        "No accepted trend WARC summary found for "
-        f"year={year}; rejected fetch-success rates: {', '.join(rejected)}"
-    )
-
-
-def _accepted_trend_summaries_complete(config: Dict) -> bool:
-    try:
-        for year in _collection_years(config):
-            _latest_accepted_trend_summary(config, year)
-    except (FileNotFoundError, RuntimeError):
-        return False
-    return True
-
-
-def _run_document_quality_for_track(config: Dict, *, track: str) -> bool:
-    track_cfg = _collection_cfg(config).get(track, {})
-    if "run_document_quality" in track_cfg:
-        return bool(track_cfg.get("run_document_quality"))
-    return track != "trend"
-
-
 def _latest_corpus_quality_paths(config: Dict, *, require_all_years: bool = True) -> List[Path]:
-    corpus_root = collection_interim_dir(config) / "corpus_working"
+    corpus_root = collection_interim_dir(config) / "corpus"
     selected_paths: List[Path] = []
     missing_years: List[str] = []
     for year in _collection_years(config):
@@ -227,7 +188,7 @@ def _latest_corpus_quality_paths(config: Dict, *, require_all_years: bool = True
             if not batch_dir.is_dir():
                 continue
             quality_paths = sorted(
-                (batch_dir / "quality").glob("cc_corpus_texts_document_quality_*.parquet")
+                (batch_dir / "quality").rglob("cc_corpus_texts_document_quality_*.parquet")
             )
             if not quality_paths:
                 continue
@@ -253,13 +214,28 @@ def _corpus_quality_outputs_complete(config: Dict) -> bool:
 
 def _corpus_source_parts(corpus_path: Path) -> Tuple[Optional[int], Optional[int]]:
     parts = corpus_path.parts
-    try:
-        root_idx = parts.index("corpus_working")
-        year = int(parts[root_idx + 1])
-        batch = int(str(parts[root_idx + 2]).removeprefix("batch_"))
-        return year, batch
-    except (ValueError, IndexError):
-        return None, None
+    candidate_roots = ("corpus", "corpus_working")
+    for root in candidate_roots:
+        try:
+            root_idx = parts.index(root)
+            year = int(parts[root_idx + 1])
+            batch = int(str(parts[root_idx + 2]).removeprefix("batch_"))
+            return year, batch
+        except (ValueError, IndexError):
+            continue
+
+    # Legacy synced layout was stage-first:
+    # data/interim/collection/{stage}/corpus/{year}/batch_NNN/...
+    for idx, part in enumerate(parts):
+        if part != "corpus":
+            continue
+        try:
+            year = int(parts[idx + 1])
+            batch = int(str(parts[idx + 2]).removeprefix("batch_"))
+            return year, batch
+        except (ValueError, IndexError):
+            continue
+    return None, None
 
 
 def _corpus_source_parts_from_value(value: object) -> Tuple[Optional[int], Optional[int]]:
@@ -346,7 +322,7 @@ def _corpus_frame_source_keys(frame: pd.DataFrame) -> List[Tuple[Optional[int], 
 
 
 def _normalise_track(track: Optional[str]) -> str:
-    value = (track or "trend").strip().lower()
+    value = (track or "corpus").strip().lower()
     if value not in {"trend", "corpus"}:
         raise ValueError("track must be one of: trend, corpus")
     return value
@@ -355,8 +331,10 @@ def _normalise_track(track: Optional[str]) -> str:
 def _batch_bounds(config: Dict, track: str, batch: int) -> Tuple[int, int]:
     collection = _collection_cfg(config)
     if track == "trend":
-        size = int(collection.get("trend", {}).get("fixed_wet_files_per_year", 50))
-        return 0, size
+        raise ValueError(
+            "The WET-first trend collection path has been retired. Use cc-trend-run-batch "
+            "or `make trend` for the publication-year WARC trend track."
+        )
 
     corpus_cfg = collection.get("corpus", {})
     initial_size = int(corpus_cfg.get("initial_wet_batch_size", 50))
@@ -965,6 +943,11 @@ def sample_collection_wet(
 ) -> Path:
     track = _normalise_track(track)
     batch_int = int(batch)
+    if track == "trend":
+        raise ValueError(
+            "The WET-first trend collection path has been retired. Use cc-trend-run-batch "
+            "or `make trend` for the publication-year WARC trend track."
+        )
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), f"cc-collection-sample-{track}")
     crawl_id = _crawl_id_for_year(config, year)
@@ -1272,6 +1255,78 @@ def preflight_collection(config: Dict) -> Path:
     return manifest_path
 
 
+def migrate_collection_interim_layout(config: Dict, *, apply: bool = False) -> Path:
+    """Move legacy stage-first corpus artifacts into the track-first corpus layout."""
+    runid = _utc_runid()
+    logger = _setup_logger(Path("reports/logs"), "cc-collection-migrate-interim-layout")
+    root = collection_interim_dir(config)
+    stage_map = {
+        "metrics": "metrics",
+        "pointer_cache": "pointer_cache",
+        "quality": "quality",
+        "url_exports": "url_exports",
+        "warc_output": "warc",
+        "wet_scan": "wet_scan",
+    }
+    rows: List[Dict[str, object]] = []
+
+    for source_stage, target_stage in stage_map.items():
+        source_stage_root = root / source_stage / "corpus"
+        if not source_stage_root.exists():
+            continue
+        for source_dir in sorted(source_stage_root.glob("*/batch_*")):
+            if not source_dir.is_dir():
+                continue
+            year = source_dir.parent.name
+            batch_label = source_dir.name
+            target_dir = root / "corpus" / year / batch_label / target_stage
+            row: Dict[str, object] = {
+                "source": str(source_dir),
+                "target": str(target_dir),
+                "source_stage": source_stage,
+                "target_stage": target_stage,
+                "year": year,
+                "batch": batch_label,
+                "status": "planned",
+            }
+            if target_dir.exists():
+                row["status"] = "conflict_target_exists"
+                rows.append(row)
+                continue
+            rows.append(row)
+
+    conflict_count = sum(1 for row in rows if str(row["status"]).startswith("conflict"))
+    if apply and conflict_count:
+        raise FileExistsError(
+            "Cannot apply corpus interim layout migration because target paths already exist. "
+            "Run the dry-run command and resolve conflicts first."
+        )
+
+    if apply:
+        for row in rows:
+            if row["status"] != "planned":
+                continue
+            source = Path(str(row["source"]))
+            target = Path(str(row["target"]))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(source), str(target))
+            row["status"] = "moved"
+            logger.info("Moved %s -> %s", source, target)
+    else:
+        logger.info("Dry-run only; pass --apply to move corpus interim artifacts.")
+
+    summary_path = Path("reports/logs") / f"cc-collection-migrate-interim-layout_{runid}.csv"
+    pd.DataFrame(rows).to_csv(summary_path, index=False)
+    logger.info(
+        "Wrote migration summary %s | rows=%d conflicts=%d apply=%s",
+        summary_path,
+        len(rows),
+        conflict_count,
+        apply,
+    )
+    return summary_path
+
+
 def run_collection_year(
     config: Dict,
     *,
@@ -1281,6 +1336,11 @@ def run_collection_year(
     build_processed: bool = False,
 ) -> Path:
     track = _normalise_track(track)
+    if track == "trend":
+        raise ValueError(
+            "The WET-first trend collection path has been retired. Use cc-trend-run-batch "
+            "or `make trend` for the publication-year WARC trend track."
+        )
     batch_int = int(batch)
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), f"cc-collection-run-year-{track}")
@@ -1389,56 +1449,39 @@ def run_collection_year(
         batch=batch_int,
         runid=throughput_runid,
     )
-    if _run_document_quality_for_track(config, track=track):
-        quality_summary_path = quality_collection(config, year=year, track=track, batch=batch_int)
-        _record_step("quality", quality_summary_path)
+    quality_summary_path = quality_collection(config, year=year, track=track, batch=batch_int)
+    _record_step("quality", quality_summary_path)
 
-        quality_runid = _runid_from_path(
-            quality_summary_path,
-            "cc_collection_summary_",
-            ".csv",
-        )
-        throughput_runid = quality_runid
-        throughput_summary_path = _throughput_summary_path(
+    quality_runid = _runid_from_path(
+        quality_summary_path,
+        "cc_collection_summary_",
+        ".csv",
+    )
+    throughput_runid = quality_runid
+    throughput_summary_path = _throughput_summary_path(
+        config,
+        year=year,
+        track=track,
+        batch=batch_int,
+        runid=throughput_runid,
+    )
+    quality_output_prefix = (
+        _collection_s3_uri(
+            config, "quality", track, str(year), batch_label, quality_runid
+        ).rstrip("/")
+        + "/"
+    )
+    quality_uploaded_uris = _upload_paths_to_s3(
+        _quality_output_paths(
             config,
             year=year,
             track=track,
             batch=batch_int,
-            runid=throughput_runid,
-        )
-        quality_output_prefix = (
-            _collection_s3_uri(
-                config, "quality", track, str(year), batch_label, quality_runid
-            ).rstrip("/")
-            + "/"
-        )
-        quality_uploaded_uris = _upload_paths_to_s3(
-            _quality_output_paths(
-                config,
-                year=year,
-                track=track,
-                batch=batch_int,
-                runid=quality_runid,
-            ),
-            quality_output_prefix,
-        )
-        _record_step("upload_quality", quality_output_prefix)
-    else:
-        throughput_summary_path.parent.mkdir(parents=True, exist_ok=True)
-        _write_throughput_summary(
-            throughput_summary_path,
-            config=config,
-            runid=throughput_runid,
-            document_quality_summary={},
-            document_quality_elapsed_sec=0.0,
-        )
-        logger.info(
-            "Skipping document quality for year=%s track=%s; using accepted WARC summary "
-            "for processed trend outputs.",
-            year,
-            track,
-        )
-        _record_step("skip_quality", warc_summary_path)
+            runid=quality_runid,
+        ),
+        quality_output_prefix,
+    )
+    _record_step("upload_quality", quality_output_prefix)
     _record_step(
         "cleanup_warc_parquet",
         _delete_existing_paths(
@@ -1495,35 +1538,25 @@ def run_collection_year(
     processed_path = ""
     processed_output_prefix = ""
     if build_processed:
-        if track == "trend":
-            if _accepted_trend_summaries_complete(config):
-                processed_path = str(build_processed_trend(config))
-            else:
-                logger.info(
-                    "Skipping processed trend build until every configured year has "
-                    "an accepted WARC summary."
-                )
+        corpus_processed_exists = (
+            processed_corpus_dir(config) / "corpus_documents.parquet"
+        ).exists()
+        if _corpus_quality_outputs_complete(config) or corpus_processed_exists:
+            processed_path = str(build_processed_corpus(config))
         else:
-            corpus_processed_exists = (
-                processed_corpus_dir(config) / "corpus_documents.parquet"
-            ).exists()
-            if _corpus_quality_outputs_complete(config) or corpus_processed_exists:
-                processed_path = str(build_processed_corpus(config))
-            else:
-                logger.info(
-                    "Skipping processed corpus build until every configured year has "
-                    "at least one successful quality output."
-                )
+            logger.info(
+                "Skipping processed corpus build until every configured year has "
+                "at least one successful quality output."
+            )
         if processed_path:
             _record_step("build_processed", processed_path)
             processed_output_prefix = _processed_output_prefix(config, track)
             upload_processed_output(config, track=track, path=Path(processed_path))
             _record_step("upload_processed", processed_output_prefix)
-            if track == "corpus":
-                _record_step(
-                    "cleanup_corpus_quality_parquet",
-                    _cleanup_corpus_quality_sources(config, logger=logger),
-                )
+            _record_step(
+                "cleanup_corpus_quality_parquet",
+                _cleanup_corpus_quality_sources(config, logger=logger),
+            )
     else:
         logger.info(
             "Skipping processed %s build for single year/batch run. "
@@ -1568,175 +1601,6 @@ def run_collection_year(
     return manifest_path
 
 
-def build_processed_trend(config: Dict) -> Path:
-    out_dir = processed_trend_dir(config)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    rows: List[Dict[str, object]] = []
-
-    def _safe_rate(numerator: float, denominator: float, scale: float = 1.0) -> float:
-        return (numerator / denominator) * scale if denominator else 0.0
-
-    def _add_trend_rows(
-        *,
-        year: int,
-        summary_path: Path,
-        term_summary_path: Path,
-        metrics: Dict[str, object],
-        term_df: pd.DataFrame,
-    ) -> None:
-        docs_scanned = float(metrics.get("docs_scanned", 0) or 0)
-        docs_minlen = float(metrics.get("docs_minlen", 0) or 0)
-        tokens_scanned = float(metrics.get("tokens_scanned", 0) or 0)
-        tokens_minlen = float(metrics.get("tokens_minlen", 0) or 0)
-
-        def append_row(
-            *,
-            aggregation_level: str,
-            term_role: str,
-            term_group: str,
-            matched_term: str,
-            candidate_hits: float,
-            validated_hits_wet: float,
-            validated_hits_warc: float,
-        ) -> None:
-            rows.append(
-                {
-                    "year": year,
-                    "aggregation_level": aggregation_level,
-                    "term_role": term_role,
-                    "term_group": term_group,
-                    "matched_term": matched_term,
-                    "docs_scanned": docs_scanned,
-                    "docs_minlen": docs_minlen,
-                    "tokens_scanned": tokens_scanned,
-                    "tokens_minlen": tokens_minlen,
-                    "candidate_hits": candidate_hits,
-                    "validated_hits_wet": validated_hits_wet,
-                    "validated_hits_warc": validated_hits_warc,
-                    "candidate_hits_per_doc": _safe_rate(candidate_hits, docs_scanned),
-                    "validated_hits_wet_per_doc": _safe_rate(validated_hits_wet, docs_scanned),
-                    "validated_hits_warc_per_doc": _safe_rate(validated_hits_warc, docs_scanned),
-                    "candidate_hits_per_10k_docs": _safe_rate(candidate_hits, docs_scanned, 10_000),
-                    "validated_hits_wet_per_10k_docs": _safe_rate(
-                        validated_hits_wet, docs_scanned, 10_000
-                    ),
-                    "validated_hits_warc_per_10k_docs": _safe_rate(
-                        validated_hits_warc, docs_scanned, 10_000
-                    ),
-                    "candidate_hits_per_million_tokens": _safe_rate(
-                        candidate_hits, tokens_scanned, 1_000_000
-                    ),
-                    "validated_hits_wet_per_million_tokens": _safe_rate(
-                        validated_hits_wet, tokens_scanned, 1_000_000
-                    ),
-                    "validated_hits_warc_per_million_tokens": _safe_rate(
-                        validated_hits_warc, tokens_scanned, 1_000_000
-                    ),
-                    "candidate_hits_per_million_minlen_tokens": _safe_rate(
-                        candidate_hits, tokens_minlen, 1_000_000
-                    ),
-                    "validated_hits_wet_per_million_minlen_tokens": _safe_rate(
-                        validated_hits_wet, tokens_minlen, 1_000_000
-                    ),
-                    "validated_hits_warc_per_million_minlen_tokens": _safe_rate(
-                        validated_hits_warc, tokens_minlen, 1_000_000
-                    ),
-                    "warc_over_wet_validation_rate": _safe_rate(
-                        validated_hits_warc, validated_hits_wet
-                    ),
-                    "summary_path": str(summary_path),
-                    "term_summary_path": str(term_summary_path),
-                }
-            )
-
-        append_row(
-            aggregation_level="all",
-            term_role="",
-            term_group="",
-            matched_term="",
-            candidate_hits=float(metrics.get("candidate_hits", 0) or 0),
-            validated_hits_wet=float(metrics.get("validated_hits_wet", 0) or 0),
-            validated_hits_warc=float(metrics.get("validated_hits_warc", 0) or 0),
-        )
-
-        if term_df.empty:
-            return
-
-        for aggregation_level, group_cols in (
-            ("term_role", ["term_role"]),
-            ("term_group", ["term_role", "term_group"]),
-            ("matched_term", ["term_role", "term_group", "matched_term"]),
-        ):
-            grouped = (
-                term_df.groupby(group_cols, dropna=False)
-                .agg(
-                    candidate_hits=("candidate_hits", "sum"),
-                    validated_hits_wet=("validated_hits_wet", "sum"),
-                    validated_hits_warc=("validated_hits_warc", "sum"),
-                )
-                .reset_index()
-            )
-            for row in grouped.to_dict(orient="records"):
-                append_row(
-                    aggregation_level=aggregation_level,
-                    term_role=str(row.get("term_role", "") or ""),
-                    term_group=str(row.get("term_group", "") or ""),
-                    matched_term=str(row.get("matched_term", "") or ""),
-                    candidate_hits=float(row.get("candidate_hits", 0) or 0),
-                    validated_hits_wet=float(row.get("validated_hits_wet", 0) or 0),
-                    validated_hits_warc=float(row.get("validated_hits_warc", 0) or 0),
-                )
-
-    for year in _collection_years(config):
-        summary_path = _latest_accepted_trend_summary(config, year)
-        runid = _runid_from_path(summary_path, "cc_collection_summary_", ".csv")
-        term_summary_path = summary_path.with_name(f"cc_collection_term_summary_{runid}.csv")
-        metrics = _warc_summary_metrics(summary_path)
-        if not term_summary_path.exists():
-            raise FileNotFoundError(f"Missing trend term summary: {term_summary_path}")
-
-        term_df = pd.read_csv(term_summary_path)
-        manifest_path = summary_path.with_name(f"cc_collection_extract_manifest_{runid}.json")
-        source_runid = ""
-        if manifest_path.exists():
-            source_runid = str(json.loads(manifest_path.read_text()).get("source_runid", ""))
-        scan_term_path = (
-            collection_track_working_dir(config, track="trend", year=year, batch=1)
-            / "wet_scan"
-            / f"cc_term_summary_{source_runid}.csv"
-        )
-        if source_runid and scan_term_path.exists():
-            scan_terms = pd.read_csv(scan_term_path)
-            scan_terms = scan_terms.loc[scan_terms["crawl_id"].ne("ALL")].copy()
-            scan_terms = (
-                scan_terms.groupby(["term_role", "term_group", "matched_term"], dropna=False)
-                .agg(candidate_hits=("candidate_hits", "sum"))
-                .reset_index()
-            )
-            term_df = term_df.merge(
-                scan_terms,
-                on=["term_role", "term_group", "matched_term"],
-                how="left",
-            )
-        else:
-            term_df["candidate_hits"] = 0
-        term_df["candidate_hits"] = pd.to_numeric(
-            term_df["candidate_hits"], errors="coerce"
-        ).fillna(0)
-        _add_trend_rows(
-            year=int(year),
-            summary_path=summary_path,
-            term_summary_path=term_summary_path,
-            metrics=metrics,
-            term_df=term_df,
-        )
-    out_path = out_dir / "trend_rates.csv"
-    pd.DataFrame(rows).sort_values(
-        ["year", "aggregation_level", "term_role", "term_group", "matched_term"]
-    ).to_csv(out_path, index=False)
-    return out_path
-
-
 def build_processed_corpus(config: Dict) -> Path:
     import pyarrow as pa  # type: ignore
     import pyarrow.parquet as pq  # type: ignore
@@ -1744,12 +1608,12 @@ def build_processed_corpus(config: Dict) -> Path:
     out_dir = processed_corpus_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "corpus_documents.parquet"
-    try:
-        corpus_paths = _latest_corpus_quality_paths(config, require_all_years=True)
-    except FileNotFoundError:
-        if out_path.exists():
+    if out_path.exists():
+        corpus_paths = _latest_corpus_quality_paths(config, require_all_years=False)
+        if not corpus_paths:
             return out_path
-        raise
+    else:
+        corpus_paths = _latest_corpus_quality_paths(config, require_all_years=True)
 
     source_paths = {str(path) for path in corpus_paths}
     source_keys = {_corpus_source_parts(corpus_path) for corpus_path in corpus_paths}
@@ -1822,13 +1686,14 @@ def build_processed_corpus(config: Dict) -> Path:
 
 def run_collection_track(config: Dict, *, track: str) -> None:
     track = _normalise_track(track)
+    if track == "trend":
+        raise ValueError(
+            "The WET-first trend collection path has been retired. Use cc-trend-run-batch "
+            "or `make trend` for the publication-year WARC trend track."
+        )
     logger = _setup_logger(Path("reports/logs"), f"cc-collection-run-{track}")
     for year in _collection_years(config):
         run_collection_year(config, year=year, track=track, batch=1, build_processed=False)
-    if track == "trend":
-        processed_path = build_processed_trend(config)
-    else:
-        processed_path = build_processed_corpus(config)
+    processed_path = build_processed_corpus(config)
     upload_processed_output(config, track=track, path=processed_path)
-    if track == "corpus":
-        _cleanup_corpus_quality_sources(config, logger=logger)
+    _cleanup_corpus_quality_sources(config, logger=logger)

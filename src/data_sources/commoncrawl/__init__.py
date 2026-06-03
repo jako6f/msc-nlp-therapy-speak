@@ -1,10 +1,10 @@
 from .cc_collection import (
     build_processed_corpus,
-    build_processed_trend,
     download_collection_wet,
     export_collection_urls,
     extract_collection,
     install_collection_indexes,
+    migrate_collection_interim_layout,
     preflight_collection,
     quality_collection,
     resolve_collection_urls,
@@ -21,11 +21,11 @@ from .cc_collection import (
 
 __all__ = [
     "build_processed_corpus",
-    "build_processed_trend",
     "download_collection_wet",
     "export_collection_urls",
     "extract_collection",
     "install_collection_indexes",
+    "migrate_collection_interim_layout",
     "preflight_collection",
     "quality_collection",
     "resolve_collection_urls",
