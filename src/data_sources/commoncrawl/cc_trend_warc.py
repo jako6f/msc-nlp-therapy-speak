@@ -1,8 +1,8 @@
 import csv
 import gzip
 import hashlib
-import heapq
 import json
+import logging
 import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -133,19 +133,55 @@ def _record_sort_key(record: LookupRecord) -> Tuple[str, str, int, int]:
     return (record.crawl_id, record.filename, int(record.offset), int(record.length))
 
 
-def _iter_cdx_records_for_crawl(config: Dict, crawl_id: str) -> Iterable[LookupRecord]:
+def _stable_shard_score(config: Dict, *, crawl_id: str, shard_url: str) -> int:
+    seed = str(config.get("project", {}).get("seed", 123))
+    key = "|".join([seed, crawl_id, shard_url])
+    return int(hashlib.sha256(key.encode("utf-8")).hexdigest(), 16)
+
+
+def _selected_cdx_shard_urls(
+    config: Dict,
+    *,
+    crawl_id: str,
+    batch: int,
+    max_shards: int,
+) -> List[str]:
     resolve_cfg = _resolve_remote_config({"collection_stage": _collection_cfg(config)})
-    for shard_url in _cdxj_shard_urls_for_crawl(crawl_id, resolve_cfg):
-        request = Request(shard_url, headers={"User-Agent": "msc-nlp-therapy-speak/0.2"})
-        with urlopen(request, timeout=resolve_cfg.request_timeout_s) as response:
-            with gzip.GzipFile(fileobj=response) as gz:
-                for raw_line in gz:
-                    parsed = _parse_cdxj_line(raw_line)
-                    if not parsed:
-                        continue
-                    record = _record_from_cdxj_json(crawl_id, parsed)
-                    if record is not None:
-                        yield record
+    shard_urls = _cdxj_shard_urls_for_crawl(crawl_id, resolve_cfg)
+    ranked = sorted(
+        shard_urls,
+        key=lambda shard_url: (
+            _stable_shard_score(config, crawl_id=crawl_id, shard_url=shard_url),
+            shard_url,
+        ),
+    )
+    start = (batch - 1) * max_shards
+    selected = ranked[start : start + max_shards]
+    if not selected:
+        raise ValueError(
+            f"Batch {batch} requests shards beyond the available CDXJ shard frame for {crawl_id}. "
+            f"Available shards={len(shard_urls)}, max_shards_per_batch={max_shards}."
+        )
+    return selected
+
+
+def _iter_cdx_records_for_shard(
+    config: Dict,
+    *,
+    crawl_id: str,
+    shard_url: str,
+) -> Iterable[LookupRecord]:
+    resolve_cfg = _resolve_remote_config({"collection_stage": _collection_cfg(config)})
+    request = Request(shard_url, headers={"User-Agent": "msc-nlp-therapy-speak/0.2"})
+    with urlopen(request, timeout=resolve_cfg.request_timeout_s) as response:
+        with gzip.GzipFile(fileobj=response) as gz:
+            for raw_line in gz:
+                parsed = _parse_cdxj_line(raw_line)
+                if not parsed:
+                    continue
+                record = _record_from_cdxj_json(crawl_id, parsed)
+                if record is not None:
+                    yield record
 
 
 def _sample_records_for_crawl(
@@ -155,33 +191,66 @@ def _sample_records_for_crawl(
     crawl_id: str,
     batch: int,
     sample_per_source_year: int,
+    max_shards: int,
+    logger: logging.Logger,
 ) -> List[LookupRecord]:
-    del source_year
-    target_count = batch * sample_per_source_year
-    heap: List[Tuple[int, Tuple[str, str, int, int], LookupRecord]] = []
+    candidates: List[LookupRecord] = []
     negative_cfg = _collection_cfg(config).get("boilerplate", {}).get(
         "negative_page_type_url", {}
     )
     negative_patterns = compile_boilerplate_patterns(negative_cfg.get("patterns", []))
     negative_enabled = bool(negative_cfg.get("enabled", False))
+    selected_shards = _selected_cdx_shard_urls(
+        config,
+        crawl_id=crawl_id,
+        batch=batch,
+        max_shards=max_shards,
+    )
 
-    for record in _iter_cdx_records_for_crawl(config, crawl_id):
-        if record.status != "200":
-            continue
-        if not (_mime_is_html(record.mime) or record.mime == ""):
-            continue
-        if negative_enabled and is_negative_page_type_url(record.url, negative_patterns):
-            continue
-        score = _stable_score(config, record)
-        item = (-score, _record_sort_key(record), record)
-        if len(heap) < target_count:
-            heapq.heappush(heap, item)
-        elif score < -heap[0][0]:
-            heapq.heapreplace(heap, item)
+    for shard_idx, shard_url in enumerate(selected_shards, start=1):
+        seen = 0
+        accepted = 0
+        logger.info(
+            "Sampling source_year=%s crawl_id=%s shard=%d/%d url=%s",
+            source_year,
+            crawl_id,
+            shard_idx,
+            len(selected_shards),
+            shard_url,
+        )
+        for record in _iter_cdx_records_for_shard(config, crawl_id=crawl_id, shard_url=shard_url):
+            seen += 1
+            if record.status != "200":
+                continue
+            if not (_mime_is_html(record.mime) or record.mime == ""):
+                continue
+            if negative_enabled and is_negative_page_type_url(record.url, negative_patterns):
+                continue
+            candidates.append(record)
+            accepted += 1
+        logger.info(
+            "Finished source_year=%s crawl_id=%s shard=%d/%d records_seen=%d accepted=%d",
+            source_year,
+            crawl_id,
+            shard_idx,
+            len(selected_shards),
+            seen,
+            accepted,
+        )
 
-    selected = [item[2] for item in sorted(heap, key=lambda value: (-value[0], value[1]))]
-    start = (batch - 1) * sample_per_source_year
-    return selected[start : start + sample_per_source_year]
+    selected = sorted(
+        candidates,
+        key=lambda record: (_stable_score(config, record), _record_sort_key(record)),
+    )[:sample_per_source_year]
+    logger.info(
+        "Selected source_year=%s crawl_id=%s records=%d candidates=%d shards=%d",
+        source_year,
+        crawl_id,
+        len(selected),
+        len(candidates),
+        len(selected_shards),
+    )
+    return selected
 
 
 def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -> Path:
@@ -194,11 +263,19 @@ def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -
             trend_cfg.get("pilot", {}).get("sample_records_per_source_year"),
             "pilot.sample_records_per_source_year",
         )
+        max_shards = _required_int(
+            trend_cfg.get("pilot", {}).get("max_index_shards_per_source_year"),
+            "pilot.max_index_shards_per_source_year",
+        )
         out_dir = _trend_pilot_dir(config, runid) / "sample"
     else:
         sample_count = _required_int(
             trend_cfg.get("full", {}).get("sample_records_per_source_year_batch"),
             "full.sample_records_per_source_year_batch",
+        )
+        max_shards = _required_int(
+            trend_cfg.get("full", {}).get("max_index_shards_per_source_year_batch"),
+            "full.max_index_shards_per_source_year_batch",
         )
         out_dir = _trend_batch_dir(config, batch_int) / "sample"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -207,10 +284,11 @@ def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -
     for source_year in _collection_years(config):
         crawl_id = _crawl_id_for_year(config, source_year)
         logger.info(
-            "Sampling source_year=%s crawl_id=%s sample_records=%d batch=%s",
+            "Sampling source_year=%s crawl_id=%s sample_records=%d max_shards=%d batch=%s",
             source_year,
             crawl_id,
             sample_count,
+            max_shards,
             "pilot" if pilot else batch_int,
         )
         for record in _sample_records_for_crawl(
@@ -219,6 +297,8 @@ def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -
             crawl_id=crawl_id,
             batch=batch_int,
             sample_per_source_year=sample_count,
+            max_shards=max_shards,
+            logger=logger,
         ):
             rows.append(
                 {
