@@ -334,8 +334,8 @@ DataTrove MinHash deduplication was considered but not adopted for the initial f
 
 Working outputs:
 
-- `data/interim/collection/trend_working/`
-- `data/interim/collection/corpus_working/`
+- `data/interim/collection/trend/{year}/batch_001/`
+- `data/interim/collection/corpus/{year}/batch_{NNN}/`
 
 Final processed outputs:
 

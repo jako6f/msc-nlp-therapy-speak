@@ -113,7 +113,7 @@ This builds the processed corpus once after all configured first-pass years comp
 Inspect annual target-group counts:
 
 ```bash
-find data/interim/collection/corpus_working -path '*/quality/cc_collection_summary_*.csv' | sort
+find data/interim/collection/corpus -path '*/quality/cc_collection_summary_*.csv' | sort
 ```
 
 For each year, check at least:

@@ -8,6 +8,7 @@ import yaml
 
 from src.data_sources.commoncrawl import (
     build_processed_corpus,
+    build_processed_trend,
     download_collection_wet,
     export_collection_urls,
     extract_collection,
@@ -25,12 +26,6 @@ from src.data_sources.commoncrawl import (
     stop_collection_index_server,
     upload_collection_urls,
     upload_processed_output,
-)
-from src.data_sources.commoncrawl.cc_trend_warc import (
-    build_trend_warc,
-    run_trend_batch,
-    run_trend_pilot,
-    upload_trend_outputs,
 )
 from src.pathing import (
     collection_interim_dir,
@@ -73,7 +68,7 @@ def _add_year_track_batch_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--track",
         required=True,
-        choices=["corpus"],
+        choices=["trend", "corpus"],
         help="Collection track to process.",
     )
     parser.add_argument("--batch", default="1", help="Deterministic corpus/trend batch number.")
@@ -107,7 +102,7 @@ def main() -> None:
 
     p_migrate = sub.add_parser(
         "cc-collection-migrate-interim-layout",
-        help="Move legacy stage-first corpus interim artifacts to the track-first layout.",
+        help="Move legacy stage-first collection interim artifacts to the track-first layout.",
     )
     _add_config_arg(p_migrate)
     migration_mode = p_migrate.add_mutually_exclusive_group(required=True)
@@ -188,33 +183,15 @@ def main() -> None:
     _add_config_arg(p_quality)
     _add_year_track_batch_args(p_quality)
 
-    p_trend_pilot = sub.add_parser(
-        "cc-trend-pilot",
-        help="Run a small WARC-pointer trend pilot and write calibration diagnostics.",
+    p_build_trend = sub.add_parser(
+        "cc-collection-build-trend",
+        help="Build processed trend outputs from collection working artifacts.",
     )
-    _add_config_arg(p_trend_pilot)
-
-    p_trend_run = sub.add_parser(
-        "cc-trend-run-batch",
-        help="Run one append-only WARC-pointer trend batch and rebuild trend outputs.",
-    )
-    _add_config_arg(p_trend_run)
-    p_trend_run.add_argument("--batch", default="1", help="Append-only trend batch number.")
-    p_trend_run.add_argument(
+    _add_config_arg(p_build_trend)
+    p_build_trend.add_argument(
         "--upload",
         action="store_true",
-        help="Upload processed trend outputs after building them.",
-    )
-
-    p_trend_build = sub.add_parser(
-        "cc-trend-build",
-        help="Build processed trend outputs from completed WARC-pointer trend batches.",
-    )
-    _add_config_arg(p_trend_build)
-    p_trend_build.add_argument(
-        "--upload",
-        action="store_true",
-        help="Upload processed trend outputs to the configured collection S3 prefix.",
+        help="Upload the processed trend output to the configured collection S3 prefix.",
     )
 
     p_build_corpus = sub.add_parser(
@@ -230,10 +207,10 @@ def main() -> None:
 
     p_run_track = sub.add_parser(
         "cc-collection-run",
-        help="Run the full WET-first corpus collection pipeline.",
+        help="Run the full collection pipeline for all configured years in one track.",
     )
     _add_config_arg(p_run_track)
-    p_run_track.add_argument("--track", required=True, choices=["corpus"])
+    p_run_track.add_argument("--track", required=True, choices=["trend", "corpus"])
 
     p_run_year = sub.add_parser(
         "cc-collection-run-year",
@@ -324,24 +301,11 @@ def main() -> None:
     if args.command == "cc-collection-quality":
         quality_collection(cfg, year=args.year, track=args.track, batch=args.batch)
         return
-    if args.command == "cc-trend-pilot":
-        for path in run_trend_pilot(cfg):
-            print(path)
-        return
-    if args.command == "cc-trend-run-batch":
-        paths = run_trend_batch(cfg, batch=args.batch)
+    if args.command == "cc-collection-build-trend":
+        processed_path = build_processed_trend(cfg)
         if args.upload:
-            for uri in upload_trend_outputs(cfg, paths):
+            for uri in upload_processed_output(cfg, track="trend", path=processed_path):
                 print(f"Uploaded {uri}")
-        return
-    if args.command == "cc-trend-build":
-        paths = build_trend_warc(cfg)
-        if args.upload:
-            for uri in upload_trend_outputs(cfg, paths):
-                print(f"Uploaded {uri}")
-        else:
-            for path in paths:
-                print(path)
         return
     if args.command == "cc-collection-build-corpus":
         processed_path = build_processed_corpus(cfg)

@@ -52,22 +52,8 @@ collection:
       crawl_id: "CC-MAIN-2026-17"
 
   trend:
-    publication_year_start: 2014
-    publication_year_end: 2026
-    language_keep:
-      - "en"
-    min_extracted_tokens: 100
-    retain_extracted_text: false
-    audit_sample_n_per_publication_year: 30
-    pilot:
-      max_fetch_docs_total:
-      sample_records_per_source_year: 50
-      max_index_shards_per_source_year: 1
-    full:
-      target_tokens_per_publication_year:
-      max_fetch_docs_total:
-      sample_records_per_source_year_batch:
-      max_index_shards_per_source_year_batch:
+    fixed_wet_files_per_year: 100
+    run_document_quality: false
 
   acquisition:
     request_timeout_s: 120

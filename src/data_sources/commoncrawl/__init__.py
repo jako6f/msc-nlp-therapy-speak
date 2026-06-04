@@ -1,5 +1,6 @@
 from .cc_collection import (
     build_processed_corpus,
+    build_processed_trend,
     download_collection_wet,
     export_collection_urls,
     extract_collection,
@@ -21,6 +22,7 @@ from .cc_collection import (
 
 __all__ = [
     "build_processed_corpus",
+    "build_processed_trend",
     "download_collection_wet",
     "export_collection_urls",
     "extract_collection",

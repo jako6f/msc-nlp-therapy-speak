@@ -38,6 +38,9 @@ collection_year:
 	@if [ -z "$(YEAR)" ]; then echo "Set YEAR=YYYY"; exit 1; fi
 	python -m src.cli cc-collection-run-year --config $(CONFIG) --year $(YEAR) --track $(TRACK) --batch $(BATCH)
 
+trend_year:
+	$(MAKE) collection_year YEAR=$(YEAR) TRACK=trend BATCH=1 CONFIG=$(CONFIG)
+
 corpus_year:
 	$(MAKE) collection_year YEAR=$(YEAR) TRACK=corpus BATCH=1 CONFIG=$(CONFIG)
 
@@ -47,14 +50,11 @@ corpus_expand:
 corpus_build_processed:
 	python -m src.cli cc-collection-build-corpus --config $(CONFIG) --upload
 
-trend_pilot:
-	python -m src.cli cc-trend-pilot --config $(CONFIG)
-
 trend:
-	python -m src.cli cc-trend-run-batch --config $(CONFIG) --batch $(BATCH)
+	python -m src.cli cc-collection-run --config $(CONFIG) --track trend
 
 trend_build_processed:
-	python -m src.cli cc-trend-build --config $(CONFIG) --upload
+	python -m src.cli cc-collection-build-trend --config $(CONFIG) --upload
 
 corpus:
 	python -m src.cli cc-collection-run --config $(CONFIG) --track corpus

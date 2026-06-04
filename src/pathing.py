@@ -34,9 +34,7 @@ def collection_track_working_dir(
     track = str(track).strip()
     year = str(year).strip()
     batch_int = int(batch)
-    if track == "trend":
-        return collection_interim_dir(config) / "trend" / f"batch_{batch_int:03d}"
-    return collection_interim_dir(config) / "corpus" / year / f"batch_{batch_int:03d}"
+    return collection_interim_dir(config) / track / year / f"batch_{batch_int:03d}"
 
 
 def collection_url_export_dir(

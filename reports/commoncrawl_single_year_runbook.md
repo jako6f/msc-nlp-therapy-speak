@@ -112,17 +112,17 @@ make corpus_build_processed CONFIG=configs/commoncrawl_collection.yaml
 For trend:
 
 ```bash
-BASE=data/interim/collection/trend_working/$YEAR
-find "$BASE/warc" -maxdepth 1 -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
-find "$BASE/warc" -maxdepth 1 -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
-find "$BASE/metrics" -maxdepth 1 -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
+BASE=data/interim/collection/trend/$YEAR/batch_001
+find "$BASE/warc" -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/warc" -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/metrics" -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
 ```
 
 For corpus:
 
 ```bash
 BPAD=$(printf "%03d" "$BATCH")
-BASE=data/interim/collection/corpus_working/$YEAR/batch_$BPAD
+BASE=data/interim/collection/corpus/$YEAR/batch_$BPAD
 find "$BASE/quality" -maxdepth 1 -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
 find "$BASE/quality" -maxdepth 1 -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
 find "$BASE/metrics" -maxdepth 1 -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
