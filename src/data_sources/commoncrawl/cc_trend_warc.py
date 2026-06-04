@@ -421,6 +421,32 @@ def _publication_year(value: str) -> Optional[int]:
     return int(parsed.year)
 
 
+def _limit_sample_by_source_year(frame: pd.DataFrame, max_docs: Optional[int]) -> pd.DataFrame:
+    if max_docs is None or len(frame) <= max_docs:
+        return frame.copy()
+    if "source_year" not in frame.columns:
+        return frame.head(max_docs).copy()
+
+    groups = [
+        (source_year, group)
+        for source_year, group in frame.groupby("source_year", sort=True)
+    ]
+    if not groups:
+        return frame.head(max_docs).copy()
+
+    base = max_docs // len(groups)
+    remainder = max_docs % len(groups)
+    selected_frames: List[pd.DataFrame] = []
+    for idx, (_, group) in enumerate(groups):
+        limit = base + (1 if idx < remainder else 0)
+        if limit <= 0:
+            continue
+        selected_frames.append(group.head(limit))
+    if not selected_frames:
+        return frame.head(max_docs).copy()
+    return pd.concat(selected_frames, ignore_index=True)
+
+
 def extract_trend_warc(config: Dict, *, batch: int | str, pilot: bool = False) -> Path:
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), "cc-trend-extract-warc", runid)
@@ -433,7 +459,15 @@ def extract_trend_warc(config: Dict, *, batch: int | str, pilot: bool = False) -
         else _safe_int(trend_cfg.get("full", {}).get("max_fetch_docs_total"))
     )
     if max_docs is not None:
-        sample_df = sample_df.head(max_docs).copy()
+        before_counts = sample_df.groupby("source_year").size().to_dict()
+        sample_df = _limit_sample_by_source_year(sample_df, max_docs)
+        after_counts = sample_df.groupby("source_year").size().to_dict()
+        logger.info(
+            "Applied max_fetch_docs_total=%d to trend sample rows=%d source_year_counts=%s",
+            max_docs,
+            len(sample_df),
+            {"before": before_counts, "after": after_counts},
+        )
 
     extraction_cfg = _warc_extraction_config(
         {"collection_stage": _collection_cfg(config)}, "collection_stage"

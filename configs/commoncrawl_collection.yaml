@@ -60,7 +60,7 @@ collection:
     retain_extracted_text: false
     audit_sample_n_per_publication_year: 30
     pilot:
-      max_fetch_docs_total: 500
+      max_fetch_docs_total:
       sample_records_per_source_year: 50
       max_index_shards_per_source_year: 1
     full:
