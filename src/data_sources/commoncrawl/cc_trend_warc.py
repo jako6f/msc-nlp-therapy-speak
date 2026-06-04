@@ -1,6 +1,7 @@
 import csv
 import gzip
 import hashlib
+import heapq
 import json
 import logging
 import re
@@ -133,6 +134,16 @@ def _record_sort_key(record: LookupRecord) -> Tuple[str, str, int, int]:
     return (record.crawl_id, record.filename, int(record.offset), int(record.length))
 
 
+def _inverted_sort_key(record: LookupRecord) -> Tuple[str, str, int, int]:
+    crawl_id, filename, offset, length = _record_sort_key(record)
+    return (
+        "".join(chr(0x10FFFF - ord(char)) for char in crawl_id),
+        "".join(chr(0x10FFFF - ord(char)) for char in filename),
+        -offset,
+        -length,
+    )
+
+
 def _stable_shard_score(config: Dict, *, crawl_id: str, shard_url: str) -> int:
     seed = str(config.get("project", {}).get("seed", 123))
     key = "|".join([seed, crawl_id, shard_url])
@@ -194,7 +205,8 @@ def _sample_records_for_crawl(
     max_shards: int,
     logger: logging.Logger,
 ) -> List[LookupRecord]:
-    candidates: List[LookupRecord] = []
+    selected_heap: List[Tuple[int, Tuple[str, str, int, int], LookupRecord]] = []
+    candidate_count = 0
     negative_cfg = _collection_cfg(config).get("boilerplate", {}).get(
         "negative_page_type_url", {}
     )
@@ -220,14 +232,32 @@ def _sample_records_for_crawl(
         )
         for record in _iter_cdx_records_for_shard(config, crawl_id=crawl_id, shard_url=shard_url):
             seen += 1
+            if seen % 1_000_000 == 0:
+                logger.info(
+                    "Sampling progress source_year=%s crawl_id=%s shard=%d/%d "
+                    "records_seen=%d accepted=%d selected_heap=%d",
+                    source_year,
+                    crawl_id,
+                    shard_idx,
+                    len(selected_shards),
+                    seen,
+                    accepted,
+                    len(selected_heap),
+                )
             if record.status != "200":
                 continue
             if not (_mime_is_html(record.mime) or record.mime == ""):
                 continue
             if negative_enabled and is_negative_page_type_url(record.url, negative_patterns):
                 continue
-            candidates.append(record)
+            candidate_count += 1
             accepted += 1
+            score = _stable_score(config, record)
+            heap_item = (-score, _inverted_sort_key(record), record)
+            if len(selected_heap) < sample_per_source_year:
+                heapq.heappush(selected_heap, heap_item)
+            elif heap_item > selected_heap[0]:
+                heapq.heapreplace(selected_heap, heap_item)
         logger.info(
             "Finished source_year=%s crawl_id=%s shard=%d/%d records_seen=%d accepted=%d",
             source_year,
@@ -239,15 +269,15 @@ def _sample_records_for_crawl(
         )
 
     selected = sorted(
-        candidates,
+        (item[2] for item in selected_heap),
         key=lambda record: (_stable_score(config, record), _record_sort_key(record)),
-    )[:sample_per_source_year]
+    )
     logger.info(
         "Selected source_year=%s crawl_id=%s records=%d candidates=%d shards=%d",
         source_year,
         crawl_id,
         len(selected),
-        len(candidates),
+        candidate_count,
         len(selected_shards),
     )
     return selected
