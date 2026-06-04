@@ -55,6 +55,22 @@ from .cc_warc import (
     _warc_extraction_config,
 )
 
+TREND_SAMPLE_COLUMNS = [
+    "source_year",
+    "crawl_id",
+    "url",
+    "normalized_url",
+    "registered_domain",
+    "warc_filename",
+    "warc_offset",
+    "warc_length",
+    "capture_ts",
+    "fetch_status",
+    "content_mime_type",
+    "sample_score",
+    "batch",
+]
+
 
 def _trend_cfg(config: Dict) -> Dict:
     return _collection_cfg(config).get("trend", {})
@@ -433,7 +449,7 @@ def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -
             max_shards,
             "pilot" if pilot else batch_int,
         )
-        for record in _sample_records_for_crawl(
+        selected_records = _sample_records_for_crawl(
             config,
             source_year=int(source_year),
             crawl_id=crawl_id,
@@ -441,7 +457,16 @@ def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -
             sample_per_source_year=sample_count,
             max_shards=max_shards,
             logger=logger,
-        ):
+        )
+        if len(selected_records) < sample_count:
+            logger.warning(
+                "Under-sampled source_year=%s crawl_id=%s selected_records=%d requested=%d",
+                source_year,
+                crawl_id,
+                len(selected_records),
+                sample_count,
+            )
+        for record in selected_records:
             rows.append(
                 {
                     "source_year": int(source_year),
@@ -459,9 +484,13 @@ def sample_trend_index(config: Dict, *, batch: int | str, pilot: bool = False) -
                     "batch": "pilot" if pilot else batch_int,
                 }
             )
+    if not rows:
+        raise RuntimeError(
+            "Trend WARC sampling produced zero rows. Check CDX shard access and filters."
+        )
 
     sample_path = out_dir / f"cc_trend_warc_sample_{runid}.parquet"
-    pd.DataFrame(rows).to_parquet(sample_path, index=False)
+    pd.DataFrame(rows, columns=TREND_SAMPLE_COLUMNS).to_parquet(sample_path, index=False)
     logger.info("Wrote trend WARC sample %s rows=%d", sample_path, len(rows))
     return sample_path
 
@@ -559,11 +588,27 @@ def _limit_sample_by_source_year(frame: pd.DataFrame, max_docs: Optional[int]) -
     return pd.concat(selected_frames, ignore_index=True)
 
 
+def _require_columns(frame: pd.DataFrame, required_columns: List[str], label: str) -> None:
+    missing = [column for column in required_columns if column not in frame.columns]
+    if missing:
+        raise ValueError(f"{label} is missing required columns: {', '.join(missing)}")
+
+
+def _value_counts_dict(frame: pd.DataFrame, column: str) -> Dict[str, int]:
+    if column not in frame.columns:
+        return {}
+    return {
+        str(key): int(value)
+        for key, value in frame[column].value_counts(dropna=False).to_dict().items()
+    }
+
+
 def extract_trend_warc(config: Dict, *, batch: int | str, pilot: bool = False) -> Path:
     runid = _utc_runid()
     logger = _setup_logger(Path("reports/logs"), "cc-trend-extract-warc", runid)
     sample_path = _latest_sample_path(config, batch=batch, pilot=pilot)
     sample_df = pd.read_parquet(sample_path)
+    _require_columns(sample_df, TREND_SAMPLE_COLUMNS, str(sample_path))
     trend_cfg = _trend_cfg(config)
     max_docs = (
         _safe_int(trend_cfg.get("pilot", {}).get("max_fetch_docs_total"))
@@ -705,14 +750,29 @@ def extract_trend_warc(config: Dict, *, batch: int | str, pilot: bool = False) -
                     out_row["extracted_text"] = extracted_text
         except _DocumentTimeoutError:
             out_row["extraction_status"] = "document_timeout"
+        except Exception as exc:
+            out_row["extraction_status"] = f"document_error:{type(exc).__name__}"
+            logger.warning(
+                "Trend WARC document error idx=%d/%d url=%s error=%r",
+                idx,
+                len(sample_df),
+                record.url,
+                exc,
+            )
         rows.append(out_row)
         if idx % 100 == 0 or idx == len(sample_df):
             logger.info("Trend WARC extraction progress %d/%d", idx, len(sample_df))
 
     out_path = out_dir / f"cc_trend_warc_documents_{runid}.parquet"
-    pd.DataFrame(rows).to_parquet(out_path, index=False)
+    output_df = pd.DataFrame(rows)
+    output_df.to_parquet(out_path, index=False)
+    logger.info(
+        "Trend WARC extraction status counts=%s publication_date_status_counts=%s",
+        _value_counts_dict(output_df, "extraction_status"),
+        _value_counts_dict(output_df, "publication_date_status"),
+    )
     logger.info("Wrote trend WARC extracted documents %s rows=%d", out_path, len(rows))
-    _write_calibration(config, pd.DataFrame(rows))
+    _write_calibration(config, output_df)
     return out_path
 
 
