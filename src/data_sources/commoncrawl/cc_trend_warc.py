@@ -5,8 +5,10 @@ import heapq
 import json
 import logging
 import re
+import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
+from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
@@ -134,6 +136,11 @@ def _record_sort_key(record: LookupRecord) -> Tuple[str, str, int, int]:
     return (record.crawl_id, record.filename, int(record.offset), int(record.length))
 
 
+def _heap_tiebreaker(record: LookupRecord) -> str:
+    crawl_id, filename, offset, length = _record_sort_key(record)
+    return "|".join([crawl_id, filename, str(offset), str(length), record.url])
+
+
 def _inverted_sort_key(record: LookupRecord) -> Tuple[str, str, int, int]:
     crawl_id, filename, offset, length = _record_sort_key(record)
     return (
@@ -195,6 +202,93 @@ def _iter_cdx_records_for_shard(
                     yield record
 
 
+def _trend_retry_cfg(config: Dict) -> Tuple[int, float, float, set[int]]:
+    acquisition_cfg = _collection_cfg(config).get("acquisition", {})
+    return (
+        max(1, int(acquisition_cfg.get("max_attempts", 4))),
+        float(acquisition_cfg.get("retry_initial_backoff_s", 2.0)),
+        float(acquisition_cfg.get("retry_max_backoff_s", 30.0)),
+        {int(status) for status in acquisition_cfg.get("retry_http_statuses", [])},
+    )
+
+
+def _retryable_cdx_exception(config: Dict, exc: BaseException) -> bool:
+    _, _, _, retry_statuses = _trend_retry_cfg(config)
+    if isinstance(exc, HTTPError):
+        return int(exc.code) in retry_statuses
+    return isinstance(
+        exc,
+        (
+            ConnectionError,
+            ConnectionResetError,
+            EOFError,
+            TimeoutError,
+            URLError,
+            gzip.BadGzipFile,
+            OSError,
+        ),
+    )
+
+
+def _bounded_heap_add(
+    heap: List[Tuple[int, Tuple[str, str, int, int], str, LookupRecord]],
+    item: Tuple[int, Tuple[str, str, int, int], str, LookupRecord],
+    limit: int,
+) -> None:
+    if len(heap) < limit:
+        heapq.heappush(heap, item)
+    elif item > heap[0]:
+        heapq.heapreplace(heap, item)
+
+
+def _sample_records_from_shard_once(
+    config: Dict,
+    *,
+    source_year: int,
+    crawl_id: str,
+    shard_idx: int,
+    shard_count: int,
+    shard_url: str,
+    sample_per_source_year: int,
+    negative_enabled: bool,
+    negative_patterns: List[re.Pattern],
+    logger: logging.Logger,
+) -> Tuple[int, int, List[Tuple[int, Tuple[str, str, int, int], str, LookupRecord]]]:
+    seen = 0
+    accepted = 0
+    shard_heap: List[Tuple[int, Tuple[str, str, int, int], str, LookupRecord]] = []
+    for record in _iter_cdx_records_for_shard(config, crawl_id=crawl_id, shard_url=shard_url):
+        seen += 1
+        if seen % 1_000_000 == 0:
+            logger.info(
+                "Sampling progress source_year=%s crawl_id=%s shard=%d/%d "
+                "records_seen=%d accepted=%d selected_heap=%d",
+                source_year,
+                crawl_id,
+                shard_idx,
+                shard_count,
+                seen,
+                accepted,
+                len(shard_heap),
+            )
+        if record.status != "200":
+            continue
+        if not (_mime_is_html(record.mime) or record.mime == ""):
+            continue
+        if negative_enabled and is_negative_page_type_url(record.url, negative_patterns):
+            continue
+        accepted += 1
+        score = _stable_score(config, record)
+        heap_item = (
+            -score,
+            _inverted_sort_key(record),
+            _heap_tiebreaker(record),
+            record,
+        )
+        _bounded_heap_add(shard_heap, heap_item, sample_per_source_year)
+    return seen, accepted, shard_heap
+
+
 def _sample_records_for_crawl(
     config: Dict,
     *,
@@ -205,7 +299,7 @@ def _sample_records_for_crawl(
     max_shards: int,
     logger: logging.Logger,
 ) -> List[LookupRecord]:
-    selected_heap: List[Tuple[int, Tuple[str, str, int, int], LookupRecord]] = []
+    selected_heap: List[Tuple[int, Tuple[str, str, int, int], str, LookupRecord]] = []
     candidate_count = 0
     negative_cfg = _collection_cfg(config).get("boilerplate", {}).get(
         "negative_page_type_url", {}
@@ -219,57 +313,75 @@ def _sample_records_for_crawl(
         max_shards=max_shards,
     )
 
+    max_attempts, initial_backoff_s, max_backoff_s, _ = _trend_retry_cfg(config)
+    shard_count = len(selected_shards)
     for shard_idx, shard_url in enumerate(selected_shards, start=1):
-        seen = 0
-        accepted = 0
         logger.info(
             "Sampling source_year=%s crawl_id=%s shard=%d/%d url=%s",
             source_year,
             crawl_id,
             shard_idx,
-            len(selected_shards),
+            shard_count,
             shard_url,
         )
-        for record in _iter_cdx_records_for_shard(config, crawl_id=crawl_id, shard_url=shard_url):
-            seen += 1
-            if seen % 1_000_000 == 0:
-                logger.info(
-                    "Sampling progress source_year=%s crawl_id=%s shard=%d/%d "
-                    "records_seen=%d accepted=%d selected_heap=%d",
+        for attempt in range(1, max_attempts + 1):
+            try:
+                seen, accepted, shard_heap = _sample_records_from_shard_once(
+                    config,
+                    source_year=source_year,
+                    crawl_id=crawl_id,
+                    shard_idx=shard_idx,
+                    shard_count=shard_count,
+                    shard_url=shard_url,
+                    sample_per_source_year=sample_per_source_year,
+                    negative_enabled=negative_enabled,
+                    negative_patterns=negative_patterns,
+                    logger=logger,
+                )
+                candidate_count += accepted
+                for heap_item in shard_heap:
+                    _bounded_heap_add(selected_heap, heap_item, sample_per_source_year)
+                break
+            except Exception as exc:
+                if attempt >= max_attempts or not _retryable_cdx_exception(config, exc):
+                    logger.exception(
+                        "Failed sampling source_year=%s crawl_id=%s shard=%d/%d "
+                        "attempt=%d/%d url=%s",
+                        source_year,
+                        crawl_id,
+                        shard_idx,
+                        shard_count,
+                        attempt,
+                        max_attempts,
+                        shard_url,
+                    )
+                    raise
+                delay_s = min(max_backoff_s, initial_backoff_s * (2 ** (attempt - 1)))
+                logger.warning(
+                    "Retrying sampling source_year=%s crawl_id=%s shard=%d/%d "
+                    "attempt=%d/%d delay_s=%.1f error=%s",
                     source_year,
                     crawl_id,
                     shard_idx,
-                    len(selected_shards),
-                    seen,
-                    accepted,
-                    len(selected_heap),
+                    shard_count,
+                    attempt,
+                    max_attempts,
+                    delay_s,
+                    repr(exc),
                 )
-            if record.status != "200":
-                continue
-            if not (_mime_is_html(record.mime) or record.mime == ""):
-                continue
-            if negative_enabled and is_negative_page_type_url(record.url, negative_patterns):
-                continue
-            candidate_count += 1
-            accepted += 1
-            score = _stable_score(config, record)
-            heap_item = (-score, _inverted_sort_key(record), record)
-            if len(selected_heap) < sample_per_source_year:
-                heapq.heappush(selected_heap, heap_item)
-            elif heap_item > selected_heap[0]:
-                heapq.heapreplace(selected_heap, heap_item)
+                time.sleep(delay_s)
         logger.info(
             "Finished source_year=%s crawl_id=%s shard=%d/%d records_seen=%d accepted=%d",
             source_year,
             crawl_id,
             shard_idx,
-            len(selected_shards),
+            shard_count,
             seen,
             accepted,
         )
 
     selected = sorted(
-        (item[2] for item in selected_heap),
+        (item[3] for item in selected_heap),
         key=lambda record: (_stable_score(config, record), _record_sort_key(record)),
     )
     logger.info(
