@@ -95,10 +95,13 @@ This writes the final trend output:
 
 ```text
 data/processed/trend/trend_rates.csv
+data/processed/trend/trend_publication_year_diagnostics.csv
 ```
 
 The trend track estimates annual term rates from accepted WARC-validated hit summaries.
-It does not run the heavier corpus document-quality stage by default.
+The primary trend denominator is the source-year WET token count after the minimum-length
+filter. Publication-year diagnostics are retained for transparency, but the trend track
+does not run the heavier corpus document-quality stage by default.
 
 ## 5. Run Corpus First Pass
 

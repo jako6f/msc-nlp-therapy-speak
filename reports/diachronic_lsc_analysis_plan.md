@@ -25,6 +25,8 @@ Salience captures how prominent a lexical item or concept becomes in a corpus ov
 
 For this project, Salience is the frequency with which ADHD/autism-related expressions appear in general web discourse over annual Common Crawl slices. It answers a different question from semantic change: not “what does the term mean?”, but “how often is the term invoked?”
 
+Unlike Sentiment, Intensity, Breadth, and Thematic analyses, Salience uses Common Crawl source year as its primary annual axis. This is a deliberate denominator choice: the available denominator is the fixed yearly WET sample scanned for target and baseline terms. Publication-year diagnostics are retained to quantify leakage, but publication year is not used as the main Salience denominator because documents without term hits do not receive WARC extraction or publication-date recovery.
+
 ### Operational definition (my pipeline)
 
 For each analysis unit $u$ and year $Y$, compute annual relative frequency using the same token denominator for target groups and comparator terms:
@@ -43,7 +45,7 @@ $$
 \end{aligned}
 $$
 
-where $H^{\text{WET}}_{u,Y}$ is the number of WET-validated hits for analysis unit $u$ in year $Y$, $H^{\text{WARC}}_{u,Y}$ is the number of WARC-validated hits, and $T_Y$ is the annual WET token denominator for the documents entering term matching. Retention is defined only when $H^{\text{WET}}_{u,Y} > 0$. The reported rate should normally be rescaled to hits per million WET tokens.
+where $Y$ is Common Crawl source year, $H^{\text{WET}}_{u,Y}$ is the number of WET-validated hits for analysis unit $u$, $H^{\text{WARC}}_{u,Y}$ is the number of WARC-validated hits, and $T_Y$ is the annual WET token denominator for minimum-length documents entering term matching. Retention is defined only when $H^{\text{WET}}_{u,Y} > 0$. The reported rate should normally be rescaled to hits per million WET tokens.
 
 This aligns the salience measure more closely with Baes et al.’s normalised target frequency while preserving the project’s WET-first, WARC-second validation design. WARC salience is the cleaner substantive trend signal; WET salience and candidate-hit rates remain important diagnostics for checking whether validation changes the temporal pattern. Document-denominated rates are retained as supplementary diagnostics because the collection pipeline naturally records scanned-document counts.
 
@@ -93,6 +95,7 @@ Analysis units:
 * Check whether large salience spikes are driven by one domain, duplicated pages, crawler artefacts, or page-template contamination.
 * Compare WET and WARC trends. If WET rises but WARC does not, the apparent trend may be boilerplate or page-structure artefact.
 * Inspect annual WARC/WET retention rates. Large year-specific drops may indicate extraction, crawl-composition, or URL-resolution issues.
+* Inspect publication-year diagnostics to check how much WARC-validated material falls outside the intended 2014-2026 publication window.
 * Check whether comparator terms show similar temporal drift, because general web language and Common Crawl composition will change over time.
 * Track hit-per-document and document-per-domain distributions to detect concentration.
 

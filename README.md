@@ -10,11 +10,11 @@ and documentation are for the full collection run.
 ## What This Pipeline Does
 
 The pipeline starts from yearly Common Crawl WET files, finds candidate term hits, resolves
-their corresponding WARC HTML records, extracts readable document text, applies document
-quality gates, and writes two downstream products:
+their corresponding WARC HTML records, extracts readable document text, and writes two
+downstream products:
 
-- `trend`: fixed-size yearly samples for diachronic rate estimates.
-- `corpus`: larger yearly samples for target-term semantic and contextual analysis.
+- `trend`: fixed-size yearly samples for source-year diachronic rate estimates.
+- `corpus`: larger yearly samples with document-quality gates for target-term semantic and contextual analysis.
 
 The target groups are `adhd` and `autism`. The current baseline group contains negative
 emotion terms used as a comparison track.
@@ -52,7 +52,7 @@ Fetch WARC HTML records
 Extract main text and candidate publication dates
         |
         v
-Apply document quality gates, English filtering, and local deduplication
+Apply document quality gates, English filtering, and local deduplication for corpus
         |
         v
 Build processed trend and corpus outputs

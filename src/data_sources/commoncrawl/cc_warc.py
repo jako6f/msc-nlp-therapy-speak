@@ -691,6 +691,131 @@ def _compute_publication_date_metrics(doc_df: pd.DataFrame) -> Dict[str, object]
     return metrics
 
 
+def _publication_year_bounds(config: Dict) -> Tuple[int, int]:
+    collection_stage = config.get("collection_stage", {})
+    collection_cfg = config.get("collection", {})
+    window_cfg = collection_stage.get("window") or collection_cfg.get("window", {})
+    start_year = int(window_cfg.get("primary_start_year", 2014))
+    end_year = int(window_cfg.get("end_year", 2026))
+    return start_year, end_year
+
+
+def _with_publication_year_status(
+    df: pd.DataFrame,
+    *,
+    start_year: int,
+    end_year: int,
+) -> pd.DataFrame:
+    working_df = df.copy()
+    if "published_ts" not in working_df.columns:
+        working_df["published_ts"] = ""
+
+    published_ts = working_df["published_ts"].fillna("").astype(str).str.strip()
+    parsed_ts = pd.to_datetime(published_ts.replace("", pd.NA), errors="coerce", utc=True)
+    publication_year = parsed_ts.dt.year.astype("Int64")
+
+    status = pd.Series("missing_or_unparseable", index=working_df.index, dtype="object")
+    status = status.mask(publication_year.lt(start_year).fillna(False), "before_window")
+    status = status.mask(publication_year.gt(end_year).fillna(False), "after_window")
+    status = status.mask(
+        publication_year.ge(start_year).fillna(False)
+        & publication_year.le(end_year).fillna(False),
+        "in_window",
+    )
+
+    working_df["publication_year"] = publication_year
+    working_df["publication_year_status"] = status
+    return working_df
+
+
+def _format_publication_year_column(df: pd.DataFrame) -> pd.DataFrame:
+    formatted = df.copy()
+    if "publication_year" in formatted.columns:
+        formatted["publication_year"] = formatted["publication_year"].astype("string").fillna("")
+    return formatted
+
+
+def _write_publication_year_summary(
+    path: Path,
+    doc_df: pd.DataFrame,
+    *,
+    start_year: int,
+    end_year: int,
+) -> None:
+    columns = [
+        "publication_year_status",
+        "publication_year",
+        "input_docs",
+        "fetch_success_docs",
+        "warc_validated_docs",
+    ]
+    if doc_df.empty:
+        pd.DataFrame(columns=columns).to_csv(path, index=False)
+        return
+
+    working_df = _with_publication_year_status(
+        doc_df,
+        start_year=start_year,
+        end_year=end_year,
+    )
+    for column in ("warc_fetch_success", "is_validated_hits_warc"):
+        if column not in working_df.columns:
+            working_df[column] = False
+        working_df[column] = working_df[column].fillna(False).astype(bool)
+
+    summary_df = (
+        working_df.groupby(["publication_year_status", "publication_year"], dropna=False)
+        .agg(
+            input_docs=("url", "size"),
+            fetch_success_docs=("warc_fetch_success", "sum"),
+            warc_validated_docs=("is_validated_hits_warc", "sum"),
+        )
+        .reset_index()
+    )
+    _format_publication_year_column(summary_df).to_csv(path, index=False)
+
+
+def _write_publication_year_term_summary(
+    path: Path,
+    validated_warc_df: pd.DataFrame,
+    *,
+    start_year: int,
+    end_year: int,
+) -> None:
+    columns = [
+        "term_role",
+        "term_group",
+        "matched_term",
+        "publication_year_status",
+        "publication_year",
+        "validated_hits_warc",
+    ]
+    if validated_warc_df.empty:
+        pd.DataFrame(columns=columns).to_csv(path, index=False)
+        return
+
+    working_df = _with_publication_year_status(
+        validated_warc_df,
+        start_year=start_year,
+        end_year=end_year,
+    )
+    summary_df = (
+        working_df.groupby(
+            [
+                "term_role",
+                "term_group",
+                "matched_term",
+                "publication_year_status",
+                "publication_year",
+            ],
+            dropna=False,
+        )
+        .size()
+        .reset_index(name="validated_hits_warc")
+    )
+    _format_publication_year_column(summary_df).to_csv(path, index=False)
+
+
 def _build_publication_date_rows(publication_metrics: Dict[str, object]) -> List[List[object]]:
     if not publication_metrics:
         return []
@@ -1190,6 +1315,7 @@ def extract_pointer_cache(
 
     validated_warc_df = enriched_df.loc[enriched_df["is_validated_hits_warc"].fillna(False)].copy()
     publication_metrics = _compute_publication_date_metrics(doc_df)
+    publication_start_year, publication_end_year = _publication_year_bounds(config)
     source_summary = _load_metric_map(input_summary_path)
     docs_scanned_total = _metric_int(source_summary, "docs_scanned", 0)
     docs_minlen_total = _metric_int(source_summary, "docs_minlen", 0)
@@ -1233,11 +1359,29 @@ def extract_pointer_cache(
     validated_warc_path = out_dir / f"cc_validated_hits_warc_{runid}.parquet"
     summary_path = out_dir / f"cc_{label}_summary_{runid}.csv"
     term_summary_path = out_dir / f"cc_{label}_term_summary_{runid}.csv"
+    publication_year_summary_path = (
+        out_dir / f"cc_{label}_publication_year_summary_{runid}.csv"
+    )
+    publication_year_term_summary_path = (
+        out_dir / f"cc_{label}_publication_year_term_summary_{runid}.csv"
+    )
     manifest_path = out_dir / f"cc_{label}_extract_manifest_{runid}.json"
 
     enriched_df.to_parquet(enriched_path, index=False)
     validated_warc_df.to_parquet(validated_warc_path, index=False)
     _write_warc_term_summary(term_summary_path, enriched_df, include_filter_fields=False)
+    _write_publication_year_summary(
+        publication_year_summary_path,
+        doc_df,
+        start_year=publication_start_year,
+        end_year=publication_end_year,
+    )
+    _write_publication_year_term_summary(
+        publication_year_term_summary_path,
+        validated_warc_df,
+        start_year=publication_start_year,
+        end_year=publication_end_year,
+    )
     _write_summary_csv(
         summary_path,
         _build_warc_summary_rows(
@@ -1266,6 +1410,12 @@ def extract_pointer_cache(
         "validated_warc_path": str(validated_warc_path),
         "summary_path": str(summary_path),
         "term_summary_path": str(term_summary_path),
+        "publication_year_summary_path": str(publication_year_summary_path),
+        "publication_year_term_summary_path": str(publication_year_term_summary_path),
+        "publication_year_window": {
+            "start_year": publication_start_year,
+            "end_year": publication_end_year,
+        },
         "total_elapsed_sec": round(total_elapsed_sec, 6),
         "docs_per_sec": round(len(unique_docs) / max(total_elapsed_sec, 0.000001), 6),
     }
@@ -1276,6 +1426,8 @@ def extract_pointer_cache(
             [
                 summary_path,
                 term_summary_path,
+                publication_year_summary_path,
+                publication_year_term_summary_path,
                 manifest_path,
             ],
             s3_output_prefix,

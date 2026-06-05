@@ -200,7 +200,7 @@ def _collection_s3_prefix(config: Dict, aws_cfg: AwsConfig, artifact: str, runid
     track = str(run_context.get("track", "corpus")).strip()
     year = str(run_context.get("collection_year", "")).strip()
     batch = f"batch_{int(run_context.get('batch', 1)):03d}"
-    return _s3_key_prefix(aws_cfg, artifact, track, year, batch, runid)
+    return _s3_key_prefix(aws_cfg, track, year, batch, artifact, runid)
 
 
 def _load_json(path: Path) -> Dict[str, object]:

@@ -103,17 +103,21 @@ Configuration:
 
 Trend outputs should report three rates:
 
-- `validated_hits_wet / docs_scanned`
-- `validated_hits_warc / docs_scanned`
-- `validated_hits_warc / validated_hits_wet`
+- `validated_hits_warc / tokens_minlen` as the primary salience estimate;
+- `validated_hits_wet / tokens_minlen` as the WET-stage comparator;
+- `validated_hits_warc / validated_hits_wet` as the WARC/WET retention diagnostic.
 
 Rationale:
 
-- WET rates are cheaper and have the cleanest denominator.
-- WARC rates are cleaner but more expensive.
+- The primary denominator is the annual token count in minimum-length WET documents, because
+  term matching is applied after the minimum-length WET filter.
+- WARC-validated hits are cleaner than WET-only hits because they must reappear in extracted
+  HTML main text.
 - Corpus-style document quality is reserved for the corpus track; trend rates use accepted
   WARC-validated summaries so the annual denominator remains the fixed WET sample.
 - WARC/WET retention quantifies how much stricter validation changes the trend signal.
+- The annual time axis for salience is Common Crawl source year. Publication-year diagnostics
+  are retained, but they do not replace the source-year denominator.
 
 ### Corpus Track
 
@@ -162,7 +166,9 @@ Key scan parameters:
 | `filters.context_window_chars` | `200` | Store compact match context for inspection. |
 | `filters.asd_disambiguation_window_chars` | `200` | Retain `ASD` only when local context supports autism relevance. |
 
-The WET stage stores candidate-hit rows, term summaries, domain summaries, removed-audit samples, and validation samples. This makes the cheap scan inspectable before WARC work. For the trend track, the WET scan also records document and whitespace-token denominators so salience can be reported both per scanned document and per scanned token. The processed trend output keeps the combined annual row but also includes separate rows for `term_role`, `term_group`, and `matched_term`, allowing target and baseline trajectories to be modelled separately.
+The WET stage stores candidate-hit rows, term summaries, domain summaries, removed-audit samples, and validation samples. This makes the cheap scan inspectable before WARC work. For the trend track, the WET scan also records document and whitespace-token denominators so salience can be reported per scanned document and, primarily, per minimum-length WET token. The processed trend output keeps the combined annual row but also includes separate rows for `term_role`, `term_group`, and `matched_term`, allowing target and baseline trajectories to be modelled separately.
+
+WARC extraction also writes publication-year diagnostic summaries. These summaries quantify how many fetched and WARC-validated documents have parseable publication dates inside or outside the 2014-2026 window. They are used to describe the limitation that salience is source-year based, whereas later semantic-context analyses use publication year where possible.
 
 ## 8. WET Triage and Cost-Control Filters
 

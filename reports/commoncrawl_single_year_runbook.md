@@ -115,6 +115,7 @@ For trend:
 BASE=data/interim/collection/trend/$YEAR/batch_001
 find "$BASE/warc" -name 'cc_collection_summary_*.csv' | sort | tail -n1 | xargs cat
 find "$BASE/warc" -name 'cc_collection_term_summary_*.csv' | sort | tail -n1 | xargs cat
+find "$BASE/warc" -name 'cc_collection_publication_year_summary_*.csv' | sort | tail -n1 | xargs cat
 find "$BASE/metrics" -name 'cc_collection_throughput_summary_*.csv' | sort | tail -n1 | xargs cat
 ```
 

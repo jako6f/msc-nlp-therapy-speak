@@ -561,6 +561,22 @@ def _processed_output_prefix(config: Dict, track: str) -> str:
     return _collection_s3_uri(config, "processed", track).rstrip("/") + "/"
 
 
+def _collection_stage_s3_prefix(
+    config: Dict,
+    *,
+    track: str,
+    year: int | str,
+    batch: int | str,
+    stage: str,
+    runid: str,
+) -> str:
+    return (
+        _collection_s3_uri(config, track, str(year), _batch_label(batch), stage, runid)
+        .rstrip("/")
+        + "/"
+    )
+
+
 def _parse_s3_uri(uri: str) -> Tuple[str, str]:
     if not uri.startswith("s3://"):
         raise ValueError(f"Expected S3 URI, got: {uri}")
@@ -1410,7 +1426,6 @@ def run_collection_year(
     )
     url_export_uri = str(upload_manifest["csv_s3_uri"])
     export_runid = str(upload_manifest["runid"])
-    batch_label = _batch_label(batch_int)
 
     _record_step(
         "install_indexes",
@@ -1421,10 +1436,14 @@ def run_collection_year(
         _record_step("stop_existing_index_server", stopped_pid)
     _record_step("start_index_server", start_collection_index_server(config))
 
-    resolve_output_prefix = _collection_s3_uri(
-        config, "pointer_cache", track, str(year), batch_label, export_runid
+    resolve_output_prefix = _collection_stage_s3_prefix(
+        config,
+        track=track,
+        year=year,
+        batch=batch_int,
+        stage="pointer_cache",
+        runid=export_runid,
     )
-    resolve_output_prefix = resolve_output_prefix.rstrip("/") + "/"
     pointer_cache_path = resolve_collection_urls(
         config,
         year=year,
@@ -1436,10 +1455,14 @@ def run_collection_year(
     _record_step("resolve", pointer_cache_path)
 
     pointer_cache_uri = f"{resolve_output_prefix}cc_pointer_cache_{export_runid}.parquet"
-    warc_output_prefix = _collection_s3_uri(
-        config, "warc_output", track, str(year), batch_label, export_runid
+    warc_output_prefix = _collection_stage_s3_prefix(
+        config,
+        track=track,
+        year=year,
+        batch=batch_int,
+        stage="warc",
+        runid=export_runid,
     )
-    warc_output_prefix = warc_output_prefix.rstrip("/") + "/"
     extract_path = extract_collection(
         config,
         year=year,
@@ -1495,11 +1518,13 @@ def run_collection_year(
             batch=batch_int,
             runid=throughput_runid,
         )
-        quality_output_prefix = (
-            _collection_s3_uri(
-                config, "quality", track, str(year), batch_label, quality_runid
-            ).rstrip("/")
-            + "/"
+        quality_output_prefix = _collection_stage_s3_prefix(
+            config,
+            track=track,
+            year=year,
+            batch=batch_int,
+            stage="quality",
+            runid=quality_runid,
         )
         quality_uploaded_uris = _upload_paths_to_s3(
             _quality_output_paths(
@@ -1514,9 +1539,15 @@ def run_collection_year(
         _record_step("upload_quality", quality_output_prefix)
     else:
         throughput_summary_path.parent.mkdir(parents=True, exist_ok=True)
+        stage_config = _collection_stage_config(
+            config,
+            year=year,
+            track=track,
+            batch=batch_int,
+        )
         _write_throughput_summary(
             throughput_summary_path,
-            config=config,
+            config=stage_config,
             runid=throughput_runid,
             document_quality_summary={},
             document_quality_elapsed_sec=0.0,
@@ -1620,9 +1651,13 @@ def run_collection_year(
             track,
         )
 
-    metrics_output_prefix = (
-        _collection_s3_uri(config, "metrics", track, str(year), batch_label, runid).rstrip("/")
-        + "/"
+    metrics_output_prefix = _collection_stage_s3_prefix(
+        config,
+        track=track,
+        year=year,
+        batch=batch_int,
+        stage="metrics",
+        runid=runid,
     )
     _record_step("upload_metrics", metrics_output_prefix)
     manifest_payload = {
@@ -1661,6 +1696,7 @@ def build_processed_trend(config: Dict) -> Path:
     out_dir = processed_trend_dir(config)
     out_dir.mkdir(parents=True, exist_ok=True)
     rows: List[Dict[str, object]] = []
+    publication_diagnostic_frames: List[pd.DataFrame] = []
 
     def _safe_rate(numerator: float, denominator: float, scale: float = 1.0) -> float:
         return (numerator / denominator) * scale if denominator else 0.0
@@ -1677,6 +1713,15 @@ def build_processed_trend(config: Dict) -> Path:
         docs_minlen = float(metrics.get("docs_minlen", 0) or 0)
         tokens_scanned = float(metrics.get("tokens_scanned", 0) or 0)
         tokens_minlen = float(metrics.get("tokens_minlen", 0) or 0)
+        published_fetch_pct = float(
+            metrics.get("pct_fetch_success_docs_with_published_ts", 0) or 0
+        )
+        published_warc_pct = float(
+            metrics.get("pct_warc_validated_docs_with_published_ts", 0) or 0
+        )
+        published_warc_docs = float(
+            metrics.get("doc_count_warc_validated_with_published_ts", 0) or 0
+        )
 
         def append_row(
             *,
@@ -1691,6 +1736,10 @@ def build_processed_trend(config: Dict) -> Path:
             rows.append(
                 {
                     "year": year,
+                    "source_year": year,
+                    "temporal_axis": "source_year",
+                    "primary_denominator": "tokens_minlen",
+                    "primary_denominator_tokens": tokens_minlen,
                     "aggregation_level": aggregation_level,
                     "term_role": term_role,
                     "term_group": term_group,
@@ -1730,9 +1779,18 @@ def build_processed_trend(config: Dict) -> Path:
                     "validated_hits_warc_per_million_minlen_tokens": _safe_rate(
                         validated_hits_warc, tokens_minlen, 1_000_000
                     ),
+                    "primary_salience_per_million_tokens": _safe_rate(
+                        validated_hits_warc, tokens_minlen, 1_000_000
+                    ),
+                    "wet_salience_per_million_minlen_tokens": _safe_rate(
+                        validated_hits_wet, tokens_minlen, 1_000_000
+                    ),
                     "warc_over_wet_validation_rate": _safe_rate(
                         validated_hits_warc, validated_hits_wet
                     ),
+                    "pct_fetch_success_docs_with_published_ts": published_fetch_pct,
+                    "pct_warc_validated_docs_with_published_ts": published_warc_pct,
+                    "doc_count_warc_validated_with_published_ts": published_warc_docs,
                     "summary_path": str(summary_path),
                     "term_summary_path": str(term_summary_path),
                 }
@@ -1776,11 +1834,32 @@ def build_processed_trend(config: Dict) -> Path:
                     validated_hits_warc=float(row.get("validated_hits_warc", 0) or 0),
                 )
 
+    def _add_publication_diagnostics(year: int, summary_path: Path, runid: str) -> None:
+        doc_path = summary_path.with_name(
+            f"cc_collection_publication_year_summary_{runid}.csv"
+        )
+        term_path = summary_path.with_name(
+            f"cc_collection_publication_year_term_summary_{runid}.csv"
+        )
+        for diagnostic_level, path in (
+            ("document", doc_path),
+            ("term", term_path),
+        ):
+            if not path.exists():
+                continue
+            frame = pd.read_csv(path)
+            frame.insert(0, "source_year", year)
+            frame.insert(0, "year", year)
+            frame["diagnostic_level"] = diagnostic_level
+            frame["diagnostic_path"] = str(path)
+            publication_diagnostic_frames.append(frame)
+
     for year in _collection_years(config):
         summary_path = _latest_accepted_trend_summary(config, year)
         runid = _runid_from_path(summary_path, "cc_collection_summary_", ".csv")
         term_summary_path = summary_path.with_name(f"cc_collection_term_summary_{runid}.csv")
         metrics = _warc_summary_metrics(summary_path)
+        _add_publication_diagnostics(int(year), summary_path, runid)
         if not term_summary_path.exists():
             raise FileNotFoundError(f"Missing trend term summary: {term_summary_path}")
 
@@ -1824,6 +1903,34 @@ def build_processed_trend(config: Dict) -> Path:
     pd.DataFrame(rows).sort_values(
         ["year", "aggregation_level", "term_role", "term_group", "matched_term"]
     ).to_csv(out_path, index=False)
+    publication_diagnostics_path = out_dir / "trend_publication_year_diagnostics.csv"
+    if publication_diagnostic_frames:
+        pd.concat(publication_diagnostic_frames, ignore_index=True).sort_values(
+            [
+                "year",
+                "diagnostic_level",
+                "publication_year_status",
+                "publication_year",
+            ]
+        ).to_csv(publication_diagnostics_path, index=False)
+    else:
+        pd.DataFrame(
+            columns=[
+                "year",
+                "source_year",
+                "diagnostic_level",
+                "publication_year_status",
+                "publication_year",
+                "input_docs",
+                "fetch_success_docs",
+                "warc_validated_docs",
+                "term_role",
+                "term_group",
+                "matched_term",
+                "validated_hits_warc",
+                "diagnostic_path",
+            ]
+        ).to_csv(publication_diagnostics_path, index=False)
     return out_path
 
 
