@@ -1027,6 +1027,8 @@ def extract_pointer_cache(
     runid = _utc_runid()
     label = str(config.get("run_context", {}).get("label", "collection")).strip() or "collection"
     display_label = label
+    track = str(config.get("run_context", {}).get("track", "")).strip().lower()
+    retain_extracted_text = track != "trend"
     logger = _setup_logger(Path("reports/logs"), f"cc-{label}-extract", runid)
 
     source_runid, _, input_summary_path, combined_hits_df = _latest_stage_hits_source(
@@ -1060,6 +1062,7 @@ def extract_pointer_cache(
     logger.info("Loaded %d %s input hits", len(combined_hits_df), display_label)
     logger.info("%s source runid: %s", display_label, source_runid)
     logger.info("Loaded pointer cache rows=%d", len(pointer_df))
+    logger.info("%s retain extracted text: %s", display_label, retain_extracted_text)
     if pointer_cache_uri:
         logger.info("Pointer cache source: %s", pointer_cache_uri)
 
@@ -1228,8 +1231,9 @@ def extract_pointer_cache(
                         extract_success_docs += 1
                         row["trafilatura_success"] = extractor_used == "trafilatura"
                         row["is_validated_hits_warc"] = True
-                        row["extracted_text"] = extracted_text
                         row["extracted_text_len"] = len(extracted_text)
+                        if retain_extracted_text:
+                            row["extracted_text"] = extracted_text
                 published_ts = _extract_published_timestamp(
                     html_text=html_text,
                     url=url,

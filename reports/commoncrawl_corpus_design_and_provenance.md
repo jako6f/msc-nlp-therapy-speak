@@ -256,6 +256,7 @@ Rationale:
 - WARC extraction validates that the matched term appears in extracted main content, not only in WET plaintext.
 - The extraction settings favor substantive prose over recall of marginal page fragments.
 - Tables, comments, and post metadata are excluded because the target corpus is intended for discourse analysis over document prose.
+- Trend runs discard full extracted text after validation to keep memory bounded; corpus runs retain it for document-quality filtering and downstream analysis.
 
 Pilot validation showed that WARC extraction was the runtime bottleneck but operationally feasible at this scale.
 
