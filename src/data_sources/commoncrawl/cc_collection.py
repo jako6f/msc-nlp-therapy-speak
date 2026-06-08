@@ -606,7 +606,10 @@ def upload_processed_output(config: Dict, *, track: str, path: Path) -> List[str
     local_path = Path(path)
     if not local_path.exists():
         raise FileNotFoundError(f"Processed output not found: {local_path}")
-    return _upload_paths_to_s3([local_path], _processed_output_prefix(config, track))
+    local_paths = [local_path]
+    if track == "trend":
+        local_paths.append(local_path.parent / "trend_publication_year_diagnostics.csv")
+    return _upload_paths_to_s3(local_paths, _processed_output_prefix(config, track))
 
 
 def _runid_from_path(path: Path, prefix: str, suffix: str) -> str:

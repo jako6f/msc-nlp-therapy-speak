@@ -213,5 +213,7 @@ make corpus_year YEAR=2024 CONFIG=configs/commoncrawl_collection.yaml
 make corpus_expand YEAR=2024 BATCH=2 CONFIG=configs/commoncrawl_collection.yaml
 ```
 
+After completing trend years individually, run `make trend_build_processed CONFIG=configs/commoncrawl_collection.yaml` once.
+
 For failed corpus expansion batches, only delete partial local files if you have confirmed
 the batch did not produce a valid `quality/cc_collection_summary_*.csv`.
