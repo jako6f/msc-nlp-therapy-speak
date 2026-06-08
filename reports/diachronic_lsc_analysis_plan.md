@@ -4,7 +4,8 @@
 
 * The study treats lexical semantic change as a continuous annual trajectory rather than as a binary epoch-to-epoch contrast. This follows a McTaggart-style time-series orientation: each measure characterises how target terms move through time by target term, year, and comparator group, instead of reducing change to a single pre/post distance score. ([Cambridge Core][4]; [arXiv][5])
 * The conceptual frame follows Baes et al.’s SIBling framework because it treats semantic change as something to characterise, not merely detect: instead of collapsing change into one aggregate vector-drift score, it separates interpretable dimensions of Sentiment, Breadth, and Intensity, here supplemented by Salience and Thematic content. This responds to the broader gap noted in semantic-change research, where detection has received more attention than characterisation. ([ACL Anthology][2]; [arXiv][5])
-* The five operational measures are: **Salience** as relative mention frequency, **Intensity** as affective arousal/severity of target contexts, **Breadth** as contextual dispersion, **Sentiment** as affective valence of target contexts, and **Thematic evolution** as topic structure over time.
+* The design now includes one supervised **Frame Classification** layer before the five operational LSC measures. Frame Classification distinguishes clinical/disorder framing from identity and lived-experience framing in ADHD/autism contexts, so that later semantic trajectories can be interpreted both overall and within substantively meaningful discourse strata.
+* The five operational LSC measures remain: **Salience** as relative mention frequency, **Intensity** as affective arousal/severity of target contexts, **Breadth** as contextual dispersion, **Sentiment** as affective valence of target contexts, and **Thematic evolution** as topic structure over time.
 * The main empirical comparison is not simply “ADHD/autism changed” but whether ADHD/autism trajectories exceed or differ from broader background drift in comparator terms.
 * Across dimensions, the main analysis treats **ADHD** and **Autism** separately. Raw target forms are aggregated into conceptual target groups for the main estimates, while raw-form diagnostics are retained to check whether one form drives a trajectory.
 * Comparator terms are included throughout the analysis as separate baseline series (`frustration`, `sadness`, `loneliness`). A composite baseline may be reported only after inspecting the individual baselines for compatible sample sizes, coverage, and trajectories.
@@ -12,20 +13,89 @@
 * The first operational change from Baes et al. is that **NRC-VAD v2.1** replaces Warriner et al.’s VAD norms for Intensity and Sentiment because it has wider English coverage, includes common multi-word expressions, and reports human-rated valence, arousal, and dominance scores for more than 55,000 English words and phrases. ([arXiv][1])
 * The second operational change is that **XL-LEXEME** replaces a generic sentence embedder for Breadth, because it produces target-aware word-in-context representations rather than general sentence vectors. ([ACL Anthology][3])
 * The third operational change is that Thematic evolution will use **bottom-up BERTopic** rather than Baes et al.’s top-down pathologisation dictionary; whether XL-LEXEME embeddings should also feed BERTopic remains a later modelling decision. ([ACL Anthology][2])
+* The fourth operational change is that ADHD/autism analyses will be frame-aware. Pisl et al. show that apparent semantic-severity trends can be explained by changing discourse composition rather than intrinsic semantic change alone; in their case, the time effect for depression became nonsignificant after controlling for mental-health context. This project adapts that insight by making clinical/disorder versus lived-experience framing a core stratum rather than a post-hoc robustness check. ([JMIR][6])
 
 ### Shared semantic context contract
 
-For Sentiment, Intensity, Breadth, and Thematic analyses, the primary annual axis is document publication year (`lsc_year = published_year`), not Common Crawl source/capture year. The shared context table therefore keeps only WARC-validated, English, deduplicated contexts with parseable `published_ts` in the 2014-2026 analysis window. `source_year` remains provenance metadata for crawl-composition diagnostics, not the main diachronic variable.
+For Frame Classification, Sentiment, Intensity, Breadth, and Thematic analyses, the primary annual axis is document publication year (`lsc_year = published_year`), not Common Crawl source/capture year. The shared context table therefore keeps only WARC-validated, English, deduplicated contexts with parseable `published_ts` in the 2014-2026 analysis window. `source_year` remains provenance metadata for crawl-composition diagnostics, not the main diachronic variable.
 
-## 1. Measure 1 — Salience (Prevalence)
+## 1. Frame Classification — Clinical and lived-experience discourse strata
+
+### Concept
+
+ADHD and autism are not used only as diagnostic labels. In web discourse, they can refer to clinical or nosological categories, disorder constructs, support and service categories, identity positions, and everyday lived experiences. Treating all target contexts as one semantic population risks confounding lexical semantic change with a change in discourse composition. Pisl et al. demonstrate this problem for depression: apparent changes in semantic severity were strongly associated with the growth of mental-health contexts, and the independent time trend became nonsignificant once context was controlled. ([JMIR][6])
+
+This project therefore treats substantive target discourse and clinical/disorder versus lived-experience framing as a core supervised classification layer. The aim is not to remove one frame from the analysis, but to separate four questions: how much target material is substantive rather than boilerplate or incidental; how the substantive frame composition changes over time; how each frame changes internally; and how much the overall trajectory depends on changing frame proportions.
+
+### Operational definition
+
+Each ADHD/autism mention passage is labelled hierarchically. Stage 0 first determines whether there is enough coherent, target-specific ADHD/autism discourse to classify the frame:
+
+* `substantive_target_discourse`: the passage contains enough coherent, target-specific discourse about ADHD/autism, ADHD/autistic people, traits, diagnosis, support, treatment, services, research, stigma, inclusion, or everyday life to classify framing. Thin, navigational, list-like, promotional, generic, incidental, noisy, or garbled passages are coded `FALSE`; uncertain cases are coded `FALSE`.
+
+Stage 1 is labelled only when `substantive_target_discourse = TRUE`:
+
+* `clinical_frame_present`: the passage frames ADHD/autism as a diagnosis, disorder, condition, symptom profile, impairment, treatment target, service category, research or epidemiological category, DSM/ICD-style construct, medication issue, or clinical/educational support need.
+* `lived_experience_frame_present`: the passage frames ADHD/autism as identity, self-understanding, first-person or family experience, neurodivergent community, masking, stigma, accommodation, everyday coping, belonging, pride, or embodied/social experience.
+
+If `substantive_target_discourse = FALSE`, clinical and lived-experience labels are not applicable and are stored as `NA`, not as ordinary negative frame examples. The reported strata are derived deterministically:
+
+| substantive target discourse | clinical frame | lived-experience frame | derived frame |
+|---|---|---|---|
+| no | NA | NA | `non_substantive_or_insufficient` |
+| yes | yes | no | `clinical_only` |
+| yes | no | yes | `lived_only` |
+| yes | yes | yes | `mixed` |
+| yes | no | no | `substantive_other` |
+
+The annotation unit is `target_sentence_plus_adjacent` from the shared LSC context table. Baseline terms are not frame-labelled because the clinical/lived distinction is substantively motivated for ADHD/autism rather than for the comparator emotion terms.
+
+### Annotation and classifier workflow
+
+The gold-standard workflow is human-led but LLM-assisted. It adapts the annotator-critic-human-correction structure proposed in ACT: an LLM annotator labels examples, a criticizer model estimates likely annotation errors, and a human corrects suspicious labels before the data are used downstream. ([arXiv][7]) The ACT paper treats critic thresholds as budget- and task-dependent rather than prescribing a universal numeric cut-off, so this project will calibrate review priority empirically during the pilot rather than adopting a fixed value.
+
+The planned workflow is:
+
+1. Write and pilot a hierarchical codebook with a Stage-0 substantive-discourse gate and conditional clinical/lived-experience frame labels.
+2. Create a 200-case human pilot set and a separate 400-case human validation set, stratified by target group and broad year band.
+3. Refine compact, schema-constrained LLM prompts qualitatively on pilot cases, following general prompt-engineering guidance to define the task, specify output format, and use representative examples where they materially reduce errors. ([OpenAI Docs][8])
+4. Use an OpenAI/Codex interface for the LLM annotator and Claude Code for cross-model criticism, storing prompts, model/interface metadata, raw outputs, parsed outputs, and correction sheets. ([Anthropic Docs][9])
+5. Human-correct critic-flagged LLM labels where feasible; if the critic flags an unmanageably high share, revise the codebook/prompt/model pairing rather than treating correction volume as merely a workload problem.
+6. Train a hierarchical classifier from shared sentence-transformer embeddings: one head predicts `p_substantive` on all labelled examples, while clinical and lived-experience heads predict `p_clinical_given_substantive` and `p_lived_given_substantive` only from substantive examples. This keeps the model simple and inspectable while avoiding the error of treating non-substantive boilerplate as meaningful negative evidence for clinical or lived framing. ([ACL Anthology][10])
+7. Evaluate only on the held-out human validation set before applying the classifier to all ADHD/autism contexts.
+
+### Outputs
+
+* Protected annotation-ready pilot and validation XLSX workbooks with context fields stored as text and constrained label dropdowns.
+* Codebook and locked annotator/critic prompts.
+* LLM annotation batches, critic batches, and correction handoffs.
+* Classifier validation metrics for the substantive, clinical-given-substantive, lived-given-substantive, and derived-frame outputs.
+* Frame labels, probabilities, and optional probability-derived frame weights for all ADHD/autism target contexts.
+* Annual frame-composition summaries by target group.
+
+### Use in downstream LSC analyses
+
+For ADHD and autism, downstream analyses should report both overall trajectories and frame-aware trajectories where sample size permits. Frame-stratified estimates should use substantive contexts and answer whether clinical, lived-experience, mixed, or substantive-other contexts show different semantic patterns. The non-substantive category is primarily a corpus-quality and discourse-composition diagnostic rather than a semantic frame. A secondary Pisl-inspired sensitivity analysis can compare raw annual scores with frame-adjusted models or standardised frame-composition estimates. This should be described as an adaptation of Pisl et al.'s context-control logic, not as a direct replication of their exact model.
+
+### Key assumptions + likely failure modes
+
+* **Assumption:** substantive target discourse and clinical/lived-experience frames are recoverable from short target-centred passages.
+* **Assumption:** conditional clinical and lived-experience axes are more faithful than a forced single-label schema because clinical and lived-experience framing can co-occur.
+* **Failure mode:** LLM labels may be systematically biased toward surface cues or overconfident in noisy web passages.
+* **Failure mode:** one human annotator limits traditional inter-annotator reliability claims; human-LLM agreement should be reported as a diagnostic, not as independent human reliability.
+* **Failure mode:** the Stage-0 gate may exclude borderline generic support/resource language that contains weak but potentially relevant discourse signal.
+* **Failure mode:** frame-year cells may be too small for stable stratified LSC estimates, especially for `mixed` and `substantive_other` strata.
+* **Failure mode:** a classifier trained on LLM-assisted labels may reproduce LLM errors unless the human validation set is kept strictly separate and reported transparently.
+
+## 2. Measure 1 — Salience (Prevalence)
 
 ### Concept (Baes et al. framing)
 
 Salience captures how prominent a lexical item or concept becomes in a corpus over time. In Baes et al., salience is not one of the three primary semantic dimensions, but it is treated as a complementary indicator that helps interpret whether semantic shifts occur alongside increasing cultural or disciplinary attention. ([ACL Anthology][2])
 
-For this project, Salience is the frequency with which ADHD/autism-related expressions appear in general web discourse over annual Common Crawl slices. It answers a different question from semantic change: not “what does the term mean?”, but “how often is the term invoked?”
+For this project, Salience is the frequency with which ADHD/autism-related expressions appear in general web discourse over annual Common Crawl slices. It answers a different question from semantic change: not “what does the term mean?”, but “how often is the term invoked?” For ADHD/autism, frame composition is also a salience-like outcome: it estimates how much target discourse is non-substantive, clinical-only, lived-only, mixed, or substantive-other in each year.
 
-Unlike Sentiment, Intensity, Breadth, and Thematic analyses, Salience uses Common Crawl source year as its primary annual axis. This is a deliberate denominator choice: the available denominator is the fixed yearly WET sample scanned for target and baseline terms. Publication-year diagnostics are retained to quantify leakage, but publication year is not used as the main Salience denominator because documents without term hits do not receive WARC extraction or publication-date recovery.
+Unlike Frame Classification, Sentiment, Intensity, Breadth, and Thematic analyses, Salience uses Common Crawl source year as its primary annual axis. This is a deliberate denominator choice: the available denominator is the fixed yearly WET sample scanned for target and baseline terms. Publication-year diagnostics are retained to quantify leakage, but publication year is not used as the main Salience denominator because documents without term hits do not receive WARC extraction or publication-date recovery.
 
 ### Operational definition (my pipeline)
 
@@ -87,6 +157,7 @@ Analysis units:
 * Annual table: year, analysis unit, tokens scanned, docs scanned, WET hits, WARC hits, token-denominated rates, document-denominated diagnostic rates, WARC/WET retention.
 * Line plot: WET and WARC relative frequencies over time.
 * Line plot: ADHD/autism versus comparator trajectories.
+* Annual frame-composition table and plot for ADHD/autism target contexts.
 * Domain concentration table: top domains per year and target group.
 * Retention plot: WARC-validated hits as a proportion of WET-validated hits.
 
@@ -112,13 +183,13 @@ Salience is cheap once the scan and validation outputs exist. Aggregation is lin
 * **Failure mode:** ADHD/autism terms appear in navigation, accessibility widgets, product pages, or directory pages rather than substantive prose.
 * **Failure mode:** salience is overinterpreted as public concern or prevalence. It should be interpreted only as web-discourse prominence within the sampled corpus.
 
-## 2. Measure 2 — Intensity (Vertical creep)
+## 3. Measure 2 — Intensity (Vertical creep)
 
 ### Concept (Baes et al. framing)
 
 Intensity corresponds to whether a term’s usage shifts toward more or less emotionally intense contexts. In concept-creep terms, vertical creep refers to harm- or pathology-related concepts extending to less severe phenomena. Baes et al. operationalise intensity partly through affective arousal of collocates and partly through intensifying modifiers. ([ACL Anthology][2])
 
-For this project, Intensity is an annual measure of how emotionally activated or severity-laden the local contexts of ADHD/autism terms are. A falling arousal/severity trajectory may be consistent with vertical creep, but it is not sufficient evidence on its own. It must be interpreted alongside Breadth, Sentiment, and thematic context.
+For this project, Intensity is an annual measure of how emotionally activated or severity-laden the local contexts of ADHD/autism terms are. A falling arousal/severity trajectory may be consistent with vertical creep, but it is not sufficient evidence on its own. It must be interpreted alongside Breadth, Sentiment, thematic context, and the clinical/lived-experience frame composition of target contexts.
 
 ### Operational definition (my pipeline)
 
@@ -233,13 +304,13 @@ The collocate-based VAD calculation is computationally light. Dependency parsing
 * **Failure mode:** lexicon coverage varies across years, especially with slang, misspellings, identity terms, or multi-word expressions.
 * **Failure mode:** target mentions in lists or medical pages can distort collocate distributions even after WARC filtering.
 
-## 3. Measure 3 — Breadth (Horizontal creep)
+## 4. Measure 3 — Breadth (Horizontal creep)
 
 ### Concept (Baes et al. framing)
 
 Breadth corresponds to the diversity of contexts in which a target term appears. In concept-creep terms, horizontal creep means that a concept expands to cover a broader range of phenomena. Baes et al. operationalise breadth as average inverse cosine similarity among sentence embeddings containing the target term, while noting that this captures quantitative contextual dispersion rather than directly identifying qualitatively distinct senses. ([ACL Anthology][2])
 
-For this project, Breadth is the central distributional semantic measure. It asks whether ADHD/autism terms are used in increasingly diverse contexts across annual slices.
+For this project, Breadth is the central distributional semantic measure. It asks whether ADHD/autism terms are used in increasingly diverse contexts across annual slices, both overall and within clinical/lived-experience frames where sample size permits.
 
 ### Operational definition (my pipeline)
 
@@ -366,13 +437,13 @@ A practical MSc configuration is therefore to use all available contexts up to a
 * **Failure mode:** if yearly sample sizes are too small or uneven, Breadth estimates will be unstable.
 * **Failure mode:** contextual dispersion does not identify which new senses or uses emerged; it must be interpreted alongside thematic analysis and manual examples.
 
-## 4. Measure 4 — Sentiment (Connotation)
+## 5. Measure 4 — Sentiment (Connotation)
 
 ### Concept (Baes et al. framing)
 
 Sentiment captures whether a term’s connotational environment becomes more positive or more negative over time. In historical semantics this corresponds to amelioration or pejoration. Baes et al. operationalise this through the valence of collocates around target terms. ([ACL Anthology][2])
 
-For this project, Sentiment measures whether ADHD/autism-related discourse becomes more positive, negative, or neutral in local linguistic context. This is not the same as stigma, but it is a useful connotational proxy.
+For this project, Sentiment measures whether ADHD/autism-related discourse becomes more positive, negative, or neutral in local linguistic context. This is not the same as stigma, but it is a useful connotational proxy. For ADHD/autism, overall valence trends should be interpreted alongside frame-stratified trends because clinical contexts may carry systematically different affective language from lived-experience or identity contexts.
 
 ### Operational definition (my pipeline)
 
@@ -454,13 +525,13 @@ Sentiment is computationally cheap and can share almost all preprocessing output
 * **Failure mode:** identity-affirming and support-oriented discourse may contain negative terms because it discusses discrimination or barriers.
 * **Failure mode:** lexicon-based sentiment cannot resolve sarcasm, negation, or target-specific evaluative stance.
 
-## 5. Measure 5 — Thematic evolution
+## 6. Measure 5 — Thematic evolution
 
 ### Concept (Baes et al. framing)
 
 Baes et al. treat thematic content as a complementary interpretive layer: it identifies what kinds of contexts or themes surround the target term. Their implementation uses a top-down pathologisation dictionary. ([ACL Anthology][2])
 
-For this project, the thematic layer should be bottom-up because the relevant ADHD/autism frames are not limited to pathologisation. Likely themes may include diagnosis, schooling, workplace accommodation, identity, parenting, neurodiversity, treatment, online self-description, and support communities. These should emerge from the corpus rather than being imposed only through a predefined dictionary.
+For this project, the thematic layer should be bottom-up because the relevant ADHD/autism frames are not limited to pathologisation. Likely themes may include diagnosis, schooling, workplace accommodation, identity, parenting, neurodiversity, treatment, online self-description, and support communities. These should emerge from the corpus rather than being imposed only through a predefined dictionary. Frame labels should be used as metadata for interpretation and, where sample size permits, for frame-specific topic summaries.
 
 ### Operational definition (my pipeline)
 
@@ -552,6 +623,7 @@ BERTopic is feasible at this scale if run separately for major target groups and
 * **Optional:** compare BERTopic with XL-LEXEME embeddings versus a standard document/sentence embedder if time and compute allow.
 * **Optional:** stratify trajectories by domain class or broad page genre if reliable labels become available.
 * **Optional:** use bootstrapped confidence intervals across all semantic indices, not only Breadth.
+* **Optional:** compare frame-adjusted LSC trajectories using hard frame labels versus classifier frame probabilities.
 
 
 [1]: https://arxiv.org/abs/2503.23547?utm_source=chatgpt.com "NRC VAD Lexicon v2: Norms for Valence, Arousal, and Dominance for over 55k English Terms"
@@ -559,3 +631,8 @@ BERTopic is feasible at this scale if run separately for major target groups and
 [3]: https://aclanthology.org/2023.acl-short.135/ "XL-LEXEME: WiC Pretrained Model for Cross-Lingual LEXical sEMantic changE"
 [4]: https://www.cambridge.org/core/journals/natural-language-engineering/article/stateoftheart-of-semantic-change-computation/CCD69C7C2306B0E4D246B456E236EFAF "A state-of-the-art of semantic change computation"
 [5]: https://arxiv.org/abs/2402.19088 "Survey in Characterizing Semantic Change"
+[6]: https://www.jmir.org/2025/1/e73950 "Quantifying Mental Health Context and Semantic Severity in Diachronic Corpora"
+[7]: https://arxiv.org/abs/2511.09833 "ACT: An Annotator-Critic-Human Correction Framework for LLM-Assisted Annotation"
+[8]: https://platform.openai.com/docs/guides/prompt-engineering "OpenAI Prompt Engineering Guide"
+[9]: https://docs.anthropic.com/en/docs/claude-code/overview "Claude Code Overview"
+[10]: https://aclanthology.org/2022.findings-emnlp.211/ "SetFit: Efficient Few-Shot Learning Without Prompts"

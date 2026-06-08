@@ -26,6 +26,7 @@ dependencies:
   - scikit-learn
   - tqdm
   - nbconvert
+  - openpyxl
   - ruff
   - pip:
       - datatrove==0.9.0

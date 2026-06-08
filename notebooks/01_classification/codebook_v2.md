@@ -176,6 +176,12 @@ The Autism Society has documents available containing resources to support indiv
 
 Reason: generic resource-directory language; too thin to establish clinical or lived-experience framing unless the passage gives more target-specific detail.
 
+```text
+SoulFriends is a portal for information, services and products on human potential, social fulfillment and spiritual actualization. fb tw ln Avoiding ADHD Insanity Laurie Dupar, PMHNP, RN, PCC, CPCC Albert Einstein once said‚Ä¶‚ÄùInsanity: doing the same thing over and over again and expecting different results. ‚Äù Sound familiar?
+```
+
+Reason: The passage is mostly portal/navigation metadata plus a title: “Avoiding ADHD Insanity”. The target-bearing content does not yet provide enough coherent ADHD-specific discourse to classify the frame; it only introduces a page/article heading and author credentials.
+
 ---
 
 ### 4.4 Conservative Rule
@@ -573,9 +579,22 @@ clinical_frame_present = FALSE
 lived_experience_frame_present = FALSE
 ```
 
+### Substantive Other example:
+
+```text
+14% of the videos were potentially damaging content. And then what was so fascinating to me, because it feels like everyone is saying they have ADHD, is 100% of the videos in their study on ADHD were misleading. I mean, that‚Äôs just what.
+```
+
 This category is for coherent target-specific discourse that does not fit either focal frame.
 
+
+
 This should be relatively rare.
+
+### Substantive Other example
+
+```text
+And then there is the week that has been for the Eagles and the fans and the Eagles Autism Foundation that hammered home once again the connection that makes it all work and that, truly, means everything in the end. "It's been incredible," said Ryan Hammond, the executive director of the Eagles Autism Foundation, who has been busier than busy in the spring and these first few days of summer with the Eagles Autism Challenge in May and then back-to-back events this week ‚Äì an exclusive and ultra-premium two-day golf outing at the legendary Merion Golf Club followed by the Second Annual Eagles Celebrity Bartending Event at the Jersey Shore featuring Jason Kelce, Jordan Mailata, and Kelce's brother, Kansas City All-Pro tight end Travis Kelce. "We had 22 threesomes pay $25,000 each and were joined by a celebrity to play golf and had an unbelievable experience.```
 
 Possible examples include:
 
@@ -975,7 +994,9 @@ For each passage:
 
 ## 14. Recommended Annotation Sheet Columns
 
-Use the following columns in the annotation table:
+Human annotation is performed in the protected `annotations` sheet of the generated XLSX workbook. Context and metadata columns are locked and stored explicitly as text; only the four annotation columns are editable. Use the workbook dropdowns rather than typing alternative label forms. Save completed workbooks with the `_completed.xlsx` suffix for ingestion. Do not export or resave the annotation workbook as CSV through Excel.
+
+The annotation table contains:
 
 ```text
 annotation_id
