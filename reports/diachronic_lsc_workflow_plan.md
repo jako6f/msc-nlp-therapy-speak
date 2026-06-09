@@ -26,7 +26,7 @@ This document tracks the practical analysis workflow. Methodological detail belo
 | 9 | Sentiment | `notebooks/02_sentiment/01_vad_valence.ipynb` | complete; frame-aware rerun pending | shared context table; NRC-VAD v2.1; frame labels | `data/processed/lsc/sentiment/` |
 | 10 | Intensity | `notebooks/03_intensity/01_vad_arousal.ipynb` | complete; frame-aware rerun pending | reusable VAD collocate handoff; frame labels | `data/processed/lsc/intensity/` |
 | 11 | Severity/intensifier check | `notebooks/03_intensity/02_severity_intensifier_check.ipynb` | pending | shared context table; dependency parses; frame labels | supplementary modifier diagnostics |
-| 12 | Salience audit | `notebooks/05_salience/01_salience_trend_audit.ipynb` | blocked | updated trend run synced locally; frame labels for target composition | salience diagnostics from updated trend output |
+| 12 | Salience audit | `notebooks/05_salience/01_salience_trend_audit.ipynb` | complete; frame-composition extension pending | completed processed trend output | annual Salience tables, validation/publication-year diagnostics, and report figures |
 | 13 | Breadth | `notebooks/04_breadth/01_xl_lexeme_breadth.ipynb` | implemented; execution pending; frame-aware rerun pending | shared context table; XL-LEXEME; frame labels | breadth scores and saved embeddings |
 | 14 | Breadth diagnostics | `notebooks/04_breadth/02_breadth_diagnostics.ipynb` | pending | breadth outputs; frame labels | raw-form, frame, sample-size, and context diagnostics |
 | 15 | Thematic evolution | `notebooks/06_thematic_content/01_bertopic_thematic_evolution.ipynb` | pending | target-centred passages; frame labels | topic inventory and topic-over-time outputs |
@@ -45,6 +45,7 @@ This document tracks the practical analysis workflow. Methodological detail belo
 | 2026-06-04 | Frame classification inserted before LSC measures. | Clinical/lived-experience composition may explain apparent semantic trajectories, so target contexts need frame labels before downstream interpretation. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-04 | Classification notebooks live in `notebooks/01_classification/`. | Keeps shared context prep separate from annotation, LLM criticism, classifier training, and frame-label deployment. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-05 | Frame classification uses a hierarchical substantive-discourse gate. | Non-substantive boilerplate, lists, resource blurbs, and noisy extraction should not be treated as ordinary negative examples for clinical/lived framing. | `reports/lsc_analysis_design_decisions.md` |
+| 2026-06-09 | Salience uses source-year WARC-validated hits per million minimum-length WET tokens. | This is the denominator supported consistently by the completed trend run; WET/candidate rates and publication-year composition remain diagnostics. | `reports/lsc_analysis_design_decisions.md` |
 
 ## Stage Closeout Checklist
 
