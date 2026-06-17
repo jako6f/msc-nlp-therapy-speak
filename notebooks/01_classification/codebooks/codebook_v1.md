@@ -114,12 +114,3 @@ codebook issue: Clinical terminology alone should not trigger clinical_frame_pre
 #### Boarderline rules:
 - headline-only or link-list mentions should be coded both FALSE unless the headline itself clearly encodes a frame.
 - long scraped index/notes/list passages should be coded other_non_substantive unless the target-bearing item itself contains a clear frame.
-
-
-## Pilot Revision Log
-
-Record changes to the codebook here. Increment `codebook_version` when a rule changes in a way that could affect labels.
-
-| date | codebook_version | change | reason |
-|---|---|---|---|
-| 2026-06-04 | v0.1 | Initial template. | Created before pilot annotation. |

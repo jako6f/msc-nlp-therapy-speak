@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frame Annotation"
+  short_description: "Annotate one ADHD/autism discourse batch"
+  default_prompt: "Use $frame-annotation to annotate the named batch exactly under codebook v4."

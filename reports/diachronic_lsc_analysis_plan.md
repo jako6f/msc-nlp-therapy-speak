@@ -50,25 +50,23 @@ If `substantive_target_discourse = FALSE`, clinical and lived-experience labels 
 
 The annotation unit is `target_sentence_plus_adjacent` from the shared LSC context table. Baseline terms are not frame-labelled because the clinical/lived distinction is substantively motivated for ADHD/autism rather than for the comparator emotion terms.
 
+The final codebook also records four adjudication-derived boundary rules. A target appearing in a list can still be substantive when a coherent claim about the listed category clearly applies to ADHD/autism; concrete institutional provision organised for the target group is substantive clinical/institutional-support discourse; self-theorising symptom language used to interpret everyday experience is lived rather than automatically clinical; and legal/forensic mitigation that invokes the target as an explanatory clinical object is substantive clinical discourse.
+
 ### Annotation and classifier workflow
 
-The gold-standard workflow is human-led but LLM-assisted. It adapts the annotator-critic-human-correction structure proposed in ACT: an LLM annotator labels examples, a criticizer model estimates likely annotation errors, and a human corrects suspicious labels before the data are used downstream. ([arXiv][7]) The ACT paper treats critic thresholds as budget- and task-dependent rather than prescribing a universal numeric cut-off, so this project will calibrate review priority empirically during the pilot rather than adopting a fixed value.
+The labels are produced through a human-led, LLM-assisted process. I first used a 200-passage human pilot to develop and refine the codebook. Codex then applied the locked codebook to 3,000 further passages. Gemini independently checks these annotations and ranks the cases that are most likely to contain mistakes. I review the suspicious cases and a random sample of lower-ranked cases before the labels are used for training. Gemini's suggestions are advisory: only human-reviewed decisions can replace the original annotation. This follows the annotator-critic-human-correction logic proposed in ACT while keeping the final correction decision with the human coder. ([arXiv][7])
 
-The planned workflow is:
+The random audit matters because a critic can fail to flag some errors. It therefore provides a check on the quality of the annotations that remain unreviewed, rather than assuming that a low critic score means an annotation is correct. Exact model choices, review limits, stopping rules, and execution details are recorded in the design-decision log and runbook rather than repeated here.
 
-1. Write and pilot a hierarchical codebook with a Stage-0 substantive-discourse gate and conditional clinical/lived-experience frame labels.
-2. Create a 200-case human pilot set and a separate 400-case human validation set, stratified by target group and broad year band.
-3. Refine compact, schema-constrained LLM prompts qualitatively on pilot cases, following general prompt-engineering guidance to define the task, specify output format, and use representative examples where they materially reduce errors. ([OpenAI Docs][8])
-4. Use an OpenAI/Codex interface for the LLM annotator and Claude Code for cross-model criticism, storing prompts, model/interface metadata, raw outputs, parsed outputs, and correction sheets. ([Anthropic Docs][9])
-5. Human-correct critic-flagged LLM labels where feasible; if the critic flags an unmanageably high share, revise the codebook/prompt/model pairing rather than treating correction volume as merely a workload problem.
-6. Train a hierarchical classifier from shared sentence-transformer embeddings: one head predicts `p_substantive` on all labelled examples, while clinical and lived-experience heads predict `p_clinical_given_substantive` and `p_lived_given_substantive` only from substantive examples. This keeps the model simple and inspectable while avoiding the error of treating non-substantive boilerplate as meaningful negative evidence for clinical or lived framing. ([ACL Anthology][10])
-7. Evaluate only on the held-out human validation set before applying the classifier to all ADHD/autism contexts.
+The corrected labels are used to train a hierarchical classifier. One component learns whether a passage contains substantive target discourse. Two further components learn whether substantive passages contain clinical framing and lived-experience framing. The latter two components are trained only on substantive passages, so incidental or unusable mentions do not become misleading negative examples. ([ACL Anthology][10])
+
+The final classifier is evaluated once on a separate 200-passage human-coded validation sample. This validation sample is kept out of codebook refinement, LLM annotation, criticism, correction, and model training. If validation performance is adequate, the classifier is applied to the remaining ADHD/autism contexts.
 
 ### Outputs
 
 * Protected annotation-ready pilot and validation XLSX workbooks with context fields stored as text and constrained label dropdowns.
 * Codebook and locked annotator/critic prompts.
-* LLM annotation batches, critic batches, and correction handoffs.
+* LLM annotation and criticism batches, validated structured outputs, run metadata, and human-correction handoffs.
 * Classifier validation metrics for the substantive, clinical-given-substantive, lived-given-substantive, and derived-frame outputs.
 * Frame labels, probabilities, and optional probability-derived frame weights for all ADHD/autism target contexts.
 * Annual frame-composition summaries by target group.
@@ -633,6 +631,4 @@ BERTopic is feasible at this scale if run separately for major target groups and
 [5]: https://arxiv.org/abs/2402.19088 "Survey in Characterizing Semantic Change"
 [6]: https://www.jmir.org/2025/1/e73950 "Quantifying Mental Health Context and Semantic Severity in Diachronic Corpora"
 [7]: https://arxiv.org/abs/2511.09833 "ACT: An Annotator-Critic-Human Correction Framework for LLM-Assisted Annotation"
-[8]: https://platform.openai.com/docs/guides/prompt-engineering "OpenAI Prompt Engineering Guide"
-[9]: https://docs.anthropic.com/en/docs/claude-code/overview "Claude Code Overview"
 [10]: https://aclanthology.org/2022.findings-emnlp.211/ "SetFit: Efficient Few-Shot Learning Without Prompts"

@@ -1,0 +1,97 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["criticisms"],
+  "properties": {
+    "criticisms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "annotation_id",
+          "overall_error_prob",
+          "substantive_error_prob",
+          "clinical_error_prob",
+          "lived_error_prob",
+          "substantive_suggested_label",
+          "clinical_suggested_label",
+          "lived_suggested_label",
+          "reason",
+          "evidence"
+        ],
+        "properties": {
+          "annotation_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overall_error_prob": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "substantive_error_prob": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "clinical_error_prob": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lived_error_prob": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "substantive_suggested_label": {
+            "type": "boolean"
+          },
+          "clinical_suggested_label": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lived_suggested_label": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "evidence": {
+            "type": "string",
+            "maxLength": 180
+          }
+        }
+      }
+    }
+  }
+}

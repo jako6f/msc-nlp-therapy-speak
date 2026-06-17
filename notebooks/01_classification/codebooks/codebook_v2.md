@@ -351,10 +351,13 @@ Code clinical when diagnosis is framed as:
 
 Do not automatically code clinical when diagnosis functions merely as background identity/status within everyday self/family experience.
 
-Example:
+Examples:
 
 ```text
 Haselberger's son has not been diagnosed with ADHD, but he continues to find body doubling helpful. So does Haselberger, who does have ADHD. She asks her husband to be around while she completes certain tasks.
+```
+```text
+She remembers that teachers called home on a daily basis to tell her parents she was not paying attention in class. Now, at the age of 23, Diany has finally been diagnosed with the cause of her problems – ADHD. Levy is not alone.
 ```
 
 Coding:
@@ -388,6 +391,14 @@ derived_frame = lived_only
 ```
 
 Reason: clinical labels are subordinated to neurodiversity, destigmatisation, and social recognition.
+
+#### First-person clinical labels and behaviour language
+
+Do not automatically code `clinical_frame_present = TRUE` when a first-person or biographical passage uses clinical labels such as `ADHD`, `bipolar`, `autism`, `symptoms`, or `behaviours`.
+
+When such terms are used to explain the speaker’s own life, social treatment, relationships, work consequences, stigma, conflict, or self-understanding, code according to the dominant lived-experience frame unless the passage also treats the condition as a clinical object.
+
+Code clinical only when the passage substantively invokes diagnosis, assessment, treatment, medication, impairment, symptoms as clinical evidence, professional interpretation, services, or institutional management.
 
 ---
 
@@ -553,6 +564,60 @@ derived_frame = clinical_only
 
 Reason: communication and self-regulation are framed as intervention/developmental targets.
 
+### Parent and Caregiver Lived Experience
+
+Lived-experience framing includes not only first-person autistic/ADHD self-description, but also family, parent, and caregiver experience when the passage foregrounds what it is like to live with, support, parent, or care for an autistic/ADHD child or family member.
+
+Code `lived_experience_frame_present = TRUE` when the passage foregrounds:
+
+* parental or caregiver emotional burden;
+* family routines and daily management;
+* feeling overwhelmed, isolated, reassured, supported, or “not alone”;
+* parent accounts of school, home, social, behavioural, or sensory challenges;
+* navigating services, transitions, education, diagnosis aftermath, or support systems from the family’s perspective;
+* practical family adaptations, coping, advocacy, or meaning-making.
+
+Do not code clinical merely because the child’s diagnostic label is mentioned. Diagnostic terms such as `ADHD`, `ASD`, `diagnosed`, or `symptoms` may function as background context for a family lived-experience account.
+
+Code `clinical_frame_present = TRUE` only when the passage substantively frames the child’s ADHD/autism through diagnosis, symptoms, impairment, assessment, treatment, therapy, intervention, professional management, or institutional support needs.
+
+If both are substantively developed, code `mixed`.
+
+#### Example: parent/caregiver lived experience
+
+```text
+Why are they reacting this way? Parents of children with ADHD, anxiety, OCD, ASD, or PANS/PANDAS often face emotional and behavioral extremes that can feel impossible to manage. You’re not alone in this.
+```
+
+```text
+substantive_target_discourse = TRUE
+clinical_frame_present = FALSE
+lived_experience_frame_present = TRUE
+derived_frame = lived_only
+confidence = medium-high
+```
+
+Reason: the passage is addressed to parents and foregrounds their lived experience of managing emotional and behavioural extremes and feeling overwhelmed. The diagnostic labels define the child group, but the dominant frame is caregiver/family experience rather than clinical assessment, treatment, or intervention.
+
+#### Non-Example/Contrast-case
+
+```text
+Children with ADHD and ASD may show emotional dysregulation and behavioural outbursts; clinicians recommend parent-management training and behavioural intervention.
+```
+
+```text
+clinical_frame_present: TRUE
+lived_experience_frame_present: FALSE
+derived_frame: clinical_only
+```
+
+If it said:
+```text
+Parents often feel exhausted by these outbursts and describe learning strategies that changed family life.
+```
+then it becomes `mixed` or `lived_only`, depending on how much clinical/intervention framing remains.
+
+
 ---
 
 ## 7. Derived Frames
@@ -579,28 +644,27 @@ clinical_frame_present = FALSE
 lived_experience_frame_present = FALSE
 ```
 
-### Substantive Other example:
+### Substantive Other examples:
 
 ```text
 14% of the videos were potentially damaging content. And then what was so fascinating to me, because it feels like everyone is saying they have ADHD, is 100% of the videos in their study on ADHD were misleading. I mean, that‚Äôs just what.
 ```
-
+```text
+And then there is the week that has been for the Eagles and the fans and the Eagles Autism Foundation that hammered home once again the connection that makes it all work and that, truly, means everything in the end. "It's been incredible," said Ryan Hammond, the executive director of the Eagles Autism Foundation, who has been busier than busy in the spring and these first few days of summer with the Eagles Autism Challenge in May and then back-to-back events this week ‚Äì an exclusive and ultra-premium two-day golf outing at the legendary Merion Golf Club followed by the Second Annual Eagles Celebrity Bartending Event at the Jersey Shore featuring Jason Kelce, Jordan Mailata, and Kelce's brother, Kansas City All-Pro tight end Travis Kelce. "We had 22 threesomes pay $25,000 each and were joined by a celebrity to play golf and had an unbelievable experience.
+```
 This category is for coherent target-specific discourse that does not fit either focal frame.
 
 
 
 This should be relatively rare.
 
-### Substantive Other example
-
-```text
-And then there is the week that has been for the Eagles and the fans and the Eagles Autism Foundation that hammered home once again the connection that makes it all work and that, truly, means everything in the end. "It's been incredible," said Ryan Hammond, the executive director of the Eagles Autism Foundation, who has been busier than busy in the spring and these first few days of summer with the Eagles Autism Challenge in May and then back-to-back events this week ‚Äì an exclusive and ultra-premium two-day golf outing at the legendary Merion Golf Club followed by the Second Annual Eagles Celebrity Bartending Event at the Jersey Shore featuring Jason Kelce, Jordan Mailata, and Kelce's brother, Kansas City All-Pro tight end Travis Kelce. "We had 22 threesomes pay $25,000 each and were joined by a celebrity to play golf and had an unbelievable experience.```
 
 Possible examples include:
 
 * purely metalinguistic discussion of the word “autism” or “ADHD”;
 * neutral bibliographic discussion of a title containing the target term;
 * target-specific factual context that does not invoke diagnosis, disorder, identity, experience, stigma, support, community, or social meaning.
+* target-specific media, cultural, or representational discussion where ADHD/autism is discussed as a portrayal, trope, depiction, narrative device, or public representation, but without substantive clinical/disorder framing or lived-experience/identity/social-experience framing.
 
 Do not use `substantive_other` for noisy, thin, generic, navigational, or incidental mentions. Those should be `non_substantive_or_insufficient`.
 
@@ -762,6 +826,67 @@ When diagnosis, medication, or clinical status is used to explain, mitigate, or 
 
 A clinical or behavioural passage may recognise that autistic/ADHD behaviours are meaningful. This does not automatically make it lived-experience unless the passage foregrounds the person’s own perspective, identity, everyday life, social participation, or self/family experience.
 
+### 11.9 Media Representation Is Not Automatically Lived-Experience
+
+Target-specific discussion of autism/ADHD representation in film, television, books, journalism, social media, or celebrity culture can be `substantive_other` when the passage evaluates portrayal, accuracy, or depiction without foregrounding clinical/disorder framing or lived-experience/identity/social-experience framing.
+Code lived-experience only when the representation is explicitly tied to autistic/ADHD voices, self-understanding, stigma, advocacy, inclusion, community reception, or everyday experience.
+
+### 11.10 Professional Profiles and Credential Statements
+
+Professional profiles, staff biographies, tutor descriptions, speaker introductions, and author-credential statements should be handled carefully.
+
+Professional role or credential language is **not itself frame evidence**. Terms such as `health educator`, `psychologist`, `teacher`, `special education teacher`, `nurse`, `therapist`, `education degree`, `training`, or `professional experience` indicate register or authority, but do not automatically make the passage clinical, lived-experience, or target-substantive.
+
+Use the following distinction:
+
+1. **Mere experience/category listing**
+   If ADHD/autism appears only in a list of populations the professional has worked with, code `substantive_target_discourse = FALSE`.
+
+   Example pattern:
+
+   ```text
+   I have worked with learning disabilities, autistic students, special education, ADHD, behaviour challenges, and honours students.
+   ```
+
+   Reason: the passage lists target groups but does not give enough target-specific discourse to classify the frame.
+
+2. **Target-specific professional support or intervention**
+   If the passage says what the professional does with/for autistic or ADHD people, code `substantive_target_discourse = TRUE`.
+
+   Example pattern:
+
+   ```text
+   He authored a blog on supporting students with autism navigating puberty and sexual health education.
+   ```
+
+   This is target-specific. If framed through professional support, education, training, intervention, or institutional provision, code `clinical_frame_present = TRUE`.
+
+3. **Credentials as authority backing**
+   If professional credentials are used only to authorise an opinion about media representation, public portrayal, or cultural depiction, do not code clinical merely because credentials are present.
+
+   Example pattern:
+
+   ```text
+   Fanning’s portrayal of a young autistic woman is the best portrayal of autism I have seen in years. I have a degree in Education and experience working with students on the autism spectrum.
+   ```
+
+   Code as `substantive_other` unless the passage also frames autism through diagnosis, treatment, support needs, lived experience, stigma, identity, advocacy, or everyday experience.
+
+4. **Professional support is not automatically lived-experience**
+   Phrases such as `supporting autistic students`, `helping students with ADHD`, or `training teachers to work with autistic pupils` are usually clinical/institutional-support framing unless the passage foregrounds the autistic/ADHD person’s own experience, voice, identity, stigma, coping, accommodation, or social participation.
+
+### 11.11 First-person condition language is not automatically clinical
+
+In first-person or biographical passages, clinical labels may function as identity/status markers or explanations of lived experience rather than as clinical framing.
+
+Code `lived_experience_frame_present = TRUE` and `clinical_frame_present = FALSE` when the passage foregrounds personal, social, interpersonal, occupational, or everyday consequences and does not substantively discuss diagnosis, treatment, assessment, medication, clinical impairment, or professional/institutional interpretation.
+
+#### Example: first-person behavioural explanation
+
+```text
+Perpetrators are exploiting my gay lifestyle and consequential Bipolar / ADHD behaviors to inflict revenge.
+```
+
 ---
 
 ## 12. Example Bank
@@ -892,6 +1017,22 @@ confidence = medium
 
 Reason: clinical diagnostic framing is explicit. Lived-experience framing is plausible if the passage substantively describes everyday social interaction and emotional/social experience.
 
+#### Example C: prevalence and accommodation/accessibility
+
+```text
+The profile pairs this with the ability to pause animations and switch on our reading guide to make it much easier for the user to focus on the website content and therefore improve their entire experience. ADHD Comprehension adjustments for people with ADHD Challenge The worldwide prevalence of adult ADHD is estimated at 2. 8% of adults and 3% of children.
+```
+
+```text
+substantive_target_discourse = TRUE
+clinical_frame_present = TRUE
+lived_experience_frame_present = TRUE
+derived_frame = mixed
+confidence = high
+```
+
+Reason: The passage is target-specific: it discusses ADHD-related website accessibility/comprehension adjustments, focus, and user experience. Lived-experience framing is present through accommodation/accessibility for people with ADHD. Clinical framing is also present through epidemiological prevalence estimates for adult and child ADHD.
+
 ---
 
 ### 12.4 Non-Substantive or Insufficient
@@ -969,6 +1110,20 @@ confidence = high
 ```
 
 ---
+### 12.5 Substantive Other
+
+#### Example A: media representation / portrayal
+
+```text
+Fanning’s portrayal of a young autistic woman is impeccable and quite possibly the best portrayal of Autism I’ve seen in a film in years. I have a Bachelor’s degree in Education, and I’m about to finish a Master’s degree in Education, so I have plenty of experience working with students on the Autism spectrum.
+```
+```text
+substantive_target_discourse = TRUE
+clinical_frame_present = FALSE
+lived_experience_frame_present = FALSE
+derived_frame = substantive_other
+confidence = medium
+```
 
 ## 13. Annotation Procedure
 
@@ -1131,12 +1286,3 @@ between-frame compositional change
 ```
 
 For example, an aggregate shift in sentiment, intensity, or breadth may reflect a changing mix of clinical and lived-experience discourse rather than semantic change within either frame.
-
----
-
-## 16. Pilot Revision Log
-
-| date       | codebook_version | change                                                                                                                                                                                                                                                                                                 | reason                                                                                                                                                                                                                                                             |
-| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-06-04 | v0.1             | Initial template.                                                                                                                                                                                                                                                                                      | Created before pilot annotation.                                                                                                                                                                                                                                   |
-| 2026-06-05 | v0.2             | Restructured into a two-stage annotation workflow with `substantive_target_discourse` as a preliminary sufficiency gate, followed by clinical/lived-experience frame coding only for substantive target discourse. Added `non_substantive_or_insufficient` and `substantive_other` derived categories. | Pilot examples showed that the previous two-axis scheme conflated boilerplate/noisy/generic target mentions with genuine non-clinical/non-lived target discourse, and made clinical/lived labels too sensitive to generic service, support, and resource language. |

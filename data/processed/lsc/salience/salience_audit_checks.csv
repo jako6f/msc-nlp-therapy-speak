@@ -1,0 +1,9 @@
+check,status,detail
+expected_source_years,pass,"[2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]"
+source_year_axis,pass,['source_year']
+minimum_length_token_denominator,pass,['tokens_minlen']
+validation_counts_monotonic,pass,candidate >= WET validated >= WARC validated
+raw_forms_sum_to_target_groups,pass,matched target forms reproduce group-level counts
+publication_timestamp_coverage,pass,minimum=96.06%
+domain_concentration,not_available,processed trend handoff has no domain-level counts; fixed collection domain cap=50 still applies
+frame_composition,not_available,requires completed frame classifier
