@@ -1,0 +1,10 @@
+{
+  "classifier_version": "hierarchical_frame_classifier_v1",
+  "embedding_model": "sentence-transformers/all-mpnet-base-v2",
+  "classifier": "three logistic heads over shared sentence-transformer embeddings; clinical/lived heads trained only on substantive rows",
+  "codebook_version": "v0.4",
+  "prompt_version": "annotator_v4+critic_v5",
+  "training_rows": 3200,
+  "substantive_training_rows": 2122,
+  "validation_rows": 200
+}

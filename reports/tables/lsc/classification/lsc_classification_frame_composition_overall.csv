@@ -1,0 +1,11 @@
+analysis_unit,predicted_derived_frame,contexts,unit_total_contexts,pct_within_unit
+ADHD,clinical_only,12039,28611,0.4207822166299675
+ADHD,lived_only,3610,28611,0.12617524728251373
+ADHD,mixed,2000,28611,0.0699031840900353
+ADHD,non_substantive_or_insufficient,10242,28611,0.35797420572507077
+ADHD,substantive_other,720,28611,0.02516514627241271
+Autism,clinical_only,20306,68253,0.29751073212899065
+Autism,lived_only,12826,68253,0.18791847977378284
+Autism,mixed,6331,68253,0.09275782749476214
+Autism,non_substantive_or_insufficient,26513,68253,0.38845178966492316
+Autism,substantive_other,2277,68253,0.03336117093754121

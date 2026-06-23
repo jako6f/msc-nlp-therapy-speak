@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import numbers
 import re
 import shutil
 import subprocess
@@ -137,6 +138,11 @@ def parse_bool_or_none(value: Any) -> bool | None:
         return None
     if type(value) is bool:
         return value
+    if isinstance(value, numbers.Number):
+        if value == 1:
+            return True
+        if value == 0:
+            return False
     text = str(value).strip().lower()
     if text in {"", "na", "n/a", "none", "null", "nan"}:
         return None
@@ -1445,6 +1451,14 @@ def self_test() -> None:
         raise AssertionError("Hierarchy normalisation did not mask inapplicable probabilities.")
     if parse_json_object('```json\n{"criticisms":[]}\n```', "self_test") != {"criticisms": []}:
         raise AssertionError("Fenced JSON parser failed.")
+    if parse_bool_or_none(1.0) is not True or parse_bool_or_none(0.0) is not False:
+        raise AssertionError("Numeric workbook labels were not parsed as booleans.")
+    try:
+        parse_bool_or_none(0.5)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Parser accepted an invalid numeric label.")
 
     review_rows = pd.DataFrame(
         [
