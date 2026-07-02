@@ -68,7 +68,7 @@ The following related work chapter first synthesises empirical evidence on lexic
 
 Lexical semantic change (LSC) refers to shifts in a word’s meaning while its grammatical function remains stable, and constitutes a common form of language change (Campbell 2013). For example, cloud, initially a meteorological term, broadened in usage to refer to internet-based data storage.
 
-*Concept Creep Theory* (CCT) posits that harm-related concepts are particularly prone to LSC. Many harm-related terms, including addiction, bullying, harassment, prejudice, and trauma, appear to have expanded in meaning since at least the 1970s (Haslam 2016; Haslam et al. 2020). Concept creep distinguishes between two forms of LSC that can occur concurrently: vertical creep and horizontal creep. Vertical creep refers to the loosening of definitions to include milder instances, whereas horizontal creep refers to the extension of definitions to encompass qualitatively new phenomena.
+*Concept Creep Theory* posits that harm-related concepts are particularly prone to LSC. Many harm-related terms, including addiction, bullying, harassment, prejudice, and trauma, appear to have expanded in meaning since at least the 1970s (Haslam 2016; Haslam et al. 2020). Concept creep distinguishes between two forms of LSC that can occur concurrently: vertical creep and horizontal creep. Vertical creep refers to the loosening of definitions to include milder instances, whereas horizontal creep refers to the extension of definitions to encompass qualitatively new phenomena.
 
 Previous studies have examined concept creep across different mental-health-related concepts. Vylomova and Haslam (2021) found that many of the terms they studied, including addiction, bullying, prejudice, harassment, and trauma, displayed both vertical creep and horizontal creep in a corpus of 825,628 psychology article abstracts from 875 journals and, to a lesser extent, in a general corpus combining the Corpus of Contemporary American English (CoCA) and the Corpus of Historical American English (CoHA). Baes, Vylomova, et al. (2023) found evidence of vertical creep in the word trauma in Vylomova and Haslam’s psychology corpus. Baes, Haslam, et al. (2023) similarly found vertical creep in mental-health-related concepts in the same psychology corpus, including addiction, anger, stress, and worry, as well as in Vylomova and Haslam’s general corpus, including addiction, grief, stress, and worry.
 
@@ -133,7 +133,7 @@ The design consists of two linked tracks. The trend track uses fixed-effort annu
 
 Several software choices are methodologically consequential because they affect corpus membership. WET and WARC records are parsed with `warcio`, WARC pointers are resolved through a local `pywb`-based index server, archived HTML is converted to main text with Trafilatura and Resiliparse, and post-extraction filtering uses DataTrove quality filters followed by English-language filtering with `py3langid`.
 
-The data collection spans 13 annual Common Crawl snapshots from 2014 to 2026. In the trend track, the pipeline scanned 27.7 million WET records \[provisional\] and retained 78,899 WARC-validated term hits \[provisional\]. In the corpus track, it scanned 28.1 million WET records \[provisional\] and retained 42,975 analysis-ready documents \[provisional\]. Target-term coverage comprises 10,998 target documents \[provisional\], including 3,907 ADHD documents \[provisional\] and 8,558 autism documents \[provisional\]. The collection was run on an AWS `m7i-flex.large` instance, featuring 2 vCPUs, 8 GiB of RAM, and up to 12.5 Gbps network bandwidth (AWS, n.d.). On this instance type, corpus throughput was approximately one hour per million scanned WET records \[provisional\].
+The data collection spans 13 annual Common Crawl snapshots from 2014 to 2026. In the trend track, the pipeline scanned 27.7 million WET records and retained 78,899 WARC-validated term hits. In the corpus track, it scanned 110.0 million WET records, produced 315,410 WARC-validated hits, and retained 167,520 analysis-ready documents after quality filtering, English-language filtering, and near-duplicate removal. Target-term coverage comprises 43,379 target documents, with group-level counts of 15,620 ADHD documents and 33,675 autism documents. These group counts are not mutually exclusive because a document can contain terms from both target groups. The collection was run on an AWS `m7i-flex.large` instance, featuring 2 vCPUs, 8 GiB of RAM, and up to 12.5 Gbps network bandwidth (AWS, n.d.). Available timing summaries for the corpus track cover 95.4 million scanned WET records and imply approximately 0.93 hours per million scanned WET records on this instance type.
 
 ### Preprocessing
 
@@ -164,29 +164,152 @@ This study uses valence to estimate whether target-term contexts become more pos
 
 # Methods
 
-## Salience (Prevalence)
+## Analytic Overview
 
-Using the Trend Track, yearly mention rates will be estimated as relative frequencies (candidate and validated hits per scanned corpus size), enabling a diachronic test of whether these terms are becoming more prominent in general web discourse. *\[status: incomplete\]*
+The analysis adapts the SIBling framework of Baes et al. (2024), which characterises lexical semantic change along interpretable dimensions rather than treating change as a single aggregate distance. The study estimates five annual trajectories for ADHD and autism discourse: salience, intensity, breadth, sentiment, and thematic content. Salience measures how often target and baseline terms occur in sampled Common Crawl slices. Intensity and sentiment measure the affective arousal and valence of local collocates. Breadth measures contextual dispersion among target-aware embeddings. Thematic evolution identifies the substantive topics that organise target-term contexts over time.
 
-## Intensity (Vertical Creep)
+ADHD and autism are analysed as separate conceptual target groups throughout. The raw forms that instantiate each group are retained for diagnostics, but the main estimates are group-level trajectories. The comparator terms *frustration*, *sadness*, and *loneliness* remain separate baseline series rather than being collapsed into a composite baseline. This preserves visibility over broader changes in negative affective language and avoids imposing a single background series unless the comparator trajectories are empirically compatible.
 
-Collocates within a $`\pm 5`$-word window of the target term will be extracted per year and scored using the NRC Valence–Arousal–Dominance lexicon (M. Saif, 2025). Annual weighted arousal indices (and derived “severity” composites, where appropriate) will test whether the surrounding language becomes more or less emotionally intense over time. *\[status: incomplete\]*
+The annual time axis differs by measurement task. Salience uses Common Crawl source year because its denominator is the annual WET scan: documents without candidate term hits do not proceed to WARC extraction or publication-date recovery. All semantic analyses use document publication year, defined as `lsc_year`, because the semantic question concerns the date of the discourse rather than the date on which a crawler observed the page. The semantic context table therefore includes only WARC-validated, English-language, deduplicated contexts with parseable publication dates in the 2014–2026 window.
 
-## Breadth (Horizontal Creep)
+For ADHD and autism, semantic estimates are frame-aware. The main target strata are clinical-only, lived-only, and mixed discourse, together with a duplicated substantive-core aggregate. Non-substantive or insufficient contexts and substantive-other contexts are retained for composition and quality diagnostics but excluded from the main semantic estimates. Baseline terms are not frame-labelled because the clinical versus lived-experience distinction is specific to ADHD/autism discourse.
 
-Breadth will be estimated via contextual dispersion: a fixed number of sentences containing the target term will be sampled per year, embedded with transformer sentence embeddings, and summarised by average pairwise cosine distance. Increasing dispersion indicates a widening range of contexts (semantic broadening). *\[status: incomplete\]*
+## Frame Classification
 
-## Sentiment (Connotation)
+Frame classification is included before the semantic analyses because target-term contexts may change not only in meaning but also in discourse composition. In web text, ADHD and autism may be framed as diagnoses, disorder constructs, service categories, identities, lived experiences, community labels, or incidental boilerplate. Treating all target contexts as one semantic population would risk conflating lexical semantic change with shifts in the prevalence of these frames. This concern follows Pisl et al. (2025), who show that apparent semantic-severity trends can be explained by the changing mental-health context in which a term appears.
 
-Using the same collocate windows, annual weighted valence indices (NRC VAD) will test for shifts toward more positive vs more negative connotations (amelioration vs degeneration), reflecting potential destigmatisation or increased pejoration. *\[status: incomplete\]*
+The annotation unit is the target sentence plus adjacent sentence context from the shared LSC context table. Each ADHD/autism passage is labelled hierarchically. First, the passage is coded for whether it contains substantive target discourse. Passages that are thin, list-like, navigational, promotional, generic, incidental, noisy, or otherwise insufficient for target-specific interpretation are assigned to the non-substantive or insufficient category. Substantive passages are then coded on two non-exclusive axes: whether clinical framing is present and whether lived-experience framing is present. Clinical framing covers diagnosis, disorder status, symptoms, impairment, treatment, services, medication, research, epidemiology, DSM/ICD-style categories, and educational or clinical support needs. Lived-experience framing covers identity, self-understanding, family or first-person experience, neurodivergent community, masking, stigma, accommodation, everyday coping, belonging, pride, and embodied or social experience.
+
+The two frame axes are converted deterministically into five derived strata. Substantive passages with clinical but not lived-experience framing are labelled clinical-only; passages with lived-experience but not clinical framing are labelled lived-only; passages with both are labelled mixed; and substantive passages with neither are labelled substantive-other. For non-substantive passages, clinical and lived-experience labels are structurally undefined rather than ordinary negative examples.
+
+Labels were produced through a human-led, LLM-assisted annotation procedure. A 200-passage human pilot was used to refine the codebook. A locked version of the codebook was then applied to 3,000 further passages using schema-validated LLM annotation. A separate critic model ranked likely annotation errors; the highest-priority cases and a random residual audit sample were reviewed by the human coder before labels were finalised. Critic suggestions were advisory only: labels changed only when explicitly reviewed by the human coder. This follows the annotator-critic-human-correction logic proposed for efficient LLM-assisted annotation while keeping final adjudication human-controlled (Lin et al. 2025).
+
+The corrected labels were used to train a hierarchical classifier over all-MPNET-base-v2 passage embeddings. The classifier uses three balanced logistic-regression heads with standardised features: one head predicts substantive target discourse for all labelled examples, while the clinical and lived-experience heads are trained only on substantive examples. Year, URL, and domain metadata are excluded from the classifier features to reduce leakage from temporal or source-specific artefacts. A separate 200-passage human validation set was held out from codebook development, LLM annotation, criticism, correction, and model training. After validation, the classifier was applied to all ADHD/autism contexts in the shared semantic table, producing hard frame labels and frame probabilities for downstream analysis.
+
+## Salience
+
+Salience estimates the prominence of each analysis unit in annual Common Crawl source-year slices. It is not a semantic measure in itself; rather, it asks whether ADHD- and autism-related terms become more or less frequent in sampled web discourse over time. The primary denominator is the number of tokens in minimum-length WET records entering term matching for year $`Y`$. The primary numerator is the number of WARC-validated term hits for analysis unit $`u`$. Candidate and WET-validated rates, raw-form composition, publication-year status, and WARC-over-WET retention are retained as diagnostics.
+
+For analysis unit $`u`$ and Common Crawl source year $`Y`$, salience is defined as
+
+``` math
+\begin{equation}
+\begin{aligned}
+\operatorname{Salience}^{\operatorname{WET}}_{u,Y}
+&=
+\frac{H^{\operatorname{WET}}_{u,Y}}{T_Y}, \\
+\operatorname{Salience}^{\operatorname{WARC}}_{u,Y}
+&=
+\frac{H^{\operatorname{WARC}}_{u,Y}}{T_Y}, \\
+\operatorname{Retention}_{u,Y}
+&=
+\frac{H^{\operatorname{WARC}}_{u,Y}}{H^{\operatorname{WET}}_{u,Y}}.
+\end{aligned}
+\end{equation}
+```
+
+Here, $`H^{\operatorname{WET}}_{u,Y}`$ is the number of WET-validated hits, $`H^{\operatorname{WARC}}_{u,Y}`$ is the number of WARC-validated hits, and $`T_Y`$ is the annual scanned-token denominator. Reported salience rates are scaled to hits per million WET tokens. Retention is defined only where $`H^{\operatorname{WET}}_{u,Y} > 0`$ and is interpreted as a validation diagnostic rather than as a substantive outcome.
+
+This design follows the relative-frequency logic used by Baes et al. (2024) while adapting it to the WET-first, WARC-second Common Crawl pipeline. The WARC-validated rate is the primary prominence series because it reflects term survival after full-record validation and main-text extraction. WET and candidate rates remain important for checking whether the validation process changes the temporal pattern.
+
+## Sentiment
+
+Sentiment captures whether the local connotational environment of a target term becomes more positive or more negative over time. Following the collocate-based logic of Baes et al. (2024), the measure is computed from words and phrases occurring in a $`\pm 5`$-token window around each target or baseline mention. The present study uses NRC–VAD v2.1 valence scores rather than Warriner norms because NRC–VAD provides broader contemporary English coverage and includes multi-word expressions (Mohammad 2025).
+
+The shared context table supplies the mention offsets and $`\pm 5`$-token windows. For each mention, the focal lexical material itself is removed from the scoring window. The remaining context is tokenised and lemmatised with spaCy `en_core_web_sm`. Punctuation, numerals, and one-character tokens are excluded, but stopwords are retained to keep the collocate index close to the Baes implementation. NRC–VAD entries are normalised with the same lemmatisation procedure. Multi-word expressions are matched greedily before unmatched unigram tokens; if several surface entries collapse to the same lemma phrase, their VAD scores are averaged. The same collocate handoff is reused for intensity so that valence and arousal differ only in the VAD dimension being aggregated.
+
+For analysis unit $`u`$, publication year $`Y`$, and reported stratum $`s`$, annual sentiment is
+
+``` math
+\begin{equation}
+\operatorname{Sentiment}_{u,Y,s}
+=
+\frac{
+\sum_{w \in C_{u,Y,s}} f_{w,u,Y,s} V(w)
+}{
+\sum_{w \in C_{u,Y,s}} f_{w,u,Y,s}
+},
+\end{equation}
+```
+
+where $`C_{u,Y,s}`$ is the set of NRC–VAD-matched collocates in the local windows, $`f_{w,u,Y,s}`$ is the frequency of collocate $`w`$, and $`V(w)`$ is its NRC–VAD valence score. Coverage diagnostics record the number of contexts, candidate collocate positions, matched collocate occurrences, unique matched items, and matched-token coverage rate for each unit-year-stratum cell.
+
+## Intensity
+
+Intensity operationalises vertical concept creep as change in the affective arousal of local target contexts. A declining arousal trajectory may be consistent with vertical creep, but it is not interpreted as sufficient evidence on its own because arousal can also reflect advocacy, crisis framing, stigma, newsworthiness, clinical severity, or support-oriented discourse. The measure therefore uses the same local-collocate handoff as Sentiment and differs only in the VAD score being averaged.
+
+Annual intensity for analysis unit $`u`$, publication year $`Y`$, and reported stratum $`s`$ is
+
+``` math
+\begin{equation}
+\operatorname{Intensity}_{u,Y,s}
+=
+\frac{
+\sum_{w \in C_{u,Y,s}} f_{w,u,Y,s} A(w)
+}{
+\sum_{w \in C_{u,Y,s}} f_{w,u,Y,s}
+},
+\end{equation}
+```
+
+where $`A(w)`$ is the NRC–VAD arousal score for collocate $`w`$. All preprocessing, target-term exclusion, lemmatisation, multi-word matching, frame stratification, and coverage reporting are inherited from the sentiment handoff. This shared preprocessing contract prevents valence and arousal estimates from diverging because of tokenisation or lexicon-matching choices.
+
+## Breadth
+
+Breadth operationalises horizontal concept creep as contextual dispersion: the more diverse the contexts in which a target term appears, the higher its breadth score. Baes et al. (2024) estimate breadth using sentence-level contextual embeddings. This study replaces a generic sentence-embedding representation with XL-LEXEME, a target-aware word-in-context model designed for lexical semantic change detection (Cassotti et al. 2023). The substitution is methodologically important because ADHD, autism, and the baseline terms are analysed as target uses within local passages rather than as undifferentiated sentence topics.
+
+For ADHD and autism, all markable contexts in the three core substantive frames enter the breadth analysis and are also duplicated into the substantive-core aggregate. Baseline terms remain unframed and are deterministically sampled with a cap of 1,000 contexts per baseline-year, stratified by registered domain to limit domination by high-volume websites. Target contexts are not down-sampled, because the target frame strata are the substantive focus and some frame-year cells are comparatively sparse.
+
+Each candidate context is marked with explicit XL-LEXEME target delimiters. The target sentence is used first; if it is too short or the target cannot be marked reliably, the sentence-plus-adjacent context is used. Contexts that cannot be marked are excluded and saved as diagnostics. Identical marked contexts are encoded once and reused through an embedding index. Annual breadth is computed from L2-normalised target-token embeddings using mean pairwise cosine distance.
+
+For analysis unit $`u`$, publication year $`Y`$, and reported stratum $`s`$, with $`N_{u,Y,s}`$ contextual embeddings $`\mathbf{v}_1,\ldots,\mathbf{v}_{N_{u,Y,s}}`$, breadth is
+
+``` math
+\begin{equation}
+\operatorname{Breadth}_{u,Y,s}
+=
+\frac{2}{N_{u,Y,s}(N_{u,Y,s}-1)}
+\sum_{i=1}^{N_{u,Y,s}-1}
+\sum_{j=i+1}^{N_{u,Y,s}}
+\left(
+1 -
+\frac{\mathbf{v}_i \cdot \mathbf{v}_j}
+{\lVert \mathbf{v}_i \rVert \lVert \mathbf{v}_j \rVert}
+\right).
+\end{equation}
+```
+
+Higher values indicate greater average dissimilarity among target uses in that year and stratum. The implementation uses a closed-form mean-pairwise calculation over normalised vectors for the main score, avoiding the need to materialise all pairwise distances except for diagnostics.
 
 ## Thematic Evolution
 
-The Corpus Track will be analysed with BERTopic (transformer embeddings, UMAP + HDBSCAN clustering, c-TF-IDF representations) to trace topics-over-time in annual bins. *\[status: incomplete\]*
+The thematic analysis is designed as an interpretive layer, not as a scalar semantic-change index. Baes et al. (2024) include thematic content as a complement to sentiment, intensity, breadth, and salience, using a top-down pathologisation dictionary in their case study. The present study instead uses a bottom-up topic-modelling approach because ADHD/autism discourse is expected to include diagnosis, services, education, workplace accommodation, parenting, neurodiversity, identity, stigma, advocacy, and everyday experience, not only pathologisation.
 
-## Analytic Strategy
+The modelling unit is a target-centred passage from the shared semantic context table, with frame labels and raw target forms retained as metadata. Text is cleaned minimally to remove obvious boilerplate residue and near-duplicates while preserving lexical content. Topics are estimated using the BERTopic pipeline: embedding, dimensionality reduction, density-based clustering, c-TF-IDF topic representation, and annual topic-prevalence estimation. The principal outputs are topic labels, representative passages, topic prevalence by year, outlier rates, and frame-aware topic summaries where sample size permits. Topic validity is assessed through manual inspection of top terms, representative passages, temporal stability, domain concentration, and whether topics describe target-relevant discourse rather than generic website genres.
 
-Linear regression analyses were performed to test the statistical significance of the predicted trends in the hypotheses....
+## Uncertainty, Trend Models, and Diagnostics
+
+Annual estimates are the primary objects of interpretation. For sentiment, intensity, and breadth, uncertainty intervals are estimated by document-level bootstrap resampling within each analysis-unit, year, and frame-stratum cell, using 500 bootstrap repetitions and the 2.5th and 97.5th percentiles of the bootstrap distribution. The document is the resampling unit because multiple mentions and collocates from the same document are not independent.
+
+Each scalar measure is summarised with a compact annual trend model based on the reporting strategy of Baes et al. (2024). For measure $`M`$, unit $`u`$, year $`Y`$, and stratum $`s`$, the main descriptive model is
+
+``` math
+\begin{equation}
+M_{u,Y,s}
+=
+\alpha_{u,s}
++
+\beta_{u,s}(Y - \bar{Y})
++
+\varepsilon_{u,Y,s},
+\end{equation}
+```
+
+where $`\beta_{u,s}`$ is the annual linear slope and $`\bar{Y}`$ is the centre of the observed year range. The trend tables record the slope per year, standard error, $`p`$-value, adjusted $`R^2`$, standardised year coefficient, and a residual autocorrelation diagnostic. Because the annual series span only 13 years and are further stratified by frame for ADHD and autism, these models are treated as descriptive summaries of direction and strength rather than as causal or population-level time-series tests.
+
+Residual autocorrelation is checked with a Durbin–Watson-style diagnostic. When a scalar series is flagged, an AR(1)-transformed sensitivity slope is reported in the corresponding trend table; otherwise the ordinary least-squares estimate remains the main summary. Quadratic fits are retained only as diagnostics for visibly curved trajectories and are not used as the default model.
+
+All downstream analyses carry diagnostic tables alongside the main estimates. These include annual sample size, document and domain counts, raw-form composition, low-volume frame-year flags, VAD coverage, top contributing collocates, WARC retention for salience, and domain-concentration checks where available. Frame-specific target estimates are flagged when they contain fewer than 100 contexts or fewer than 50 documents. These diagnostics do not automatically exclude observations, but they determine how cautiously individual annual points or frame-specific trends should be interpreted.
 
 # Results
 
@@ -249,6 +372,12 @@ Bolinski, F., N. Boumparis, A. Kleiboer, P. Cuijpers, D. D. Ebert, and H. Riper.
 <div id="ref-campbellHistoricalLinguisticsIntroduction2013" class="csl-entry">
 
 Campbell, Lyle. 2013. *Historical Linguistics: An Introduction*. NED - New edition, 3. Edinburgh University Press. <https://www.jstor.org/stable/10.3366/j.ctt1g0b5gq>.
+
+</div>
+
+<div id="ref-cassottiXLLEXEMEWiCPretrained2023" class="csl-entry">
+
+Cassotti, Pierluigi, Lucia Siciliani, Marco DeGemmis, Giovanni Semeraro, and Pierpaolo Basile. 2023. “XL-LEXEME: WiC Pretrained Model for <span class="nocase">Cross-Lingual LEXical sEMantic changE</span>.” In *Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)*, edited by Anna Rogers, Jordan Boyd-Graber, and Naoaki Okazaki. Association for Computational Linguistics. <https://doi.org/10.18653/v1/2023.acl-short.135>.
 
 </div>
 
@@ -351,6 +480,12 @@ Jurafsky, Daniel, and James H. Martin. 2026. *Speech and Language Processing: An
 <div id="ref-kangConvergingRepresentationsAttentionDeficit2025" class="csl-entry">
 
 Kang, Jemima, Nick Haslam, and Mike Conway. 2025. “Converging Representations of Attention-Deficit/Hyperactivity Disorder and Autism on Social Media: Linguistic and Topic Analysis of Trends in Reddit Data.” *Journal of Medical Internet Research* 27 (1): e70914. <https://doi.org/10.2196/70914>.
+
+</div>
+
+<div id="ref-linACTHumanMultimodal2025" class="csl-entry">
+
+Lin, Lequan, Dai Shi, Andi Han, et al. 2025. “ACT as Human: Multimodal Large Language Model Data Annotation with Critical Thinking.” In *arXiv.org*. Https://arxiv.org/abs/2511.09833v2.
 
 </div>
 

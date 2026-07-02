@@ -1,5 +1,4 @@
-head,precision,recall,f1,support_positive,support_total
-substantive_target_discourse,0.8872180451127819,0.8368794326241135,0.8613138686131386,141.0,200
-clinical_frame_present,0.9029126213592232,0.8857142857142857,0.8942307692307693,105.0,141
-lived_experience_frame_present,0.7037037037037037,0.8260869565217391,0.76,46.0,141
-derived_frame_macro,,,0.4431766634248023,,200
+head,validation_target,denominator,support_positive,support_total,predicted_positive,precision,recall,f1,accuracy,balanced_accuracy
+substantive_target_discourse,Substantive target discourse,All held-out passages,141,200,133,0.8872180451127819,0.8368794326241135,0.8613138686131386,0.81,0.7913210722442601
+clinical_frame_present,Clinical framing,Human-substantive passages,105,141,103,0.9029126213592232,0.8857142857142857,0.8942307692307693,0.8439716312056738,0.803968253968254
+lived_experience_frame_present,Lived-experience framing,Human-substantive passages,46,141,54,0.7037037037037037,0.8260869565217391,0.76,0.8297872340425532,0.8288329519450801

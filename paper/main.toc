@@ -14,13 +14,17 @@
 \contentsline {section}{\numberline {3.2}Target Terms}{10}{section.3.2}%
 \contentsline {section}{\numberline {3.3}NRC--VAD Lexicon}{10}{section.3.3}%
 \contentsline {chapter}{\numberline {4}Methods}{11}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Salience (Prevalence)}{11}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Intensity (Vertical Creep)}{11}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Breadth (Horizontal Creep)}{11}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Sentiment (Connotation)}{11}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Thematic Evolution}{12}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Analytic Strategy}{12}{section.4.6}%
-\contentsline {chapter}{\numberline {5}Results}{13}{chapter.5}%
-\contentsline {chapter}{\numberline {6}Discussion}{14}{chapter.6}%
-\contentsline {chapter}{\numberline {7}Conclusion}{15}{chapter.7}%
-\contentsline {chapter}{Appendices}{20}{appendix*.8}%
+\contentsline {section}{\numberline {4.1}Analytic Overview}{11}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Frame Classification}{12}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Salience}{13}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Sentiment}{14}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Intensity}{15}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Breadth}{15}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Thematic Evolution}{16}{section.4.7}%
+\contentsline {section}{\numberline {4.8}Uncertainty, Trend Models, and Diagnostics}{17}{section.4.8}%
+\contentsline {chapter}{\numberline {5}Results}{18}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Discussion}{20}{chapter.6}%
+\contentsline {chapter}{\numberline {7}Conclusion}{21}{chapter.7}%
+\contentsline {chapter}{Appendices}{26}{appendix*.10}%
+\contentsline {section}{\numberline {.1}Baseline Comparator Trend Models}{26}{section.Alph0.1}%
+\contentsline {section}{\numberline {.2}Quadratic Trend Diagnostics}{26}{section.Alph0.2}%

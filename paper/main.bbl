@@ -1,4 +1,4 @@
-\begin{thebibliography}{40}
+\begin{thebibliography}{42}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Alper et~al.(2025)Alper, Rauchberg, Simpson, Guberman, and
@@ -68,6 +68,17 @@ Campbell, Lyle. 2013.
 \newblock \emph{Historical {{Linguistics}}: {{An Introduction}}}, ned - new
   edition, 3 edition.
 \newblock Edinburgh University Press.
+
+\bibitem[{Cassotti et~al.(2023)Cassotti, Siciliani, DeGemmis, Semeraro, and
+  Basile}]{cassottiXLLEXEMEWiCPretrained2023}
+Cassotti, Pierluigi, Lucia Siciliani, Marco DeGemmis, Giovanni Semeraro, and
+  Pierpaolo Basile. 2023.
+\newblock {{XL-LEXEME}}: {{WiC Pretrained Model}} for {{Cross-Lingual LEXical
+  sEMantic changE}}.
+\newblock In \emph{Proceedings of the 61st {{Annual Meeting}} of the
+  {{Association}} for {{Computational Linguistics}} ({{Volume}} 2: {{Short
+  Papers}})}, pages 1577--1585, Association for Computational Linguistics,
+  Toronto, Canada.
 
 \bibitem[{{Common Crawl Team}(2024)}]{CommonCrawlGet}
 {Common Crawl Team}. 2024.
@@ -188,6 +199,14 @@ Kang, Jemima, Nick Haslam, and Mike Conway. 2025.
   Media}}: {{Linguistic}} and {{Topic Analysis}} of {{Trends}} in {{Reddit
   Data}}.
 \newblock \emph{Journal of Medical Internet Research}, 27(1):e70914.
+
+\bibitem[{Lin et~al.(2025)Lin, Shi, Han, Chen, Chen, Li, Li, Li, Sun, and
+  Gao}]{linACTHumanMultimodal2025}
+Lin, Lequan, Dai Shi, Andi Han, Feng Chen, Qiuzheng Chen, Jiawen Li, Zhaoyang
+  Li, Jiyuan Li, Zhenbang Sun, and Junbin Gao. 2025.
+\newblock {{ACT}} as {{Human}}: {{Multimodal Large Language Model Data
+  Annotation}} with {{Critical Thinking}}.
+\newblock https://arxiv.org/abs/2511.09833v2.
 
 \bibitem[{Manning(2022)}]{manningHumanLanguageUnderstanding2022}
 Manning, Christopher~D. 2022.

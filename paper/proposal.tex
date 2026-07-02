@@ -32,7 +32,7 @@
 	
 	\textbf{Planned analyses.} The analytic plan adapts the multidimensional SIBling Framework 1.0 \citep{baesNaomibaesLexical_semantic_change_framework2024} and the vertical-creep testing logic of \citet{xiaoHaveConceptsAnxiety2023} to ADHD and autism in general web discourse. Three primary dimensions of lexical semantic change will be operationalised alongside prevalence and thematic evolution:
 	(1) \emph{Salience (prevalence).} Using the Trend Track, yearly mention rates will be estimated as relative frequencies (candidate and validated hits per scanned corpus size), enabling a diachronic test of whether these terms are becoming more prominent in general web discourse.
-	(2) \emph{Intensity (vertical creep).} Following the collocate-based approach of \citet{xiaoHaveConceptsAnxiety2023}, collocates within a $\pm 5$-word window of the target term will be extracted per year and scored using the NRC Valence--Arousal--Dominance lexicon \citep{mohammadSaifVADLexicon2025}. Annual weighted arousal indices (and derived ``severity'' composites, where appropriate) will test whether the surrounding language becomes more or less emotionally intense over time.
+	(2) \emph{Intensity (vertical creep).} Following the collocate-based approach of \citet{xiaoHaveConceptsAnxiety2023}, collocates within a $\pm 5$-word window of the target term will be extracted per year and scored using the NRC Valence--Arousal--Dominance lexicon \citep{mohammadSaifVADLexicon2025}. Annual weighted arousal indices will test whether the surrounding language becomes more or less emotionally intense over time.
 	(3) \emph{Sentiment.} Using the same collocate windows, annual weighted valence indices (NRC VAD) will test for shifts toward more positive vs more negative connotations (amelioration vs degeneration), reflecting potential destigmatisation or increased pejoration.
 	(4) \emph{Breadth (horizontal creep).} Breadth will be estimated via contextual dispersion: a fixed number of sentences containing the target term will be sampled per year, embedded with transformer sentence embeddings, and summarised by average pairwise cosine distance. Increasing dispersion indicates a widening range of contexts (semantic broadening).
 	(5) \emph{Thematic evolution.} The Corpus Track will be analysed with BERTopic (transformer embeddings, UMAP + HDBSCAN clustering, c-TF-IDF representations) to trace topics-over-time in annual bins. This inductive topic modelling approach is a deliberate departure from SIBling’s deductive, dictionary-based thematic index, and is intended to capture emergent framings (e.g., clinical vs identity/neurodiversity narratives, education/workplace accommodation, social-justice language).
@@ -42,7 +42,7 @@
 	\textbf{Feasibility and risks.} Common Crawl is noisy and includes substantial boilerplate; the WET-first/WARC-validated design mitigates this by reserving expensive HTML-based cleaning for candidate hits while keeping trend denominators computationally tractable. Publication dates will be incomplete for a subset of pages; the analysis will therefore prioritise capture-year trends and treat published-time inference as opportunistic enrichment. Compute demands are manageable for an MSc through strict sampling, domain caps, and staged validation; if local throughput is insufficient, short-term rental of cloud computing resources (e.g., AWS) provides a practical scaling option.
 	
 	\newpage
-	\bibliographystyle{apalike} 
-	\bibliography{bibs/msc-nlp-therapy-speak}   
+	\bibliographystyle{apalike}
+	\bibliography{bibs/msc-nlp-therapy-speak}
 	
-\end{document}	
+\end{document}

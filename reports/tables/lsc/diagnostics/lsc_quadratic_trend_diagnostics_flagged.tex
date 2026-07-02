@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Quadratic diagnostic trend models for flagged LSC trajectories.}
+\label{tab:lsc-quadratic-diagnostics}
+\scriptsize
+\begin{tabular}{@{}lllcccc@{}}
+\toprule
+Measure & Target & Frame & Linear $B(SE)$ & Quadratic $B_2(SE)$ & $\Delta$ Adj. $R^2$ & Vertex \\
+\midrule
+Breadth & Autism & Overall & $0.0001$ (0.0002) & $-0.0002^{**}$ (0.0000) & 0.58 & 2020.3 (inverted U) \\
+Breadth & Autism & Clinical & $0.0007^{*}$ (0.0003) & $-0.0003^{***}$ (0.0001) & 0.51 & 2021.4 (inverted U) \\
+Sentiment & ADHD & Clinical & $0.0004$ (0.0009) & $0.0007^{**}$ (0.0002) & 0.60 & 2019.7 (U) \\
+Sentiment & Autism & Clinical & $0.0012$ (0.0009) & $0.0007^{**}$ (0.0002) & 0.61 & 2019.2 (U) \\
+\bottomrule
+\end{tabular}
+\parbox{\linewidth}{\footnotesize Note. Rows are restricted to annual series whose linear-model residual diagnostic was flagged for autocorrelation. Linear $B$ is the annual OLS slope from the main trend model. Quadratic $B_2$ is the centred-year-squared coefficient from the diagnostic model; $\Delta$ Adj. $R^2$ is the adjusted-$R^2$ gain over the linear model. Quadratic fits are diagnostic follow-ups, not replacements for the primary linear trend summaries. Significance markers are descriptive and uncorrected: $^{*}p<.05$, $^{**}p<.01$, $^{***}p<.001$.}
+\end{table}

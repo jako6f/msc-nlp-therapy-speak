@@ -6,11 +6,11 @@ This document tracks the practical analysis workflow. Methodological detail belo
 
 | Field | Value |
 |---|---|
-| Stage | Frame Classification |
-| Status | locked for the doubled corpus; shared contexts rebuilt and audited, target pool refreshed, frame classifier applied, and compact report outputs written |
-| Blocking dependency | none for the current classification layer |
+| Stage | Frame-aware scalar LSC analyses, robustness checks, integrated scalar synthesis, and thematic evolution |
+| Status | Sentiment, Intensity, Salience, and Breadth frame-aware outputs complete; Warriner Sentiment/Intensity robustness complete; Baes-MPNet Breadth robustness complete; primary report figures, integrated regression tables, method-sensitivity robustness figure, quadratic trend diagnostics, and stable thematic-neighbour figures generated |
+| Blocking dependency | Thematic evolution interpretation and dissertation write-up |
 | Annotation handoff | human pilot and validation labels plus 3,000 corrected LLM-assisted production labels |
-| Next action | Separately plan the frame-aware refactor of Sentiment, Intensity, Breadth, Salience, and later LSC notebooks |
+| Next action | Review thematic figures/tables for write-up inclusion and decide whether to retain the exploratory appendix heatmaps |
 
 ## Stage Order
 
@@ -24,21 +24,22 @@ This document tracks the practical analysis workflow. Methodological detail belo
 | 6 | LLM criticism and correction | `notebooks/01_classification/04_llm_criticism_and_correction.ipynb` | complete; human correction ended after review wave 4 plus residual audit | validated Codex labels; critic-v5 prompt and schema | critic pilot metrics, validated critic scores, ranked review, residual audit, and corrected labels |
 | 7 | Frame classifier training | `notebooks/01_classification/05_train_frame_classifier.ipynb` | complete | human labels; ACT-corrected LLM labels | hierarchical classifier, validation metrics, and validation predictions |
 | 8 | Frame classifier application | `notebooks/01_classification/06_apply_frame_classifier.ipynb` | complete for doubled shared context table | trained frame classifier; shared context table | `data/processed/lsc/classification/` frame-label outputs |
-| 9 | Frame classification reporting | `notebooks/01_classification/07_classification_results.ipynb` | complete | frame-label outputs | compact report tables and frame-composition figure |
-| 10 | Sentiment | `notebooks/02_sentiment/01_vad_valence.ipynb` | complete; frame-aware rerun pending | shared context table; NRC-VAD v2.1; frame labels | `data/processed/lsc/sentiment/` |
-| 11 | Intensity | `notebooks/03_intensity/01_vad_arousal.ipynb` | complete; frame-aware rerun pending | reusable VAD collocate handoff; frame labels | `data/processed/lsc/intensity/` |
-| 12 | Severity/intensifier check | `notebooks/03_intensity/02_severity_intensifier_check.ipynb` | pending | shared context table; dependency parses; frame labels | supplementary modifier diagnostics |
-| 13 | Salience audit | `notebooks/05_salience/01_salience_trend_audit.ipynb` | complete; frame-composition extension pending | completed processed trend output | annual Salience tables, validation/publication-year diagnostics, and report figures |
-| 14 | Breadth | `notebooks/04_breadth/01_xl_lexeme_breadth.ipynb` | implemented; execution pending; frame-aware rerun pending | shared context table; XL-LEXEME; frame labels | breadth scores and saved embeddings |
-| 15 | Breadth diagnostics | `notebooks/04_breadth/02_breadth_diagnostics.ipynb` | pending | breadth outputs; frame labels | raw-form, frame, sample-size, and context diagnostics |
-| 16 | Thematic evolution | `notebooks/06_thematic_content/01_bertopic_thematic_evolution.ipynb` | pending | target-centred passages; frame labels | topic inventory and topic-over-time outputs |
-| 17 | Integrated synthesis | `notebooks/07_integrated_synthesis/01_integrated_lsc_results.ipynb` | pending | all processed LSC outputs, including frame labels | integrated figures and tables |
+| 9 | Frame classification reporting | `notebooks/01_classification/07_classification_results.ipynb` | complete; frame-composition figure restyled | frame-label outputs | compact report tables and frame-composition figure |
+| 10 | Sentiment | `notebooks/02_sentiment/01_vad_valence.ipynb` | frame-aware rerun complete; one cloud-palette report trajectory figure retained | shared context table; NRC-VAD v2.1; frame labels | annual Sentiment tables, diagnostics, trend models, audit flags, and primary report figure |
+| 10a | Sentiment Warriner robustness | `notebooks/02_sentiment/02_warriner_valence_robustness_check.ipynb` | complete | shared context table; Warriner norms; frame labels | Warriner annual valence table, coverage, trend models, audit flags, top collocates, and NRC comparison |
+| 11 | Intensity | `notebooks/03_intensity/01_vad_arousal.ipynb` | frame-aware rerun complete; one cloud-palette report trajectory figure retained | reusable VAD collocate handoff; frame labels | annual Intensity tables, diagnostics, trend models, audit flags, and primary report figure |
+| 11a | Intensity Warriner robustness | `notebooks/03_intensity/02_warriner_arousal_robustness_check.ipynb` | complete | Warriner collocate handoff from Sentiment robustness | Warriner annual arousal table, coverage, trend models, audit flags, top collocates, and NRC comparison |
+| 12 | Salience audit | `notebooks/05_salience/01_salience_trend_audit.ipynb` | complete; simplified to one two-panel source-year Salience figure plus caveat tables | completed processed trend output | annual Salience tables, publication-year/raw-form caveats, trend models, and primary report figure |
+| 13 | Breadth | `notebooks/04_breadth/01_xl_lexeme_breadth.ipynb` | frame-aware hybrid sampling and XL-LEXEME execution complete; one cloud-palette report trajectory figure retained | shared context table; XL-LEXEME; frame labels | breadth scores, saved embeddings, sampling diagnostics, raw-form diagnostics, trend models, audit flags, and primary report figure |
+| 13a | Breadth Baes-MPNet robustness | `notebooks/04_breadth/02_baes_mpnet_breadth_robustness_check.ipynb` | complete | shared target contexts; sentence-transformers `all-mpnet-base-v2`; frame labels | target-only MPNet breadth scores, embedding cache, sampling/raw-form diagnostics, trend models, audit flags, and XL-LEXEME comparison |
+| 14 | Thematic evolution | `notebooks/06_thematic_content/01_neighbour_similarity_thematic_evolution.ipynb` | complete; stable line figures and exploratory heatmaps generated from cached Word2Vec models | target-centred passages; frame labels; Gensim Word2Vec | annual top-neighbour table, stable plotted-neighbour table, stable neighbour-similarity trajectories, execution summary, ADHD/Autism report figures, and appendix heatmaps |
+| 15 | Integrated synthesis | `notebooks/07_integrated_synthesis/01_integrated_lsc_results.ipynb`; `notebooks/07_integrated_synthesis/02_lsc_robustness_figures.ipynb`; `notebooks/07_integrated_synthesis/03_lsc_quadratic_trend_diagnostics.ipynb` | scalar regression tables, robustness figure, and quadratic diagnostics complete | scalar trend-model outputs from Salience, Sentiment, Intensity, and Breadth; completed robustness outputs | combined regression CSV, main-text target-frame LaTeX table, appendix baseline-comparator LaTeX table, method-sensitivity robustness figure, quadratic diagnostic figures, and flagged quadratic diagnostic appendix table |
 
 ## Decision Log
 
 | date | decision | reason | recorded in |
 |---|---|---|---|
-| 2026-06-02 | Shared context preprocessing uses capped mention-level rows. | A mention-level contract supports VAD windows, severity checks, breadth sampling, and examples while limiting document dominance. | `reports/lsc_analysis_design_decisions.md` |
+| 2026-06-02 | Shared context preprocessing uses capped mention-level rows. | A mention-level contract supports VAD windows, breadth sampling, and examples while limiting document dominance. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-02 | Same-sentence acronym/expansion pairs are collapsed before capping. | Prevents double-counting one conceptual mention as two semantic contexts while preserving collapse diagnostics. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-02 | Shared semantic contexts use publication year as `lsc_year`. | Semantic analyses need document publication time rather than Common Crawl source/capture time; excluded publication-date cases are written as diagnostics. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-02 | Sentiment uses a reusable NRC-VAD collocate handoff. | The same lemmatised local collocates can support Sentiment now and Intensity later without duplicating preprocessing. | `reports/lsc_analysis_design_decisions.md` |
@@ -51,6 +52,8 @@ This document tracks the practical analysis workflow. Methodological detail belo
 | 2026-06-09 | Salience uses source-year WARC-validated hits per million minimum-length WET tokens. | This is the denominator supported consistently by the completed trend run; WET/candidate rates and publication-year composition remain diagnostics. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-10 | Final codebook v0.4 adds adjudication-derived precedence rules for category-set claims, institutional provision, self-theorising symptom language, and legal/forensic mitigation. | These rules resolve systematic pilot disagreements without changing the hierarchical annotation construct. | `reports/lsc_analysis_design_decisions.md` |
 | 2026-06-15 | Gemini criticism preserves append-only Codex source-batch provenance while splitting criticism into ten-row chunks; Gemini suggestions never replace labels automatically. | Direct source-batch provenance supports future annotation extensions, while small critic calls, human correction, and a random residual audit keep the workflow tractable and defensible. | `reports/lsc_analysis_design_decisions.md` |
+| 2026-06-24 | Breadth uses all target frame contexts and caps only baseline samples. | Avoids injecting sampling variance into the target frame estimates while keeping high-volume comparator terms tractable. | `reports/lsc_analysis_design_decisions.md` |
+| 2026-06-30 | Robustness checks validate deliberate Baes deviations separately from the main figures/tables. | Keeps the main analysis compact while making the Warriner and Baes-MPNet alternatives auditable. | `reports/lsc_analysis_design_decisions.md` |
 
 ## Stage Closeout Checklist
 

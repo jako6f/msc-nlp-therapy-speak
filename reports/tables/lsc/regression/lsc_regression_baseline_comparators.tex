@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\caption{Descriptive annual trend models for baseline comparator trajectories.}
+\label{tab:lsc-regression-baseline-comparators}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Measure & Comparator & $B(SE)$ & $\beta$ & Adj. $R^2$ \\
+\midrule
+Salience & frustration & $-0.0175^{\dagger}$ (0.0167) & -0.30 & 0.01 \\
+Salience & loneliness & $0.0056^{*}$ (0.0021) & 0.62 & 0.33 \\
+Salience & sadness & $-0.0171^{**}$ (0.0039) & -0.80 & 0.61 \\
+Sentiment & frustration & $0.0023^{*\dagger}$ (0.0008) & 0.66 & 0.38 \\
+Sentiment & loneliness & $0.0025^{*\dagger}$ (0.0008) & 0.67 & 0.39 \\
+Sentiment & sadness & $-0.0016^{**}$ (0.0005) & -0.69 & 0.42 \\
+Intensity & frustration & $-0.0003^{\dagger}$ (0.0002) & -0.35 & 0.04 \\
+Intensity & loneliness & $0.0001$ (0.0004) & 0.06 & -0.09 \\
+Intensity & sadness & $0.0020^{***}$ (0.0003) & 0.92 & 0.83 \\
+Breadth & frustration & $0.0020^{**}$ (0.0006) & 0.72 & 0.48 \\
+Breadth & loneliness & $-0.0007$ (0.0004) & -0.51 & 0.19 \\
+Breadth & sadness & $-0.0010^{**\dagger}$ (0.0003) & -0.71 & 0.46 \\
+\bottomrule
+\end{tabular}
+\parbox{\linewidth}{\footnotesize Note. Cells report annual OLS slopes as $B(SE)$; $\beta$ is the standardised year coefficient. Salience uses Common Crawl source year; semantic measures use document publication year. $^{\dagger}$ marks series whose linear-model residuals show autocorrelation, so the corresponding linear slope should be interpreted cautiously. Significance markers are descriptive and uncorrected: $^{*}p<.05$, $^{**}p<.01$, $^{***}p<.001$.}
+\end{table}

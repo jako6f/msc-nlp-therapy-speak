@@ -1,0 +1,27 @@
+{
+  "annual_top_neighbour_rows": 390,
+  "audit_flag_rows": 0,
+  "figures": [
+    "reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_adhd.png",
+    "reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_adhd.pdf",
+    "reports/figures/lsc/thematic_evolution/appendix/lsc_thematic_neighbour_rank_heatmap_adhd.png",
+    "reports/figures/lsc/thematic_evolution/appendix/lsc_thematic_neighbour_rank_heatmap_adhd.pdf",
+    "reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_autism.png",
+    "reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_autism.pdf",
+    "reports/figures/lsc/thematic_evolution/appendix/lsc_thematic_neighbour_rank_heatmap_autism.png",
+    "reports/figures/lsc/thematic_evolution/appendix/lsc_thematic_neighbour_rank_heatmap_autism.pdf"
+  ],
+  "model_context_rows": 105396,
+  "plotted_neighbour_rows": 28,
+  "retained_processed_outputs": [
+    "lsc_thematic_annual_top_neighbours.csv",
+    "lsc_thematic_execution_summary.json",
+    "lsc_thematic_neighbour_similarity_trajectories.csv",
+    "lsc_thematic_plotted_neighbours.csv"
+  ],
+  "token_cache_status": "loaded_cache",
+  "tokenised_context_rows": 57112,
+  "trained_or_loaded_model_groups": 6,
+  "trajectory_rows": 364,
+  "usable_base_contexts": 56857
+}

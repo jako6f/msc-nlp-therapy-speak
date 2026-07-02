@@ -1,1 +1,6 @@
-lsc_year,analysis_unit,flags,sampled_contexts,sampled_documents,unmarkable_share,top_domain_share,contexts_truncated_for_model
+lsc_year,analysis_unit,frame_stratum,flags,sampled_contexts,sampled_documents,unmarkable_share,top_domain_share,contexts_truncated_for_model
+2026,ADHD,mixed,small_frame_year_cell;sampled_contexts_lt_100;sampled_documents_lt_50,42,38,0.0,0.047619047619047616,1
+,ADHD,lived_only,trend_residual_autocorrelation,,,,,
+,Autism,clinical_only,trend_residual_autocorrelation,,,,,
+,Autism,substantive_core_overall,trend_residual_autocorrelation,,,,,
+,sadness,unframed_baseline,trend_residual_autocorrelation,,,,,
