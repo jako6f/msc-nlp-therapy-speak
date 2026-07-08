@@ -1,11 +1,46 @@
+\renewcommand{\thesection}{A.\arabic{section}}
+\renewcommand{\thetable}{A.\arabic{table}}
+\renewcommand{\thefigure}{A.\arabic{figure}}
+\section{Frame Classification Trend Models}
+
+Table~\ref{tab:lsc-classification-frame-time-trends} reports the descriptive trend models behind the clear-frame lived-experience trajectories in Figure~\ref{fig:lsc-classification-frame-balance}.
+
+\input{../reports/tables/lsc/classification/lsc_classification_frame_time_trends.tex}
+\FloatBarrier
+
+\Needspace{0.45\textheight}
 \section{Baseline Comparator Trend Models}
 
 Table~\ref{tab:lsc-regression-baseline-comparators} reports the unframed comparator-term trend models used to contextualise the ADHD and autism target trajectories.
 
 \input{../reports/tables/lsc/regression/lsc_regression_baseline_comparators.tex}
+\FloatBarrier
 
-\section{Quadratic Trend Diagnostics}
+\Needspace{0.45\textheight}
+\section{AR(1) Sensitivity Models}
 
-Table~\ref{tab:lsc-quadratic-diagnostics} reports the diagnostic quadratic models for annual LSC trajectories whose linear residual diagnostics were flagged for autocorrelation.
+Table~\ref{tab:lsc-ar1-sensitivity-flagged} reports AR(1) sensitivity estimates for daggered rows in the trend tables.
+
+\input{../reports/tables/lsc/diagnostics/lsc_ar1_sensitivity_flagged.tex}
+\FloatBarrier
+
+\Needspace{0.45\textheight}
+\section{Quadratic Trend Models}
+
+Table~\ref{tab:lsc-quadratic-diagnostics} reports the quadratic models for annual LSC trajectories whose linear residuals were flagged for autocorrelation.
 
 \input{../reports/tables/lsc/diagnostics/lsc_quadratic_trend_diagnostics_flagged.tex}
+\FloatBarrier
+
+\Needspace{0.55\textheight}
+\section{ADHD Neighbour Similarity Evolution}
+
+Figure~\ref{fig:lsc-thematic-adhd-appendix} presents the annual similarity trajectories for the stable ADHD neighbours reported in the Results chapter.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth]{lsc/thematic_evolution/lsc_thematic_neighbour_similarity_adhd.pdf}
+  \caption[Stable thematic neighbours of ADHD discourse.]{Annual cosine similarity between the ADHD concept token and stable Word2Vec neighbours in overall, clinical/disorder, and lived-experience contexts. Stable neighbours appeared in an annual top-five list in at least two years and had estimates in at least ten years.}
+  \label{fig:lsc-thematic-adhd-appendix}
+\end{figure}
+\FloatBarrier

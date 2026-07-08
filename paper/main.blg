@@ -5,45 +5,45 @@ The style file: bibs/compling.bst
 Database file #1: bibs/msc-nlp-therapy-speak.bib
 Warning--empty year in CloudComputingServices
 Warning--missing publisher in jm3
-You've used 42 entries,
+You've used 56 entries,
             2855 wiz_defined-function locations,
-            876 strings with 16823 characters,
-and the built_in function-call counts, 28355 in all, are:
-= -- 2185
-> -- 1633
-< -- 25
-+ -- 558
-- -- 492
-* -- 2165
-:= -- 4423
-add.period$ -- 165
-call.type$ -- 42
-change.case$ -- 382
-chr.to.int$ -- 42
-cite$ -- 44
-duplicate$ -- 2070
-empty$ -- 1866
-format.name$ -- 623
-if$ -- 5570
+            976 strings with 20502 characters,
+and the built_in function-call counts, 36801 in all, are:
+= -- 2876
+> -- 2009
+< -- 40
++ -- 687
+- -- 601
+* -- 2760
+:= -- 5719
+add.period$ -- 221
+call.type$ -- 56
+change.case$ -- 496
+chr.to.int$ -- 56
+cite$ -- 58
+duplicate$ -- 2724
+empty$ -- 2478
+format.name$ -- 775
+if$ -- 7266
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 429
-newline$ -- 211
-num.names$ -- 175
-pop$ -- 811
+missing$ -- 557
+newline$ -- 279
+num.names$ -- 234
+pop$ -- 1051
 preamble$ -- 1
-purify$ -- 325
+purify$ -- 416
 quote$ -- 0
-skip$ -- 658
+skip$ -- 892
 stack$ -- 0
-substring$ -- 1269
-swap$ -- 1075
-text.length$ -- 8
+substring$ -- 1652
+swap$ -- 1407
+text.length$ -- 13
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 369
+type$ -- 492
 warning$ -- 2
-while$ -- 191
+while$ -- 255
 width$ -- 0
-write$ -- 544
+write$ -- 726
 (There were 2 warnings)

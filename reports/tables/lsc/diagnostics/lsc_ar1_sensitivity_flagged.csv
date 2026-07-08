@@ -1,0 +1,12 @@
+source_table,measure,series,frame,ols_b,ar1_b,ar1_p,digits,unit_note,sort_order
+Table~\ref{tab:lsc-regression-target-frames},Sentiment,ADHD,Clinical,0.0004271431083429,0.0014639877307861,0.2945302781829223,4,index_units_per_year,121
+Table~\ref{tab:lsc-regression-target-frames},Sentiment,Autism,Clinical,0.0011544143287314,0.0025071607945643,0.0773247151881591,4,index_units_per_year,122
+Table~\ref{tab:lsc-regression-target-frames},Breadth,ADHD,Lived experience,-0.0003664272929007,-0.0004368629232569,0.2469335465122979,4,index_units_per_year,141
+Table~\ref{tab:lsc-regression-target-frames},Breadth,Autism,Overall,0.0001187171607088,-0.0001331852011732,0.7526593741759209,4,index_units_per_year,142
+Table~\ref{tab:lsc-regression-target-frames},Breadth,Autism,Clinical,0.0007494536713758,0.0001568265819714,0.7547916302192499,4,index_units_per_year,142
+Table~\ref{tab:lsc-classification-frame-time-trends},Frame classification,Autism,Lived vs clinical,0.585180583750184,0.2295142328222363,0.3704479361049257,2,percentage_points_per_year,200
+Table~\ref{tab:lsc-regression-baseline-comparators},Salience,frustration,Baseline,-0.0175171433453399,0.015956947232762,0.5383152855645501,4,index_units_per_year,311
+Table~\ref{tab:lsc-regression-baseline-comparators},Sentiment,frustration,Baseline,0.0022871710893447,0.0071579422843558,0.0027281297472097,4,index_units_per_year,321
+Table~\ref{tab:lsc-regression-baseline-comparators},Sentiment,loneliness,Baseline,0.0024530774916871,0.0038886878771433,0.0097025301767954,4,index_units_per_year,322
+Table~\ref{tab:lsc-regression-baseline-comparators},Intensity,frustration,Baseline,-0.000260887366507,-0.0009987010030972,0.0497048348348776,4,index_units_per_year,331
+Table~\ref{tab:lsc-regression-baseline-comparators},Breadth,sadness,Baseline,-0.0010241094600204,-0.0008490519913347,0.131231450440245,4,index_units_per_year,343

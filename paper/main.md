@@ -166,7 +166,7 @@ This study uses valence to estimate whether target-term contexts become more pos
 
 ## Analytic Overview
 
-The analysis adapts the SIBling framework of Baes et al. (2024), which characterises lexical semantic change along interpretable dimensions rather than treating change as a single aggregate distance. The study estimates five annual trajectories for ADHD and autism discourse: salience, intensity, breadth, sentiment, and thematic content. Salience measures how often target and baseline terms occur in sampled Common Crawl slices. Intensity and sentiment measure the affective arousal and valence of local collocates. Breadth measures contextual dispersion among target-aware embeddings. Thematic evolution identifies the substantive topics that organise target-term contexts over time.
+The analysis adapts the SIBling framework of Baes et al. (2024), which characterises lexical semantic change along interpretable dimensions rather than treating change as a single aggregate distance. The study estimates five annual trajectories for ADHD and autism discourse: salience, intensity, breadth, sentiment, and thematic content. Salience measures how often target and baseline terms occur in sampled Common Crawl slices. Intensity and sentiment measure the affective arousal and valence of local collocates. Breadth measures contextual dispersion among target-aware embeddings. Neighbour similarity evolution provides the thematic component by tracing which content words become more or less distributionally close to each target concept over time.
 
 ADHD and autism are analysed as separate conceptual target groups throughout. The raw forms that instantiate each group are retained for diagnostics, but the main estimates are group-level trajectories. The comparator terms *frustration*, *sadness*, and *loneliness* remain separate baseline series rather than being collapsed into a composite baseline. This preserves visibility over broader changes in negative affective language and avoids imposing a single background series unless the comparator trajectories are empirically compatible.
 
@@ -281,11 +281,37 @@ For analysis unit $`u`$, publication year $`Y`$, and reported stratum $`s`$, wit
 
 Higher values indicate greater average dissimilarity among target uses in that year and stratum. The implementation uses a closed-form mean-pairwise calculation over normalised vectors for the main score, avoiding the need to materialise all pairwise distances except for diagnostics.
 
-## Thematic Evolution
+## Neighbour Similarity Evolution
 
-The thematic analysis is designed as an interpretive layer, not as a scalar semantic-change index. Baes et al. (2024) include thematic content as a complement to sentiment, intensity, breadth, and salience, using a top-down pathologisation dictionary in their case study. The present study instead uses a bottom-up topic-modelling approach because ADHD/autism discourse is expected to include diagnosis, services, education, workplace accommodation, parenting, neurodiversity, identity, stigma, advocacy, and everyday experience, not only pathologisation.
+This subsection provides the thematic component of the analysis. In the SIBling implementation, thematic content is operationalised with a top-down pathologisation dictionary (Baes et al. 2024). That choice is less informative for the present targets because ADHD and autism already denote diagnostic and neurodevelopmental category labels. The present study therefore estimates bottom-up target-neighbour trajectories, following the pairwise similarity time-series approach to type-level embeddings in Vylomova and Haslam (2021) and the Neighbours Similarity Evolution adaptation of Iacob and Uban (2026). The method asks which content words become more or less distributionally close to each target concept across publication years.
 
-The modelling unit is a target-centred passage from the shared semantic context table, with frame labels and raw target forms retained as metadata. Text is cleaned minimally to remove obvious boilerplate residue and near-duplicates while preserving lexical content. Topics are estimated using the BERTopic pipeline: embedding, dimensionality reduction, density-based clustering, c-TF-IDF topic representation, and annual topic-prevalence estimation. The principal outputs are topic labels, representative passages, topic prevalence by year, outlier rates, and frame-aware topic summaries where sample size permits. Topic validity is assessed through manual inspection of top terms, representative passages, temporal stability, domain concentration, and whether topics describe target-relevant discourse rather than generic website genres.
+The analysis is target-only: baseline emotion terms are not modelled because this stage characterises target-specific thematic associations rather than a scalar target-baseline comparison. Separate models are estimated for ADHD and autism within three report strata: overall substantive-core discourse, clinical/disorder discourse, and lived-experience discourse. The overall stratum combines clinical-only, lived-only, and mixed substantive passages; mixed passages are not shown as a separate report panel because they are sparse and heterogeneous, but they do contribute to the overall target neighbourhood.
+
+The modelling input is the target-centred passage from the shared semantic context table, using publication year `lsc_year`. Raw target forms are canonicalised before modelling so that the type-level embedding represents the target concept rather than individual spellings or abbreviations. ADHD and attention-deficit variants are mapped to `adhd_concept`; autism, autistic, ASD, and autism-spectrum variants are mapped to `autism_concept`. Passages are lemmatised with spaCy `en_core_web_sm` and filtered to retain content words and the canonical concept token while removing punctuation, numerals, stopwords, one- and two-character tokens, and common web-boilerplate tokens. Contexts with fewer than five retained tokens or no canonical target token are excluded.
+
+For each target-frame corpus, a global skip-gram Word2Vec model is trained with 200-dimensional vectors, a context window of 10 tokens, a minimum corpus count of 5, and 10 training epochs. Annual models are then initialised from the corresponding global model and further trained for 10 epochs on the passages from each publication year. The global model supplies a shared target-frame starting space, while annual fine-tuning allows yearly target-neighbour associations to vary.
+
+For target concept $`w_c`$, candidate neighbour $`w_j`$, target unit $`u`$, frame stratum $`f`$, and publication year $`t`$, the neighbour-similarity score is
+
+``` math
+\begin{equation}
+\operatorname{NSE}_{u,f,t}(w_j)
+=
+\cos\!\left(
+\mathbf{v}^{(u,f,t)}_{w_c},
+\mathbf{v}^{(u,f,t)}_{w_j}
+\right)
+=
+\frac{
+\mathbf{v}^{(u,f,t)}_{w_c} \cdot \mathbf{v}^{(u,f,t)}_{w_j}
+}{
+\lVert \mathbf{v}^{(u,f,t)}_{w_c} \rVert
+\lVert \mathbf{v}^{(u,f,t)}_{w_j} \rVert
+}.
+\end{equation}
+```
+
+Annual neighbours are extracted only when the canonical target token occurs at least 20 times in the relevant target-frame-year corpus. Candidate neighbours must occur at least five times in the same annual corpus, and the five most similar eligible neighbours are retained for each model. The annual top-five lists are retained as the complete audit trail. Report-facing trajectories use a stability filter: a neighbour must appear in the annual top-five list in at least two years and have finite similarity estimates in at least ten of the thirteen publication years. This rule limits one-year artefacts without treating the selected neighbour trajectories as inferential trend tests.
 
 ## Uncertainty, Trend Models, and Diagnostics
 
@@ -307,17 +333,263 @@ M_{u,Y,s}
 
 where $`\beta_{u,s}`$ is the annual linear slope and $`\bar{Y}`$ is the centre of the observed year range. The trend tables record the slope per year, standard error, $`p`$-value, adjusted $`R^2`$, standardised year coefficient, and a residual autocorrelation diagnostic. Because the annual series span only 13 years and are further stratified by frame for ADHD and autism, these models are treated as descriptive summaries of direction and strength rather than as causal or population-level time-series tests.
 
-Residual autocorrelation is checked with a Durbin–Watson-style diagnostic. When a scalar series is flagged, an AR(1)-transformed sensitivity slope is reported in the corresponding trend table; otherwise the ordinary least-squares estimate remains the main summary. Quadratic fits are retained only as diagnostics for visibly curved trajectories and are not used as the default model.
+Residual autocorrelation is checked with a Durbin–Watson-style diagnostic. When a scalar series is flagged, an AR(1)-transformed sensitivity slope is reported in an appendix sensitivity table; otherwise the ordinary least-squares estimate remains the main summary. Quadratic fits are retained only as diagnostics for visibly curved trajectories and are not used as the default model.
 
 All downstream analyses carry diagnostic tables alongside the main estimates. These include annual sample size, document and domain counts, raw-form composition, low-volume frame-year flags, VAD coverage, top contributing collocates, WARC retention for salience, and domain-concentration checks where available. Frame-specific target estimates are flagged when they contain fewer than 100 contexts or fewer than 50 documents. These diagnostics do not automatically exclude observations, but they determine how cautiously individual annual points or frame-specific trends should be interpreted.
 
 # Results
+
+This chapter reports the diachronic results for salience, frame composition, sentiment, intensity, breadth, and thematic neighbour similarity. Salience is indexed by Common Crawl source year; the semantic measures use document publication year. Annual estimates are shown with their uncertainty intervals, while the regression models provide compact summaries of net linear movement over the 13-year series.
+
+The main semantic results foreground three reporting strata. Overall contains the substantive core, combining clinical-only, lived-experience-only, and mixed passages. Clinical and Lived experience show the two clear, mutually exclusive frames separately. The smaller mixed stratum is not plotted separately because it generally occupied an intermediate position between the Overall and clinical trajectories and added visual overlap. Substantive-other contexts were sparse and outside the main frame contrast, while non-substantive or insufficient contexts were treated as a quality and composition category rather than as a semantic frame. These categories remain available in the appendix composition table where relevant.
+
+Table <a href="#tab:lsc-regression-target-frames" data-reference-type="ref" data-reference="tab:lsc-regression-target-frames">5.1</a> reports the target trend models used throughout this chapter. At the uncorrected $`p < .05`$ level, autism salience declined, no target sentiment slope differed from zero, NRC–VAD arousal increased for ADHD Overall and for both clinical series, and ADHD breadth narrowed in Overall and clinical contexts. The annual figures below show the underlying trajectories and the cases in which a linear summary was inadequate.
+
+<div id="tab:lsc-regression-target-frames">
+
+| Measure | Target | Frame | $`B(SE)`$ | $`\beta`$ | Adj. $`R^2`$ |
+|:---|:---|:---|:--:|:--:|:--:|
+| Salience | ADHD | Overall | $`0.0073`$ (0.0043) | 0.46 | 0.14 |
+| Salience | Autism | Overall | $`-0.0228^{*}`$ (0.0087) | -0.62 | 0.33 |
+| Sentiment | ADHD | Overall | $`0.0012`$ (0.0007) | 0.48 | 0.16 |
+| Sentiment | ADHD | Clinical | $`0.0004^{\dagger}`$ (0.0009) | 0.15 | -0.07 |
+| Sentiment | ADHD | Lived experience | $`0.0003`$ (0.0009) | 0.11 | -0.08 |
+| Sentiment | Autism | Overall | $`0.0006`$ (0.0003) | 0.46 | 0.14 |
+| Sentiment | Autism | Clinical | $`0.0012^{\dagger}`$ (0.0009) | 0.36 | 0.05 |
+| Sentiment | Autism | Lived experience | $`-0.0019`$ (0.0012) | -0.43 | 0.11 |
+| Intensity | ADHD | Overall | $`0.0010^{*}`$ (0.0004) | 0.63 | 0.35 |
+| Intensity | ADHD | Clinical | $`0.0013^{**}`$ (0.0004) | 0.69 | 0.43 |
+| Intensity | ADHD | Lived experience | $`0.0014`$ (0.0007) | 0.52 | 0.20 |
+| Intensity | Autism | Overall | $`0.0011`$ (0.0006) | 0.52 | 0.21 |
+| Intensity | Autism | Clinical | $`0.0011^{**}`$ (0.0003) | 0.75 | 0.52 |
+| Intensity | Autism | Lived experience | $`0.0017`$ (0.0012) | 0.40 | 0.08 |
+| Breadth | ADHD | Overall | $`-0.0020^{***}`$ (0.0003) | -0.89 | 0.77 |
+| Breadth | ADHD | Clinical | $`-0.0018^{***}`$ (0.0003) | -0.85 | 0.69 |
+| Breadth | ADHD | Lived experience | $`-0.0004^{\dagger}`$ (0.0006) | -0.18 | -0.06 |
+| Breadth | Autism | Overall | $`0.0001^{\dagger}`$ (0.0002) | 0.14 | -0.07 |
+| Breadth | Autism | Clinical | $`0.0007^{*\dagger}`$ (0.0003) | 0.58 | 0.28 |
+| Breadth | Autism | Lived experience | $`-0.0010^{*}`$ (0.0004) | -0.60 | 0.30 |
+
+Annual trend models for ADHD and Autism LSC trajectories by frame.
+
+</div>
+
+Note. Cells report annual OLS slopes as $`B(SE)`$; $`\beta`$ is the standardised year coefficient. Salience uses Common Crawl source year and has only an Overall target row; semantic measures use document publication year. $`^{\dagger}`$ indicates a residual-autocorrelation flag; AR(1) sensitivity estimates for flagged rows are reported in Appendix Table <a href="#tab:lsc-ar1-sensitivity-flagged" data-reference-type="ref" data-reference="tab:lsc-ar1-sensitivity-flagged">8.3</a>. Significance markers are descriptive and uncorrected: $`^{*}p<.05`$, $`^{**}p<.01`$, $`^{***}p<.001`$.
+
+## Salience
+
+Figure <a href="#fig:lsc-salience" data-reference-type="ref" data-reference="fig:lsc-salience">5.1</a> presents WARC-validated source-year salience. Autism remained more frequent than ADHD throughout 2014–2026, but declined by 0.0228 hits per million WET tokens per year ($`p=.024`$). The ADHD slope was positive but did not differ from zero ($`B=0.0073`$, $`p=.118`$). The 2014-indexed panel shows that the comparator trajectories also differed in direction; their trend models are reported in Appendix Table <a href="#tab:lsc-regression-baseline-comparators" data-reference-type="ref" data-reference="tab:lsc-regression-baseline-comparators">8.2</a>.
+
+<figure id="fig:lsc-salience" data-latex-placement="htbp">
+<embed src="lsc/salience/lsc_salience_primary_trajectories.pdf" />
+<figcaption>WARC-validated ADHD and autism hits per million WET tokens by Common Crawl source year. The right panel indexes each target and comparator series to its 2014 rate.</figcaption>
+</figure>
+
+## Classification
+
+Table <a href="#tab:lsc-classification-validation" data-reference-type="ref" data-reference="tab:lsc-classification-validation">5.2</a> reports held-out classifier performance. The substantive head was evaluated on all 200 passages and reached $`F_1=.861`$ and balanced accuracy $`=.791`$. The clinical and lived-experience heads were evaluated conditionally on the 141 passages labelled as substantive by the human coder. Their $`F_1`$ scores were .894 and .760, with balanced accuracies of .804 and .829, respectively.
+
+<div id="tab:lsc-classification-validation">
+
+| Validation target            | Support | Precision | Recall |  F1  | Accuracy | Bal. acc. |
+|:-----------------------------|:-------:|:---------:|:------:|:----:|:--------:|:---------:|
+| Substantive target discourse | 141/200 |   .887    |  .837  | .861 |   .810   |   .791    |
+| Clinical framing             | 105/141 |   .903    |  .886  | .894 |   .844   |   .804    |
+| Lived-experience framing     | 46/141  |   .704    |  .826  | .760 |   .830   |   .829    |
+
+Held-out validation performance for the hierarchical frame classifier.
+
+</div>
+
+Note. Support gives positive cases over the validation denominator. Substantive target discourse is evaluated on all 200 held-out passages. Clinical and lived-experience rows report Stage-1 head performance among the 141 passages marked as substantive target discourse in the human validation labels.
+
+The classifier labelled 96,864 target contexts: 28,611 for ADHD and 68,253 for autism. Clinical-only contexts comprised 42.1% of ADHD and 29.8% of autism contexts; lived-experience-only contexts comprised 12.6% and 18.8%, respectively. The remaining assignments were mixed (7.0% and 9.3%), non-substantive or insufficient (35.8% and 38.8%), and substantive-other (2.5% and 3.3%).
+
+Figure <a href="#fig:lsc-classification-frame-balance" data-reference-type="ref" data-reference="fig:lsc-classification-frame-balance">5.2</a> shows a shift toward lived-experience framing, especially in ADHD discourse. In the full predicted composition, lived-experience-only assignments increased from 10.7% to 15.7% of ADHD contexts between 2014–2017 and 2022–2026, while clinical-only assignments fell from 44.4% to 39.1%. Autism showed the same direction more weakly: lived-experience-only assignments increased from 17.6% to 19.6%, while clinical-only assignments fell from 31.3% to 27.7%. The annual trend model then restricts the denominator to the clear clinical-only and lived-experience-only assignments, estimating the lived-experience share among those two frames. On this contrast, ADHD increased by 1.07 percentage points per year ($`p<.001`$), a fitted 12.8-point rise from 2014 to 2026. Autism increased by 0.59 points per year ($`p=.013`$), a fitted 7.0-point rise, although this series was flagged for residual autocorrelation and the AR(1) sensitivity slope did not differ from zero ($`p=.370`$). The compact trend model table is reported in Appendix Table <a href="#tab:lsc-classification-frame-time-trends" data-reference-type="ref" data-reference="tab:lsc-classification-frame-time-trends">8.1</a>.
+
+<figure id="fig:lsc-classification-frame-balance" data-latex-placement="htbp">
+<embed src="lsc/classification/lsc_classification_frame_balance.pdf" />
+<figcaption>Predicted frame composition and clear-frame lived-experience trajectories for ADHD and autism target contexts. Panel A retains all predicted derived-frame labels and compares early (2014–2017) with late (2022–2026) periods. Panel B shows annual lived-experience share among contexts assigned either clinical-only or lived-experience-only; shaded bands are 95% document-bootstrap intervals and dashed lines are OLS trend summaries over publication years.</figcaption>
+</figure>
+
+## Sentiment
+
+The sentiment analysis contained 17,649 ADHD and 39,463 autism Overall contexts. These contexts yielded 102,861 and 249,845 NRC–VAD-matched collocate occurrences, respectively. In every annual Overall cell, at least 98.3% of ADHD contexts and 99.8% of autism contexts contributed one or more matches; matched-token coverage was at least 85.9% and 84.3%, respectively. No Overall target-year cell was flagged for low coverage.
+
+### ADHD
+
+Annual Overall valence ranged from .053 to .086. Its positive linear slope did not differ from zero ($`B=0.0012`$, $`p=.099`$); neither did the clinical or lived-experience slope. The clinical series was flagged for residual autocorrelation. Its diagnostic quadratic fit was U-shaped, with a minimum in 2019.7 and an adjusted-$`R^2`$ gain of .60 over the linear fit.
+
+### Autism
+
+Annual Overall valence ranged from .103 to .123. The Overall ($`B=0.0006`$, $`p=.110`$), clinical, and lived-experience linear slopes did not differ from zero. The clinical series was flagged for residual autocorrelation and had a U-shaped diagnostic fit with a minimum in 2019.2 and an adjusted-$`R^2`$ gain of .61.
+
+Figure <a href="#fig:lsc-sentiment-diagnostics" data-reference-type="ref" data-reference="fig:lsc-sentiment-diagnostics">5.3</a> presents the two flagged clinical trajectories and the corresponding Overall series. The quadratic fits describe curvature in the flagged series; they do not replace the primary annual estimates or establish a monotonic sentiment trend. Coefficients for the flagged diagnostic models are reported in Appendix Table <a href="#tab:lsc-quadratic-diagnostics" data-reference-type="ref" data-reference="tab:lsc-quadratic-diagnostics">8.4</a>.
+
+<figure id="fig:lsc-sentiment-diagnostics" data-latex-placement="htbp">
+<embed src="lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_targets.pdf" />
+<figcaption>Annual mean valence for Overall and clinical ADHD and autism contexts, with 95% document-bootstrap intervals and linear and diagnostic quadratic fits. The clinical series were flagged for residual autocorrelation; Overall series are shown for context.</figcaption>
+</figure>
+
+## Severity/Intensity
+
+Intensity reused the sentiment analysis’s NRC–VAD matches, so it was estimated from the same 17,649 ADHD and 39,463 autism Overall contexts and the same 102,861 and 249,845 matched collocate occurrences. The context- and token-coverage rates reported above therefore also apply to the arousal trajectories.
+
+### ADHD
+
+Annual Overall arousal ranged from $`-.037`$ to $`-.014`$. Arousal increased in the Overall ($`B=0.0010`$, $`p=.020`$) and clinical series ($`B=0.0013`$, $`p=.009`$). The lived-experience slope was also positive but did not differ from zero ($`p=.069`$).
+
+### Autism
+
+Annual Overall arousal ranged from $`-.033`$ to $`-.001`$. The Overall slope was positive but did not differ from zero ($`B=0.0011`$, $`p=.067`$). Clinical arousal increased ($`B=0.0011`$, $`p=.003`$), while the lived-experience slope did not differ from zero. Figure <a href="#fig:lsc-intensity" data-reference-type="ref" data-reference="fig:lsc-intensity">5.4</a> presents the target and comparator trajectories. Among the comparators, sadness increased; frustration and loneliness showed no linear change.
+
+<figure id="fig:lsc-intensity" data-latex-placement="htbp">
+<embed src="lsc/intensity/lsc_intensity_arousal_trajectories.pdf" />
+<figcaption>Annual mean NRC–VAD arousal for ADHD, autism, and comparator contexts. Shaded bands are 95% document-bootstrap intervals; dashed lines are OLS trend summaries.</figcaption>
+</figure>
+
+## Breadth
+
+The XL-LEXEME run embedded 145,430 marked context rows: 107,081 expanded target-frame rows and 38,349 sampled baseline rows. The target contexts were not capped; baseline terms were capped at 1,000 contexts per term-year. The embedding index represented 86,930 unique marked contexts, and no target-token marking failures were recorded. The annual trajectories therefore cover all unique markable target contexts retained after exact-context deduplication.
+
+### ADHD
+
+Overall breadth decreased from .138 in 2014 to .117 in 2026. The annual decline was present in Overall ($`B=-0.0020`$, $`p<.001`$, adjusted $`R^2=.775`$) and clinical contexts ($`B=-0.0018`$, $`p<.001`$). The lived-experience slope did not differ from zero. Figure <a href="#fig:lsc-breadth" data-reference-type="ref" data-reference="fig:lsc-breadth">5.5</a> presents these trajectories alongside the autism and comparator series.
+
+<figure id="fig:lsc-breadth" data-latex-placement="htbp">
+<embed src="lsc/breadth/lsc_breadth_trajectories.pdf" />
+<figcaption>Annual mean pairwise cosine distance among target-aware contextual embeddings for ADHD, autism, and comparator terms. Higher values indicate greater contextual breadth; shaded bands are 95% document-bootstrap intervals.</figcaption>
+</figure>
+
+### Autism
+
+Overall autism breadth was .096 in 2014 and .098 in 2026; its linear slope did not differ from zero. Lived-experience breadth declined ($`B=-0.0010`$, $`p=.030`$). The clinical linear slope was positive ($`B=0.0007`$, $`p=.036`$), but both clinical and Overall residuals were flagged for autocorrelation, and neither AR(1) sensitivity slope differed from zero.
+
+Figure <a href="#fig:lsc-breadth-autism-diagnostics" data-reference-type="ref" data-reference="fig:lsc-breadth-autism-diagnostics">5.6</a> shows the diagnostic quadratic fits for the two flagged autism series. Overall breadth followed an inverted-U fit with a vertex in 2020.3; the clinical fit had a vertex in 2021.4. The adjusted-$`R^2`$ gains over the linear fits were .58 and .51, respectively. Appendix Table <a href="#tab:lsc-quadratic-diagnostics" data-reference-type="ref" data-reference="tab:lsc-quadratic-diagnostics">8.4</a> reports the corresponding coefficients.
+
+<figure id="fig:lsc-breadth-autism-diagnostics" data-latex-placement="htbp">
+<embed src="lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autism.pdf" />
+<figcaption>Annual autism breadth for Overall and clinical contexts, with 95% document-bootstrap intervals and linear and diagnostic quadratic fits. Both series were flagged for residual autocorrelation.</figcaption>
+</figure>
+
+## Neighbour Similarity Evolution
+
+The thematic analysis began with 57,112 tokenised target contexts, of which 56,857 remained usable after content filtering. The complete annual top-five output contained 390 neighbour rows across two targets, three reporting strata, and 13 years. Stability filtering retained 28 neighbours and 364 annual similarity estimates; no audit flags were raised.
+
+For ADHD, the stable Overall neighbours were *child*, *disorder*, *symptom*, *diagnose*, and *condition*. The clinical set contained the same diagnostic and child-related vocabulary, while the lived-experience set retained *help*, *child*, and *diagnose*. The corresponding ADHD trajectories are reported in the appendix.
+
+Figure <a href="#fig:lsc-thematic-autism" data-reference-type="ref" data-reference="fig:lsc-thematic-autism">5.7</a> presents the autism trajectories. *Child* remained the highest-similarity stable neighbour in the Overall and clinical series. The remaining clinical neighbours were *disorder*, *research*, *study*, and *developmental*; the lived-experience set comprised *people*, *child*, *support*, *life*, and *family*.
+
+<figure id="fig:lsc-thematic-autism" data-latex-placement="htbp">
+<embed src="lsc/thematic_evolution/lsc_thematic_neighbour_similarity_autism.pdf" />
+<figcaption>Annual cosine similarity between the autism concept token and stable Word2Vec neighbours in Overall, clinical/disorder, and lived-experience contexts. Stable neighbours appeared in an annual top-five list in at least two years and had estimates in at least ten years.</figcaption>
+</figure>
+
+## Robustness Checks
+
+The alternative Warriner sentiment estimates remained small and did not differ from zero for either Overall target series. The intensity results were more sensitive to the affective resource: the positive NRC–VAD ADHD slope became negative under Warriner ($`B=-0.0005`$, $`p=.003`$), while the positive NRC–VAD autism estimate became approximately zero ($`B=-0.0000`$, $`p=.946`$).
+
+The breadth trajectories also differed by encoder. The ADHD Overall slope remained negative but did not differ from zero under MPNet ($`B=-0.0004`$, $`p=.445`$), compared with the steeper XL-LEXEME decline. Autism changed from a non-linear, approximately flat Overall XL-LEXEME series to a negative MPNet slope ($`B=-0.0014`$, $`p=.001`$). Figure <a href="#fig:lsc-method-robustness" data-reference-type="ref" data-reference="fig:lsc-method-robustness">5.8</a> shows these method comparisons as change from each method’s 2014 estimate.
+
+<figure id="fig:lsc-method-robustness" data-latex-placement="htbp">
+<embed src="lsc/robustness/lsc_method_robustness_intensity_breadth.pdf" />
+<figcaption>Method sensitivity of Overall target intensity and breadth trajectories, expressed as change from each method’s 2014 estimate. Main measures use NRC–VAD and XL-LEXEME; original SIBling operationalisations use Warriner norms and MPNet. Shaded bands are shifted annual bootstrap intervals.</figcaption>
+</figure>
 
 # Discussion
 
 # Conclusion
 
 # Appendices
+
+## Frame Classification Trend Models
+
+Table <a href="#tab:lsc-classification-frame-time-trends" data-reference-type="ref" data-reference="tab:lsc-classification-frame-time-trends">8.1</a> reports the compact descriptive trend models behind the clear-frame lived-experience trajectories in Figure <a href="#fig:lsc-classification-frame-balance" data-reference-type="ref" data-reference="fig:lsc-classification-frame-balance">5.2</a>.
+
+<div id="tab:lsc-classification-frame-time-trends">
+
+| Target | $`B(SE)`$              | $`\beta`$ | Adj. $`R^2`$ | Fitted 2014 | Fitted 2026 |
+|:-------|:-----------------------|:---------:|:------------:|:-----------:|:-----------:|
+| ADHD   | $`1.07^{***}`$ (0.15)  |   0.90    |     0.80     |    17.5%    |    30.3%    |
+| Autism | $`0.59^{*\dagger}`$ (0.20) |   0.67    |     0.39     |    35.9%    |    42.9%    |
+
+Descriptive annual trend models for clear-frame lived-experience share.
+
+</div>
+
+Note. The outcome is annual lived-experience share among contexts assigned to one clear substantive frame, defined as lived-only divided by lived-only plus clinical-only. Years are document publication years. $`B(SE)`$ is the annual OLS slope in percentage points per year; $`\beta`$ is the standardised year coefficient. Significance markers: $`^{*}p<.05`$, $`^{**}p<.01`$, $`^{***}p<.001`$. $`^{\dagger}`$ indicates a residual-autocorrelation flag; AR(1) sensitivity estimates for flagged rows are reported in Appendix Table <a href="#tab:lsc-ar1-sensitivity-flagged" data-reference-type="ref" data-reference="tab:lsc-ar1-sensitivity-flagged">8.3</a>. Figure intervals are 95% document-bootstrap intervals. P values are descriptive and uncorrected.
+
+## Baseline Comparator Trend Models
+
+Table <a href="#tab:lsc-regression-baseline-comparators" data-reference-type="ref" data-reference="tab:lsc-regression-baseline-comparators">8.2</a> reports the unframed comparator-term trend models used to contextualise the ADHD and autism target trajectories.
+
+<div id="tab:lsc-regression-baseline-comparators">
+
+| Measure | Comparator | $`B(SE)`$ | $`\beta`$ | Adj. $`R^2`$ |
+|:---|:---|:--:|:--:|:--:|
+| Salience | frustration | $`-0.0175^{\dagger}`$ (0.0167) | -0.30 | 0.01 |
+| Salience | loneliness | $`0.0056^{*}`$ (0.0021) | 0.62 | 0.33 |
+| Salience | sadness | $`-0.0171^{**}`$ (0.0039) | -0.80 | 0.61 |
+| Sentiment | frustration | $`0.0023^{*\dagger}`$ (0.0008) | 0.66 | 0.38 |
+| Sentiment | loneliness | $`0.0025^{*\dagger}`$ (0.0008) | 0.67 | 0.39 |
+| Sentiment | sadness | $`-0.0016^{**}`$ (0.0005) | -0.69 | 0.42 |
+| Intensity | frustration | $`-0.0003^{\dagger}`$ (0.0002) | -0.35 | 0.04 |
+| Intensity | loneliness | $`0.0001`$ (0.0004) | 0.06 | -0.09 |
+| Intensity | sadness | $`0.0020^{***}`$ (0.0003) | 0.92 | 0.83 |
+| Breadth | frustration | $`0.0020^{**}`$ (0.0006) | 0.72 | 0.48 |
+| Breadth | loneliness | $`-0.0007`$ (0.0004) | -0.51 | 0.19 |
+| Breadth | sadness | $`-0.0010^{**\dagger}`$ (0.0003) | -0.71 | 0.46 |
+
+Descriptive annual trend models for baseline comparator trajectories.
+
+</div>
+
+Note. Cells report annual OLS slopes as $`B(SE)`$; $`\beta`$ is the standardised year coefficient. Salience uses Common Crawl source year; semantic measures use document publication year. $`^{\dagger}`$ indicates a residual-autocorrelation flag; AR(1) sensitivity estimates for flagged rows are reported in Appendix Table <a href="#tab:lsc-ar1-sensitivity-flagged" data-reference-type="ref" data-reference="tab:lsc-ar1-sensitivity-flagged">8.3</a>. Significance markers are descriptive and uncorrected: $`^{*}p<.05`$, $`^{**}p<.01`$, $`^{***}p<.001`$.
+
+## AR(1) Sensitivity Models
+
+Table <a href="#tab:lsc-ar1-sensitivity-flagged" data-reference-type="ref" data-reference="tab:lsc-ar1-sensitivity-flagged">8.3</a> reports AR(1) sensitivity estimates for daggered rows in the compact trend tables.
+
+<div id="tab:lsc-ar1-sensitivity-flagged">
+
+| Source | Measure | Series | Frame | OLS $`B`$ | AR(1) $`B`$ | AR(1) $`p`$ |
+|:---|:---|:---|:---|:--:|:--:|:--:|
+| Table 5.1 | Sentiment | ADHD | Clinical | 0.0004 | 0.0015 | .295 |
+| Table 5.1 | Sentiment | Autism | Clinical | 0.0012 | 0.0025 | .077 |
+| Table 5.1 | Breadth | ADHD | Lived experience | -0.0004 | -0.0004 | .247 |
+| Table 5.1 | Breadth | Autism | Overall | 0.0001 | -0.0001 | .753 |
+| Table 5.1 | Breadth | Autism | Clinical | 0.0007 | 0.0002 | .755 |
+| Table 8.1 | Frame classification | Autism | Lived vs clinical | 0.59 | 0.23 | .370 |
+| Table 8.2 | Salience | frustration | Baseline | -0.0175 | 0.0160 | .538 |
+| Table 8.2 | Sentiment | frustration | Baseline | 0.0023 | 0.0072 | .003 |
+| Table 8.2 | Sentiment | loneliness | Baseline | 0.0025 | 0.0039 | .010 |
+| Table 8.2 | Intensity | frustration | Baseline | -0.0003 | -0.0010 | .050 |
+| Table 8.2 | Breadth | sadness | Baseline | -0.0010 | -0.0008 | .131 |
+
+AR(1) sensitivity models for autocorrelation-flagged annual series.
+
+</div>
+
+Note. Rows are the series marked with $`^{\dagger}`$ in the compact regression tables. OLS $`B`$ repeats the primary annual slope; AR(1) $`B`$ reports the first-order autoregressive sensitivity slope for the same series. The frame-classification row is reported in percentage points per year; all other rows use the original index units per year. P values are descriptive and uncorrected.
+
+## Quadratic Trend Diagnostics
+
+Table <a href="#tab:lsc-quadratic-diagnostics" data-reference-type="ref" data-reference="tab:lsc-quadratic-diagnostics">8.4</a> reports the diagnostic quadratic models for annual LSC trajectories whose linear residual diagnostics were flagged for autocorrelation.
+
+<div id="tab:lsc-quadratic-diagnostics">
+
+| Measure | Target | Frame | Linear $`B(SE)`$ | Quadratic $`B_2(SE)`$ | $`\Delta`$ Adj. $`R^2`$ | Vertex |
+|:---|:---|:---|:--:|:--:|:--:|:--:|
+| Breadth | Autism | Overall | $`0.0001`$ (0.0002) | $`-0.0002^{**}`$ (0.0000) | 0.58 | 2020.3 (inverted U) |
+| Breadth | Autism | Clinical | $`0.0007^{*}`$ (0.0003) | $`-0.0003^{***}`$ (0.0001) | 0.51 | 2021.4 (inverted U) |
+| Sentiment | ADHD | Clinical | $`0.0004`$ (0.0009) | $`0.0007^{**}`$ (0.0002) | 0.60 | 2019.7 (U) |
+| Sentiment | Autism | Clinical | $`0.0012`$ (0.0009) | $`0.0007^{**}`$ (0.0002) | 0.61 | 2019.2 (U) |
+
+Quadratic diagnostic trend models for flagged LSC trajectories.
+
+</div>
+
+Note. Rows are restricted to annual series whose linear-model residual diagnostic was flagged for autocorrelation. Linear $`B`$ is the annual OLS slope from the main trend model. Quadratic $`B_2`$ is the centred-year-squared coefficient from the diagnostic model; $`\Delta`$ Adj. $`R^2`$ is the adjusted-$`R^2`$ gain over the linear model. Quadratic fits are diagnostic follow-ups, not replacements for the primary linear trend summaries. Significance markers are descriptive and uncorrected: $`^{*}p<.05`$, $`^{**}p<.01`$, $`^{***}p<.001`$.
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 

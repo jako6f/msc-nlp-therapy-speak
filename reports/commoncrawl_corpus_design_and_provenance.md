@@ -9,7 +9,7 @@
 
 ## 1. Purpose and Scope
 
-This document records the design, configuration, and methodological decisions behind the Common Crawl collection pipeline used in this repository. It is intended to be public-facing: a reader should be able to understand what the corpus is designed to measure, how documents enter or leave the pipeline, which key parameters are frozen in config, and which limitations remain.
+This document records the design, configuration, and methodological decisions behind the Common Crawl collection pipeline used in this repository. It is intended to inform the reader what the corpus is designed to measure, how documents enter or leave the pipeline, which key parameters are frozen in config, and which limitations remain.
 
 The document is a provenance and design record, not an execution manual. Step-by-step commands are maintained separately in `reports/commoncrawl_collection_runbook.md`.
 
@@ -496,24 +496,7 @@ Known limitations:
 
 The pipeline intentionally avoids filtering by target-term centrality. Such filtering might raise apparent precision but would bias the very language around ADHD/autism that the project aims to study.
 
-## 17. Intended and Non-Intended Uses
-
-Intended uses:
-
-- diachronic analysis of ADHD/autism mentions in general web discourse;
-- comparison against broader affective-language baselines;
-- semantic/discourse modelling over WARC-extracted document text;
-- transparent reporting of collection rates and retention at WET and WARC stages.
-
-Non-intended uses:
-
-- estimating clinical prevalence;
-- inferring individual diagnoses or user-level attributes;
-- treating Common Crawl as demographically representative;
-- deploying models trained on this corpus for high-stakes decisions;
-- making claims that require complete capture of online discourse.
-
-## 18. Config Decision Reference
+## 17. Config Decision Reference
 
 | Area | Config value | Decision |
 | --- | --- | --- |
@@ -548,17 +531,3 @@ Non-intended uses:
 | FineWeb line punctuation | `0.0` | Disabled because Trafilatura line segmentation made the default over-aggressive. |
 | Language | `py3langid`, keep `en` | English-only corpus. |
 | Near-dedup | 5-gram Jaccard `0.9` | Local, auditable near-duplicate removal. |
-
-## 19. Maintenance
-
-This document should be updated when any of the following change:
-
-- active config values;
-- term inventory;
-- crawl-selection logic;
-- WET or WARC filtering rules;
-- document-quality filters;
-- output layout;
-- intended uses or known limitations.
-
-Operational instructions belong in `reports/commoncrawl_collection_runbook.md`. This document should remain the canonical methodological and provenance record.

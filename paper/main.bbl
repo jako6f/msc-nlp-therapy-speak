@@ -1,4 +1,4 @@
-\begin{thebibliography}{42}
+\begin{thebibliography}{56}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Alper et~al.(2025)Alper, Rauchberg, Simpson, Guberman, and
@@ -9,6 +9,13 @@ Alper, Meryl, Jessica~Sage Rauchberg, Ellen Simpson, Josh Guberman, and Sarah
   {{Autism}}, self-discovery, and platformed diagnosis on \#autisktok.
 \newblock \emph{New Media \& Society}, 27(3):1378--1396.
 
+\bibitem[{{American Psychiatric
+  Association}(2013)}]{americanpsychiatricassociationDiagnosticStatisticalManual2013}
+{American Psychiatric Association}, editor. 2013.
+\newblock \emph{Diagnostic and Statistical Manual of Mental Disorders:
+  {{DSM-5}}}, 5th ed edition.
+\newblock American Psychiatric Association, Washington, D.C.
+
 \bibitem[{{Aragon-Guevara} et~al.(2025){Aragon-Guevara}, Castle, Sheridan, and
   Vivanti}]{aragon-guevaraReachAccuracyInformation2025}
 {Aragon-Guevara}, Diego, Grace Castle, Elisabeth Sheridan, and Giacomo Vivanti.
@@ -17,6 +24,12 @@ Alper, Meryl, Jessica~Sage Rauchberg, Ellen Simpson, Josh Guberman, and Sarah
   {{TikTok}}.
 \newblock \emph{Journal of Autism and Developmental Disorders},
   55(6):1953--1958.
+
+\bibitem[{{Australian Bureau of Statistics}(2023)}]{abs2024}
+{Australian Bureau of Statistics}. 2023.
+\newblock National {{Study}} of {{Mental Health}} and {{Wellbeing}}, 2020-2022.
+\newblock
+  https://www.abs.gov.au/statistics/health/mental-health/national-study-mental-health-and-wellbeing/latest-release.
 
 \bibitem[{{AWS}()}]{CloudComputingServices}
 {AWS}.
@@ -54,6 +67,33 @@ Baes, Naomi, Ekaterina Vylomova, Michael Zyphur, and Nick Haslam. 2023.
 \newblock The semantic inflation of ``trauma'' in psychology.
 \newblock \emph{Psychology of Language and Communication}, 27(1):23--45.
 
+\bibitem[{Barbaresi(2021)}]{barbaresiTrafilaturaWebScraping2021}
+Barbaresi, Adrien. 2021.
+\newblock Trafilatura: {{A Web Scraping Library}} and {{Command-Line Tool}} for
+  {{Text Discovery}} and {{Extraction}}.
+\newblock In \emph{Proceedings of the 59th {{Annual Meeting}} of the
+  {{Association}} for {{Computational Linguistics}} and the 11th
+  {{International Joint Conference}} on {{Natural Language Processing}}:
+  {{System Demonstrations}}}, pages 122--131, Association for Computational
+  Linguistics, Online.
+
+\bibitem[{Beeker et~al.(2021)Beeker, Mills, Bhugra, {te Meerman}, Thoma,
+  Heinze, and {von Peter}}]{beekerPsychiatrizationSocietyConceptual2021}
+Beeker, Timo, China Mills, Dinesh Bhugra, Sanne {te Meerman}, Samuel Thoma,
+  Martin Heinze, and Sebastian {von Peter}. 2021.
+\newblock Psychiatrization of {{Society}}: {{A Conceptual Framework}} and
+  {{Call}} for {{Transdisciplinary Research}}.
+\newblock \emph{Frontiers in Psychiatry}, 12.
+
+\bibitem[{Bevendorff et~al.(2018)Bevendorff, Stein, Hagen, and
+  Potthast}]{bevendorffElasticChatNoirSearch2018}
+Bevendorff, Janek, Benno Stein, Matthias Hagen, and Martin Potthast. 2018.
+\newblock Elastic {{ChatNoir}}: {{Search Engine}} for the {{ClueWeb}} and the
+  {{Common Crawl}}.
+\newblock In Gabriella Pasi, Benjamin Piwowarski, Leif Azzopardi, and Allan
+  Hanbury, editors, \emph{Advances in {{Information Retrieval}}}, volume 10772.
+  Springer International Publishing, Cham, pages 820--824.
+
 \bibitem[{Bolinski et~al.(2020)Bolinski, Boumparis, Kleiboer, Cuijpers, Ebert,
   and Riper}]{bolinskiEffectEmentalHealth2020}
 Bolinski, F., N.~Boumparis, A.~Kleiboer, P.~Cuijpers, D.~D. Ebert, and
@@ -79,6 +119,13 @@ Cassotti, Pierluigi, Lucia Siciliani, Marco DeGemmis, Giovanni Semeraro, and
   {{Association}} for {{Computational Linguistics}} ({{Volume}} 2: {{Short
   Papers}})}, pages 1577--1585, Association for Computational Linguistics,
   Toronto, Canada.
+
+\bibitem[{Chatterjee and Hadi(2012)}]{chatterjeeRegressionAnalysisExample2012}
+Chatterjee, Samprit and Ali~S. Hadi. 2012.
+\newblock The {{Problem}} of {{Correlated Errors}}.
+\newblock In \emph{Regression Analysis by Example}, fifth edition edition,
+  Wiley Series in Probability and Statistics. Wiley, Hoboken, New Jersey, pages
+  209--228.
 
 \bibitem[{{Common Crawl Team}(2024)}]{CommonCrawlGet}
 {Common Crawl Team}. 2024.
@@ -121,11 +168,6 @@ Foulkes, Lucy and Jack~L. Andrews. 2023.
   hypothesis.
 \newblock \emph{New Ideas in Psychology}, 69:101010.
 
-\bibitem[{Furedi(2016)}]{furediCulturalUnderpinningConcept2016}
-Furedi, Frank. 2016.
-\newblock The {{Cultural Underpinning}} of {{Concept Creep}}.
-\newblock \emph{Psychological Inquiry}, 27(1):34--39.
-
 \bibitem[{Ginapp et~al.(2023)Ginapp, Greenberg, {Macdonald-Gagnon}, Angarita,
   Bold, and Potenza}]{ginappExperiencesAdultsADHD2023}
 Ginapp, Callie~M., Norman~R. Greenberg, Grace {Macdonald-Gagnon}, Gustavo~A.
@@ -144,21 +186,17 @@ Gjurkovi{\'c}, Matej, Vanja~Mladen Karan, Iva Vukojevi{\'c}, Mihaela Bo{\v
   {{Natural Language Processing}} for {{Social Media}}}, pages 138--152,
   Association for Computational Linguistics, Online.
 
-\bibitem[{Grimmer, Roberts, and Stewart(2022)}]{grimmerTextDataNew2022}
-Grimmer, Justin, Margaret~E. Roberts, and Brandon~M. Stewart. 2022.
-\newblock \emph{Text as Data: A New Framework for Machine Learning and the
-  Social Sciences}.
-\newblock Princeton University Press, Princeton Oxford.
+\bibitem[{Haidt(2025)}]{haidtAnxiousGenerationHow2025}
+Haidt, Jonathan. 2025.
+\newblock \emph{The {{Anxious Generation}}: {{How}} the {{Great Rewiring}} of
+  {{Childhood Is Causing}} an {{Epidemic}} of {{Mental Illness}}}.
+\newblock Penguin Books, London.
 
-\bibitem[{Hamilton, Leskovec, and
-  Jurafsky(2016)}]{hamiltonDiachronicWordEmbeddings2016}
-Hamilton, William~L., Jure Leskovec, and Dan Jurafsky. 2016.
-\newblock Diachronic {{Word Embeddings Reveal Statistical Laws}} of {{Semantic
-  Change}}.
-\newblock In \emph{Proceedings of the 54th {{Annual Meeting}} of the
-  {{Association}} for {{Computational Linguistics}} ({{Volume}} 1: {{Long
-  Papers}})}, pages 1489--1501, Association for Computational Linguistics,
-  Berlin, Germany.
+\bibitem[{Hartnett and Cummings(2024)}]{hartnettSocialMediaADHD2024}
+Hartnett, Y. and E.~Cummings. 2024.
+\newblock Social media and {{ADHD}}: Implications for clinical assessment and
+  treatment.
+\newblock \emph{Irish Journal of Psychological Medicine}, 41(1):132--136.
 
 \bibitem[{Haslam(2016)}]{haslamConceptCreepPsychologys2016}
 Haslam, Nick. 2016.
@@ -166,12 +204,23 @@ Haslam, Nick. 2016.
   {{Harm}} and {{Pathology}}.
 \newblock \emph{Psychological Inquiry}, 27(1):1--17.
 
+\bibitem[{Haslam(2026)}]{haslamConceptCreepMental2026}
+Haslam, Nick. 2026.
+\newblock Concept {{Creep}} and the {{Mental Health Crisis}}.
+\newblock \emph{Social Issues and Policy Review}, 20(1):e70007.
+
 \bibitem[{Haslam et~al.(2020)Haslam, Dakin, Fabiano, McGrath, Rhee, Vylomova,
   Weaving, and Wheeler}]{haslamHarmInflationMaking2020}
 Haslam, Nick, Brodie~C. Dakin, Fabian Fabiano, Melanie~J. McGrath, Joshua Rhee,
   Ekaterina Vylomova, Morgan Weaving, and Melissa~A. Wheeler. 2020.
 \newblock Harm inflation: {{Making}} sense of concept creep.
 \newblock \emph{European Review of Social Psychology}, 31(1):254--286.
+
+\bibitem[{Haslam and Tse(2026)}]{haslamConceptCreepCalibration2026}
+Haslam, Nick and Jesse S.~Y. Tse. 2026.
+\newblock Concept creep and the calibration of harm.
+\newblock \emph{Journal of Applied Research in Memory and Cognition},
+  15(1):1--11.
 
 \bibitem[{Iacob and Uban(2026)}]{iacobComputationalAnalysisEmergence2026}
 Iacob, Alina and Ana~Sabina Uban. 2026.
@@ -200,6 +249,14 @@ Kang, Jemima, Nick Haslam, and Mike Conway. 2025.
   Data}}.
 \newblock \emph{Journal of Medical Internet Research}, 27(1):e70914.
 
+\bibitem[{Kutuzov et~al.(2018)Kutuzov, {\O}vrelid, Szymanski, and
+  Velldal}]{kutuzovDiachronicWordEmbeddings2018}
+Kutuzov, Andrey, Lilja {\O}vrelid, Terrence Szymanski, and Erik Velldal. 2018.
+\newblock Diachronic word embeddings and semantic shifts: A survey.
+\newblock In \emph{Proceedings of the 27th {{International Conference}} on
+  {{Computational Linguistics}}}, pages 1384--1397, Association for
+  Computational Linguistics, Santa Fe, New Mexico, USA.
+
 \bibitem[{Lin et~al.(2025)Lin, Shi, Han, Chen, Chen, Li, Li, Li, Sun, and
   Gao}]{linACTHumanMultimodal2025}
 Lin, Lequan, Dai Shi, Andi Han, Feng Chen, Qiuzheng Chen, Jiawen Li, Zhaoyang
@@ -208,10 +265,11 @@ Lin, Lequan, Dai Shi, Andi Han, Feng Chen, Qiuzheng Chen, Jiawen Li, Zhaoyang
   Annotation}} with {{Critical Thinking}}.
 \newblock https://arxiv.org/abs/2511.09833v2.
 
-\bibitem[{Manning(2022)}]{manningHumanLanguageUnderstanding2022}
-Manning, Christopher~D. 2022.
-\newblock Human {{Language Understanding}} \& {{Reasoning}}.
-\newblock \emph{Daedalus}, 151(2):127--138.
+\bibitem[{Lui and Baldwin(2012)}]{luiLangidpyOfftheshelfLanguage2012}
+Lui, Marco and Timothy Baldwin. 2012.
+\newblock Langid.py: {{An Off-the-shelf Language Identification Tool}}.
+\newblock In \emph{Proceedings of the {{ACL}} 2012 {{System Demonstrations}}},
+  pages 25--30, Association for Computational Linguistics, Jeju Island, Korea.
 
 \bibitem[{Martin et~al.(2025)Martin, Rubin, Rogers, Wessely, Greenberg, Hall,
   Pitt, Logan, Lucas, and Brooks}]{martinChangingPrevalenceADHD2025}
@@ -246,12 +304,25 @@ Ndour, Awa and Lucy Foulkes. 2025.
   implications: A narrative review.
 \newblock \emph{European Child \& Adolescent Psychiatry}, 34(8):2297--2326.
 
+\bibitem[{Penedo et~al.(2026)Penedo, Kydl{\'i}{\v c}ek, Cappelli, Wolf, and
+  Sasko}]{penedoDataTroveLargeScale2026}
+Penedo, Guilherme, Hynek Kydl{\'i}{\v c}ek, Alessandro Cappelli, Thomas Wolf,
+  and Mario Sasko. 2026.
+\newblock {{DataTrove}}: Large scale data processing.
+
 \bibitem[{Pisl, Bucur, and Podina(2025)}]{pislRevisitingSemanticSeverity2025}
 Pisl, Vojtech, Ana-Maria Bucur, and Ioana~R. Podina. 2025.
 \newblock Revisiting the {{Semantic Severity}} of {{Anxiety}} and
   {{Depression}}: {{Computational Linguistic Study}} of {{Normalization}} and
   {{Pathologization}}.
 \newblock \emph{Journal of Medical Internet Research}, 27(1):e73950.
+
+\bibitem[{de~S{\'a}, Silveira, and
+  Pruski(2026)}]{saSurveyCharacterizingSemantic2026}
+de~S{\'a}, Jader Martins~Camboim, Marcos~Da Silveira, and C{\'e}dric Pruski.
+  2026.
+\newblock Survey in characterizing semantic change.
+\newblock \emph{Natural Language Processing}, 32(3):233--266.
 
 \bibitem[{Sampogna et~al.(2017)Sampogna, Bakolis, {Evans-Lacko}, Robinson,
   Thornicroft, and Henderson}]{sampognaImpactSocialMarketing2017}
@@ -275,11 +346,33 @@ Spencer, Lucienne and Havi Carel. 2021.
   of {{Wrongful Depathologization}}.
 \newblock \emph{Philosophy of Medicine}, 2(1).
 
+\bibitem[{Tahmasebi, Borin, and
+  Jatowt(2019)}]{tahmasebiSurveyComputationalApproaches2019}
+Tahmasebi, Nina, Lars Borin, and Adam Jatowt. 2019.
+\newblock Survey of {{Computational Approaches}} to {{Lexical Semantic
+  Change}}.
+
+\bibitem[{Tang(2018)}]{tangStateoftheartSemanticChange2018}
+Tang, Xuri. 2018.
+\newblock A state-of-the-art of semantic change computation.
+\newblock \emph{Natural Language Engineering}, 24(5):649--676.
+
 \bibitem[{Vylomova and Haslam(2021)}]{vylomovaSemanticChangesHarmrelated2021}
 Vylomova, Ekaterina and Nick Haslam. 2021.
 \newblock Semantic changes in harm-related concepts in {{English}}.
 \newblock In \emph{Computational Approaches to Semantic Change}. Language
   Science Press, Berlin, pages 93--121.
+
+\bibitem[{Wakefield(1992)}]{wakefieldConceptMentalDisorder1992}
+Wakefield, Jerome~C. 1992.
+\newblock The concept of mental disorder: {{On}} the boundary between
+  biological facts and social values.
+\newblock \emph{American Psychologist}, 47(3):373--388.
+
+\bibitem[{Weigle and Shafi(2024)}]{weigleSocialMediaYouth2024}
+Weigle, Paul~E. and Reem M.~A. Shafi. 2024.
+\newblock Social {{Media}} and {{Youth Mental Health}}.
+\newblock \emph{Current Psychiatry Reports}, 26(1):1--8.
 
 \bibitem[{Wenzek et~al.(2019)Wenzek, Lachaux, Conneau, Chaudhary, Guzm{\'a}n,
   Joulin, and Grave}]{wenzekCCNetExtractingHigh2019}

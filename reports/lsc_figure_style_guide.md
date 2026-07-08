@@ -22,6 +22,13 @@ This guide keeps figures from the diachronic LSC notebooks visually consistent a
 - Do not save all-frame or coverage diagnostic plots by default. Keep those diagnostics in annual score tables, coverage tables, sampling/raw-form diagnostics, and audit-flag outputs.
 - Do not mark significant slopes directly in the figures. Report p-values, residual-autocorrelation flags, and sensitivity results in the trend tables and text.
 
+## Classification Frame Balance Figure
+
+- The primary classification composition figure should show the clinical/disorder versus lived-experience balance for ADHD and Autism in two equal-width horizontal panels.
+- Plot frame shares over publication year using only clear clinical/disorder and lived-experience assignments as the denominator.
+- Keep mixed, non-substantive, and sparse substantive-other labels in appendix tables and notebook summaries rather than in the main composition figure.
+- Use the frame-category palette for the two plotted lines, because colour encodes frame category rather than analysis unit.
+
 ## Salience Figure
 
 - Salience uses Common Crawl source year rather than publication year, so its figure should make the source-year axis explicit.
@@ -57,7 +64,7 @@ Use lighter condition shades for target frame traces.
 | ADHD | `#2F6F9F` | `#75A9C8` | `#AECFE0` | `#D4E4EC` |
 | Autism | `#B66A4A` | `#CE8D70` | `#E1B49D` | `#F2D8CF` |
 
-Use frame-category colours for stacked composition figures and other non-condition-specific frame displays.
+Use frame-category colours for frame-composition figures and other non-condition-specific frame displays.
 
 | frame category | colour |
 |---|---|

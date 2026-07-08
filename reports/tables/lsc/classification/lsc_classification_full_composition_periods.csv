@@ -1,0 +1,21 @@
+analysis_unit,predicted_derived_frame,contexts,period,period_start_year,period_end_year,target_period_contexts,pct_within_target_period,frame_label,frame_order
+ADHD,clinical_only,4737,2014-2017,2014,2017,10664,0.4442048012003001,Clinical/disorder,0
+ADHD,lived_only,1138,2014-2017,2014,2017,10664,0.10671417854463616,Lived experience,1
+ADHD,mixed,680,2014-2017,2014,2017,10664,0.06376594148537135,Mixed,2
+ADHD,non_substantive_or_insufficient,3844,2014-2017,2014,2017,10664,0.36046511627906974,Non-substantive,3
+ADHD,substantive_other,265,2014-2017,2014,2017,10664,0.024849962490622657,Substantive other,4
+ADHD,clinical_only,3233,2022-2026,2022,2026,8260,0.3914043583535109,Clinical/disorder,0
+ADHD,lived_only,1293,2022-2026,2022,2026,8260,0.15653753026634382,Lived experience,1
+ADHD,mixed,660,2022-2026,2022,2026,8260,0.07990314769975787,Mixed,2
+ADHD,non_substantive_or_insufficient,2889,2022-2026,2022,2026,8260,0.34975786924939467,Non-substantive,3
+ADHD,substantive_other,185,2022-2026,2022,2026,8260,0.022397094430992737,Substantive other,4
+Autism,clinical_only,9092,2014-2017,2014,2017,29018,0.31332276518023294,Clinical/disorder,0
+Autism,lived_only,5093,2014-2017,2014,2017,29018,0.1755117513267627,Lived experience,1
+Autism,mixed,2504,2014-2017,2014,2017,29018,0.08629126748914467,Mixed,2
+Autism,non_substantive_or_insufficient,11311,2014-2017,2014,2017,29018,0.38979254255979046,Non-substantive,3
+Autism,substantive_other,1018,2014-2017,2014,2017,29018,0.0350816734440692,Substantive other,4
+Autism,clinical_only,4593,2022-2026,2022,2026,16568,0.27722114920328345,Clinical/disorder,0
+Autism,lived_only,3245,2022-2026,2022,2026,16568,0.1958594881699662,Lived experience,1
+Autism,mixed,1585,2022-2026,2022,2026,16568,0.09566634476098503,Mixed,2
+Autism,non_substantive_or_insufficient,6617,2022-2026,2022,2026,16568,0.3993843553838725,Non-substantive,3
+Autism,substantive_other,528,2022-2026,2022,2026,16568,0.0318686624818928,Substantive other,4
