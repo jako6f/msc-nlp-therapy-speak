@@ -1,0 +1,10 @@
+seed,in_vocabulary,corpus_count
+mental,True,18322
+schizophrenia,True,1922
+health,True,31627
+disease,True,7902
+drug,True,4135
+therapy,True,12729
+melancholia,True,61
+psychiatry,True,1248
+psychology,True,2578

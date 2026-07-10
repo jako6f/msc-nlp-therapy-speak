@@ -2,14 +2,14 @@ This chapter reports diachronic results for salience, frame composition, sentime
 
 The semantic results foreground the overall aggregate and the two clear, mutually exclusive frames: clinical-only and lived-experience-only. The overall aggregate combines clinical-only, lived-experience-only, and mixed contexts. Mixed contexts are not plotted separately because this smaller stratum generally occupied an intermediate position between the overall and clinical trajectories and added visual overlap. Substantive-other contexts were sparse and outside the main frame contrast, while non-substantive or insufficient contexts were treated as a quality and composition category rather than as a semantic frame.
 
-Table~\ref{tab:lsc-regression-target-frames} reports the target trend models. At the uncorrected $p<.05$ level, autism salience declined; no target sentiment slope differed from zero; intensity increased for ADHD overall and for the clinical frames of both targets; and breadth decreased for ADHD overall, ADHD clinical contexts, and autism lived-experience contexts. The autism clinical breadth OLS slope was nominally positive but was not retained by the AR(1) sensitivity model.
+Table~\ref{tab:lsc-regression-target-frames} reports the target trend models. At the uncorrected $p<.05$ level, autism salience declined; frame composition shifted toward lived-experience; no target sentiment slope differed from zero; intensity increased for ADHD overall and for the clinical frames of both targets; and breadth decreased for ADHD overall, ADHD clinical contexts, and autism lived-experience contexts. The autism clinical breadth OLS slope was nominally positive but was not retained by the AR(1) sensitivity model.
 
 \input{../reports/tables/lsc/regression/lsc_regression_target_frames.tex}
 \FloatBarrier
 
 \section{Salience}
 
-Figure~\ref{fig:lsc-salience} presents WARC-validated source-year salience. Autism remained more frequent than ADHD throughout 2014--2026 and declined annually ($B=-0.0228$, $p=.024$, adjusted $R^2=.33$). The ADHD slope was positive but did not differ from zero ($B=0.0073$, $p=.118$, adjusted $R^2=.14$). The 2014-indexed panel shows the target trajectories relative to the comparators; comparator trend models are reported in Appendix Table~\ref{tab:lsc-regression-baseline-comparators}.
+Figure~\ref{fig:lsc-salience} presents WARC-validated source-year salience. Autism remained more frequent than ADHD throughout 2014--2026, but the fitted salience trajectory declined by 28.9\% from 2014 to 2026 ($B=-0.0228$, $p=.024$, adjusted $R^2=.33$). ADHD moved in the opposite direction, with a fitted 27.0\% increase over the same period, although the annual slope did not differ from zero ($B=0.0073$, $p=.118$, adjusted $R^2=.14$). The indexed panel shows the target trajectories relative to the comparators; comparator trend models are reported in Appendix Table~\ref{tab:lsc-regression-baseline-comparators}.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -22,7 +22,7 @@ Figure~\ref{fig:lsc-salience} presents WARC-validated source-year salience. Auti
 
 \section{Frame Classification}
 
-Table~\ref{tab:lsc-classification-validation} reports held-out classifier performance. The substantive head was evaluated on all 200 passages and reached $F_1=.861$ and balanced accuracy $=.791$. The clinical and lived-experience heads were evaluated conditionally on the 141 passages labelled as substantive by the human coder. Their $F_1$ scores were .894 and .760, with balanced accuracies of .804 and .829, respectively.
+Table~\ref{tab:lsc-classification-validation} shows that the hierarchical classifier performed well on held-out passages, with strongest performance for substantive-context detection and clinical framing, and weaker but still usable performance for lived-experience framing. The substantive head was evaluated on all 200 passages and reached $F_1=.861$ and balanced accuracy $=.791$. The clinical and lived-experience heads were evaluated conditionally on the 141 passages labelled as substantive by the human coder. Their $F_1$ scores were .894 and .760, with balanced accuracies of .804 and .829, respectively.
 
 \input{../reports/tables/lsc/classification/lsc_classification_validation_performance.tex}
 \FloatBarrier

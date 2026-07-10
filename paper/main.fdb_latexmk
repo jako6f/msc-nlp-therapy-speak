@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1783517184.57047 "main.aux" "main.bbl" "main" 1783517185.66415 0
+["bibtex main"] 1783517184.57047 "main.aux" "main.bbl" "main" 1783588902.59837 0
   "./bibs/compling.bst" 1466089174 35003 709fec516d3affeff78a1299f228e160 ""
   "./bibs/msc-nlp-therapy-speak.bib" 1783502247.05777 120512 6b82ad122779cd3286692ffe637c550f ""
-  "main.aux" 1783517185.38169 20340 735f44fc72b17c73aa47e48c9231fa38 "pdflatex"
+  "main.aux" 1783588902.30259 20340 735f44fc72b17c73aa47e48c9231fa38 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1783517184.67934 "main.tex" "main.pdf" "main" 1783517185.66433 0
+["pdflatex"] 1783588901.48961 "main.tex" "main.pdf" "main" 1783588902.59853 0
   "../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pdf" 1783517115.42964 42857 4cf7c0a9d24799b090bf7991760a6bf7 ""
   "../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf" 1783515425.40609 32911 9422c832d781589d3199c07756ab4664 ""
   "../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf" 1783515256.48473 32885 2507417bff50579de14ea4b843d06440 ""
@@ -155,19 +155,19 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1758644622 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1741450574 3345740 46b66fdb0378f7bf5921b5eabf1762b8 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "main.aux" 1783517185.38169 20340 735f44fc72b17c73aa47e48c9231fa38 "pdflatex"
+  "main.aux" 1783588902.30259 20340 735f44fc72b17c73aa47e48c9231fa38 "pdflatex"
   "main.bbl" 1783517184.67659 19461 b3b4603c49712839576cd8f6ad3e7fa2 "bibtex main"
-  "main.lof" 1783517185.38399 1472 ca730b891d03633d6169c9345c2b43ed "pdflatex"
-  "main.lot" 1783517185.38401 1211 a2f214d644612e579708303e07382e4b "pdflatex"
-  "main.out" 1783517185.38367 4898 ff5cdba5afb51eb6784e6978f83c5a1d "pdflatex"
+  "main.lof" 1783588902.30492 1472 ca730b891d03633d6169c9345c2b43ed "pdflatex"
+  "main.lot" 1783588902.30497 1211 a2f214d644612e579708303e07382e4b "pdflatex"
+  "main.out" 1783588902.30452 4898 ff5cdba5afb51eb6784e6978f83c5a1d "pdflatex"
   "main.tex" 1782911739.17498 3820 fc1d1530ff888e50bb24fd6fdaf2f838 ""
-  "main.toc" 1783517185.38395 2690 948fc23d922139d5198f6c02aa15ebf2 "pdflatex"
+  "main.toc" 1783588902.30486 2690 948fc23d922139d5198f6c02aa15ebf2 "pdflatex"
   "sections/00_abstract.tex" 1783343881.18655 62 cbd94a117303222d150e7b7e6364561b ""
   "sections/01_introduction.tex" 1783502652.77112 6832 a3179a1cbaa7d1cf959f11f06635bc61 ""
   "sections/02_related_work.tex" 1783516911.92547 14124 c3faf0eedc4d33facd32feea76d56148 ""
-  "sections/03_data_and_materials.tex" 1783517175.6975 12028 65bef7101da449b4487ae521ae8e91f6 ""
+  "sections/03_data_and_materials.tex" 1783517432.10608 12031 25b6a6276c60698b7b6b1ad9770a0805 ""
   "sections/04_methods.tex" 1783515491.12556 16394 0786a1443c9d6520e73746875b156f22 ""
-  "sections/05_results.tex" 1783515164.13481 16697 a5fd7b5b6d5ff6c23839ba9c09fb3ab7 ""
+  "sections/05_results.tex" 1783588865.90075 17321 ac26cbc0d225fed79e6ff882864904fc ""
   "sections/06_discussion.tex" 1780052529.86859 153 ca090d1c478224d90eb18dcf7ae67682 ""
   "sections/07_conclusion.tex" 1780052529.86897 66 c70a3599f778b039695d459570fa3d1e ""
   "sections/08_appendices.tex" 1783516147.56263 2166 cf56e0a753018a5821d6efbfcb4da159 ""

@@ -1,0 +1,181 @@
+analysis_unit,frame_stratum,frame_label,period,period_order,period_start,period_end,rank,word,occurrences_in_high_distance_contexts,high_distance_contexts_with_word,high_distance_documents_with_word,high_distance_contexts_used,context_share,mean_context_avg_distance
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,1,disorder,25,10,9,20,0.5,0.38129176077524385
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,2,behavior,4,4,4,20,0.2,0.37768823396706697
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,3,childhood,4,4,4,20,0.2,0.38096721534984346
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,4,impulsivity,4,4,4,20,0.2,0.38096721534984346
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,5,inattention,4,4,4,20,0.2,0.38096721534984346
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,6,case,3,3,3,20,0.15,0.3772039705865658
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,7,characterize,3,3,3,20,0.15,0.3772039705865658
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,8,diagnose,3,3,3,20,0.15,0.3772039705865658
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,9,problem,3,3,3,20,0.15,0.39355966837529427
+ADHD,substantive_core_overall,Overall,2014-2017,1,2014,2017,10,spectrum,3,3,2,20,0.15,0.383421705383937
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,1,disorder,21,11,11,20,0.55,0.4159177488417668
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,2,include,6,6,6,20,0.3,0.39430819759024427
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,3,child,4,4,4,20,0.2,0.4162064315876175
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,4,symptom,4,4,4,20,0.2,0.4336100171994589
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,5,syndrome,4,4,4,20,0.2,0.39246332773122683
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,6,behavior,7,3,3,20,0.15,0.43347837828434016
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,7,autism,3,3,3,20,0.15,0.40192151789973735
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,8,disability,3,3,3,20,0.15,0.4105621291388893
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,9,speech,3,3,3,20,0.15,0.39679282186237
+ADHD,substantive_core_overall,Overall,2018-2021,2,2018,2021,10,delay,4,2,2,20,0.1,0.38714966276915574
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,1,disorder,31,10,10,20,0.5,0.39585650087110946
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,2,child,8,4,4,20,0.2,0.3728175989229313
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,3,autism,5,4,4,20,0.2,0.3873617796241852
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,4,learning,7,3,3,20,0.15,0.3848723706494271
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,5,learn,5,3,3,20,0.15,0.3711342528233363
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,6,lucas,5,3,2,20,0.15,0.4474957471345726
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,7,depression,3,3,3,20,0.15,0.3977502926192797
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,8,use,3,3,3,20,0.15,0.400261988719895
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,9,visual,3,3,3,20,0.15,0.38904114183789923
+ADHD,substantive_core_overall,Overall,2022-2026,3,2022,2026,10,include,5,2,2,20,0.1,0.4023249566330926
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,1,disorder,27,11,10,20,0.55,0.3640096779092948
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,2,behavior,4,4,4,20,0.2,0.3596410492904828
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,3,childhood,3,3,3,20,0.15,0.3644209347614155
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,4,impulsivity,3,3,3,20,0.15,0.3644209347614155
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,5,inattention,3,3,3,20,0.15,0.3644209347614155
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,6,problem,3,3,3,20,0.15,0.38544576686073917
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,7,spectrum,3,3,2,20,0.15,0.3658050187422764
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,8,autism,3,2,2,20,0.1,0.35825221508093025
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,9,level,3,2,2,20,0.1,0.3663289585782398
+ADHD,clinical_only,Clinical,2014-2017,1,2014,2017,10,actor,2,2,2,20,0.1,0.4393245958860488
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,1,disorder,33,14,14,20,0.7,0.38271672039157995
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,2,include,10,7,7,20,0.35,0.37057129391985794
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,3,syndrome,8,7,7,20,0.35,0.36636180500219123
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,4,autism,7,7,7,20,0.35,0.36787083066439236
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,5,disability,8,4,4,20,0.2,0.3716866982526735
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,6,disease,8,4,4,20,0.2,0.3820191566239781
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,7,child,4,4,4,20,0.2,0.4011977277387621
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,8,dyslexia,4,4,4,20,0.2,0.3678949885910346
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,9,heart,4,4,4,20,0.2,0.3820191566239781
+ADHD,clinical_only,Clinical,2018-2021,2,2018,2021,10,behavior,7,3,3,20,0.15,0.4191959518499157
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,1,disorder,34,12,12,20,0.6,0.36936192310933297
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,2,condition,5,5,5,20,0.25,0.35575781924561195
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,3,autism,5,4,4,20,0.2,0.362375297636771
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,4,use,5,4,4,20,0.2,0.3693318784322407
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,5,learning,7,3,3,20,0.15,0.36469182082479606
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,6,child,6,3,3,20,0.15,0.3508820023509472
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,7,need,5,3,3,20,0.15,0.3456389720628005
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,8,medical,4,3,3,20,0.15,0.33960212847773574
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,9,depression,3,3,3,20,0.15,0.37732822298484786
+ADHD,clinical_only,Clinical,2022-2026,3,2022,2026,10,neurodevelopmental,3,3,3,20,0.15,0.3418330102526701
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,1,disorder,16,13,13,20,0.65,0.31264754917798765
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,2,thing,4,3,3,20,0.15,0.3723595535024047
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,3,child,3,3,3,20,0.15,0.3325126779075758
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,4,parent,3,2,2,20,0.1,0.338345760250587
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,5,school,3,2,2,20,0.1,0.306283708242783
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,6,adult,2,2,2,20,0.1,0.288022808247477
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,7,check,2,2,2,20,0.1,0.4054975399817043
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,8,diagnose,2,2,2,20,0.1,0.3240642054958606
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,9,diagnosis,2,2,2,20,0.1,0.2987180536970758
+ADHD,lived_only,Lived experience,2014-2017,1,2014,2017,10,different,2,2,2,20,0.1,0.34175971876836064
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,1,disorder,19,12,12,20,0.6,0.3322474175701157
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,2,autism,5,5,5,20,0.25,0.3502691585258219
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,3,student,5,3,3,20,0.15,0.351958397418643
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,4,diagnose,3,3,3,20,0.15,0.3828980541285211
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,5,people,3,3,3,20,0.15,0.3311210557081219
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,6,spectrum,3,3,3,20,0.15,0.36209821727436625
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,7,behavior,2,2,2,20,0.1,0.36445164115902146
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,8,child,2,2,2,20,0.1,0.33243248247117274
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,9,decide,2,2,2,20,0.1,0.3443756845785
+ADHD,lived_only,Lived experience,2018-2021,2,2018,2021,10,delivery,2,2,2,20,0.1,0.3443756845785
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,1,disorder,18,12,11,20,0.6,0.3230750482389504
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,2,autism,4,4,4,20,0.2,0.301267609332247
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,3,dyslexia,4,4,3,20,0.2,0.3225212085606058
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,4,spectrum,4,4,3,20,0.2,0.3406997386302749
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,5,autistic,3,3,2,20,0.15,0.3536385802995146
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,6,condition,3,3,2,20,0.15,0.36914730142313806
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,7,diagnose,3,3,3,20,0.15,0.4052884986250292
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,8,neurodivergent,3,3,2,20,0.15,0.36914730142313806
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,9,population,3,3,2,20,0.15,0.33744755585275227
+ADHD,lived_only,Lived experience,2022-2026,3,2022,2026,10,disabilities,5,2,2,20,0.1,0.2896757213183371
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,1,lead,5,4,4,20,0.2,0.5399904749470797
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,2,need,3,3,3,20,0.15,0.5606778347509529
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,3,time,3,3,3,20,0.15,0.5618761310660236
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,4,society,4,2,2,20,0.1,0.5133169730781012
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,5,channel,3,2,1,20,0.1,0.523427710544922
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,6,feel,2,2,2,20,0.1,0.5731139732354966
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,7,fund,2,2,2,20,0.1,0.5146145864542533
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,8,media,2,2,1,20,0.1,0.5203432627997406
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,9,peeps,2,2,1,20,0.1,0.5203432627997406
+Autism,substantive_core_overall,Overall,2014-2017,1,2014,2017,10,point,2,2,2,20,0.1,0.6143391219677332
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,1,world,6,6,6,20,0.3,0.5551336052431876
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,2,day,5,5,5,20,0.25,0.5638972952025803
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,3,feel,5,5,5,20,0.25,0.5638972952025803
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,4,high,5,5,5,20,0.25,0.5557388055797088
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,5,thing,5,5,5,20,0.25,0.5673403675053554
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,6,finance,8,4,4,20,0.2,0.5669335857355944
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,7,attempt,4,4,4,20,0.2,0.5669335857355944
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,8,consistently,4,4,4,20,0.2,0.5669335857355944
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,9,edition,4,4,4,20,0.2,0.5669335857355944
+Autism,substantive_core_overall,Overall,2018-2021,2,2018,2021,10,emphatically,4,4,4,20,0.2,0.5669335857355944
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,1,lead,3,3,3,20,0.15,0.4935835081446734
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,2,research,3,3,3,20,0.15,0.4935835081446734
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,3,fact,3,2,2,20,0.1,0.47879734995847484
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,4,know,3,2,2,20,0.1,0.4709295192405678
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,5,actually,2,2,2,20,0.1,0.5018639015434359
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,6,case,2,2,2,20,0.1,0.47363437337749587
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,7,design,2,2,2,20,0.1,0.47830774043552593
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,8,diagnosis,2,2,2,20,0.1,0.47271121529302107
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,9,disorder,2,2,2,20,0.1,0.4607886428619841
+Autism,substantive_core_overall,Overall,2022-2026,3,2022,2026,10,experience,2,2,2,20,0.1,0.5068993768936998
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,1,family,4,4,4,20,0.2,0.4535675571875645
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,2,individual,4,4,4,20,0.2,0.4485928038043391
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,3,research,4,4,4,20,0.2,0.44889424570762015
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,4,speaks,3,3,3,20,0.15,0.43856086478131545
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,5,government,3,2,2,20,0.1,0.5556681080337467
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,6,lead,3,2,2,20,0.1,0.5350675969613145
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,7,powerful,3,2,2,20,0.1,0.5488021306946244
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,8,treatment,3,2,2,20,0.1,0.467728131098617
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,9,action,2,2,2,20,0.1,0.45775228825588554
+Autism,clinical_only,Clinical,2014-2017,1,2014,2017,10,change,2,2,2,20,0.1,0.45095312090068657
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,1,child,5,4,4,20,0.2,0.4378360581871932
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,2,early,3,3,3,20,0.15,0.448992092804182
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,3,new,3,3,3,20,0.15,0.488517137940977
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,4,organization,3,3,3,20,0.15,0.4200223496043744
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,5,speaks,3,3,3,20,0.15,0.4078384967795812
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,6,disorder,5,2,2,20,0.1,0.40494500349578794
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,7,accord,2,2,2,20,0.1,0.4629320195316059
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,8,achieve,2,2,2,20,0.1,0.4700899909318164
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,9,diagnosis,2,2,2,20,0.1,0.4150441211441889
+Autism,clinical_only,Clinical,2018-2021,2,2018,2021,10,education,2,2,2,20,0.1,0.3956527850066739
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,1,speaks,7,6,6,20,0.3,0.40240144015716084
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,2,need,6,6,6,20,0.3,0.39574559861450886
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,3,developmental,7,4,4,20,0.2,0.3892422898458209
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,4,treatment,5,4,4,20,0.2,0.38809674350074574
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,5,research,4,4,4,20,0.2,0.4233182315917674
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,6,early,6,3,3,20,0.15,0.3715344395616503
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,7,intervention,5,3,3,20,0.15,0.36166804275603015
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,8,disorder,4,3,3,20,0.15,0.38827940679698403
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,9,bring,3,3,3,20,0.15,0.42780760070246765
+Autism,clinical_only,Clinical,2022-2026,3,2022,2026,10,child,3,3,3,20,0.15,0.42234827466405395
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,1,far,6,6,6,20,0.3,0.5033663272976155
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,2,car,10,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,3,actually,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,4,attitude,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,5,away,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,6,driver,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,7,fascination,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,8,key,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,9,mama,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2014-2017,1,2014,2017,10,people,5,5,5,20,0.25,0.4865757942872735
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,1,world,6,6,6,20,0.3,0.5652875128298938
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,2,day,5,5,5,20,0.25,0.5760523825116206
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,3,feel,5,5,5,20,0.25,0.5760523825116206
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,4,high,5,5,5,20,0.25,0.5685586493993251
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,5,work,5,5,5,20,0.25,0.5608911152533504
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,6,finance,8,4,4,20,0.2,0.5804049886421212
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,7,attempt,4,4,4,20,0.2,0.5804049886421212
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,8,consistently,4,4,4,20,0.2,0.5804049886421212
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,9,edition,4,4,4,20,0.2,0.5804049886421212
+Autism,lived_only,Lived experience,2018-2021,2,2018,2021,10,emphatically,4,4,4,20,0.2,0.5804049886421212
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,1,experience,3,3,3,20,0.15,0.49288663701804064
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,2,think,3,3,3,20,0.15,0.4514721008592754
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,3,people,3,2,2,20,0.1,0.43000930411140575
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,4,program,3,2,2,20,0.1,0.4509537520761826
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,5,speaks,3,2,2,20,0.1,0.43129689803042986
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,6,case,2,2,2,20,0.1,0.4886769577350819
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,7,commit,2,2,2,20,0.1,0.4624730687173484
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,8,community,2,2,2,20,0.1,0.4381245113362053
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,9,fact,2,2,2,20,0.1,0.48129193938036396
+Autism,lived_only,Lived experience,2022-2026,3,2022,2026,10,family,2,2,2,20,0.1,0.4545881762212615
