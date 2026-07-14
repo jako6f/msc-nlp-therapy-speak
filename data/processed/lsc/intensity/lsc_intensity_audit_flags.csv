@@ -1,3 +1,3 @@
 lsc_year,analysis_unit,frame_stratum,flags,context_rows,documents,context_match_coverage,matched_token_coverage,top5_collocate_share
-2026,ADHD,mixed,small_frame_year_cell,44,38,1.0,0.8626865671641791,0.19927536231884058
+2026,ADHD,mixed,small_frame_year_cell,44,38,1.0,0.868421052631579,0.12345679012345678
 ,frustration,unframed_baseline,trend_residual_autocorrelation,,,,,

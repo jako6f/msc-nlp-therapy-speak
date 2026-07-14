@@ -1,36 +1,43 @@
 \babel@toc {english}{}\relax 
-\contentsline {chapter}{Abstract}{ii}{chapter*.1}%
-\contentsline {chapter}{Acknowledgements}{iii}{chapter*.1}%
+\contentsline {chapter}{Abstract}{iv}{chapter*.1}%
+\contentsline {chapter}{Acknowledgements}{v}{chapter*.1}%
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}%
 \contentsline {chapter}{\numberline {2}Related Work}{4}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Computational Approaches to Studying \\ Lexical Semantic Change}{6}{section.2.1}%
 \contentsline {section}{\numberline {2.2}The Present Study}{7}{section.2.2}%
-\contentsline {chapter}{\numberline {3}Data and Materials}{9}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Common Crawl}{9}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Target Terms}{11}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Preprocessing}{12}{section.3.3}%
-\contentsline {section}{\numberline {3.4}NRC--VAD Lexicon}{13}{section.3.4}%
-\contentsline {chapter}{\numberline {4}Methods}{14}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Salience}{14}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Frame Classification}{15}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Sentiment}{16}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Severity}{17}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Breadth}{17}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Neighbour Similarity Evolution}{18}{section.4.6}%
-\contentsline {section}{\numberline {4.7}Statistical Analysis}{19}{section.4.7}%
-\contentsline {chapter}{\numberline {5}Results}{21}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Salience}{22}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Frame Classification}{23}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Sentiment}{24}{section.5.3}%
-\contentsline {section}{\numberline {5.4}Severity}{25}{section.5.4}%
-\contentsline {section}{\numberline {5.5}Breadth}{26}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Neighbour Similarity Evolution}{28}{section.5.6}%
-\contentsline {section}{\numberline {5.7}Robustness Checks}{29}{section.5.7}%
-\contentsline {chapter}{\numberline {6}Discussion}{31}{chapter.6}%
-\contentsline {chapter}{\numberline {7}Conclusion}{32}{chapter.7}%
-\contentsline {chapter}{Appendices}{39}{appendix*.18}%
-\contentsline {section}{\numberline {A.1}Frame Classification Trend Models}{39}{section.Alph0.1}%
-\contentsline {section}{\numberline {A.2}Baseline Comparator Trend Models}{40}{section.Alph0.2}%
-\contentsline {section}{\numberline {A.3}AR(1) Sensitivity Models}{40}{section.Alph0.3}%
-\contentsline {section}{\numberline {A.4}Quadratic Trend Models}{41}{section.Alph0.4}%
-\contentsline {section}{\numberline {A.5}ADHD Neighbour Similarity Evolution}{41}{section.Alph0.5}%
+\contentsline {chapter}{\numberline {3}Data and Materials}{10}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Common Crawl}{10}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Target Terms}{12}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Preprocessing}{13}{section.3.3}%
+\contentsline {section}{\numberline {3.4}NRC--VAD Lexicon}{14}{section.3.4}%
+\contentsline {chapter}{\numberline {4}Methods}{15}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Salience}{15}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Frame Classification}{16}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Sentiment}{17}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Intensity}{18}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Breadth}{19}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Neighbour Similarity Evolution}{20}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Statistical Analysis}{21}{section.4.7}%
+\contentsline {chapter}{\numberline {5}Results}{22}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Salience}{23}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Frame Classification}{24}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Sentiment}{25}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Intensity}{27}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Breadth}{28}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Neighbour Similarity Evolution}{30}{section.5.6}%
+\contentsline {section}{\numberline {5.7}Robustness Checks}{31}{section.5.7}%
+\contentsline {chapter}{\numberline {6}Discussion}{33}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Summary of Findings}{33}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Semantic Consolidation Rather than Concept Creep}{34}{section.6.2}%
+\contentsline {section}{\numberline {6.3}From Disorder Talk to Lived Experience}{36}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Measurement Sensitivity and Its Implications for LSC Research}{38}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Limitations}{39}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Directions for Future Research}{40}{section.6.6}%
+\contentsline {chapter}{\numberline {7}Conclusion}{41}{chapter.7}%
+\contentsline {chapter}{Appendices}{49}{appendix*.18}%
+\contentsline {section}{\numberline {A.1}Frame Classification Trend Models}{49}{section.Alph0.1}%
+\contentsline {section}{\numberline {A.2}Baseline Comparator Trend Models}{50}{section.Alph0.2}%
+\contentsline {section}{\numberline {A.3}AR(1) Sensitivity Models}{50}{section.Alph0.3}%
+\contentsline {section}{\numberline {A.4}Quadratic Trend Models}{51}{section.Alph0.4}%
+\contentsline {section}{\numberline {A.5}Post-hoc Contributor Tables}{51}{section.Alph0.5}%
+\contentsline {section}{\numberline {A.6}ADHD Neighbour Similarity Evolution}{53}{section.Alph0.6}%

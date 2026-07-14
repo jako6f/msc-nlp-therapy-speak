@@ -1,6 +1,7 @@
 severity,category,lsc_year,analysis_unit,frame_stratum,value,detail
 note,small_frame_year_cell,2026,ADHD,mixed,44.0,documents=38
-note,trend_residual_autocorrelation,,ADHD,clinical_only,1.2196060829357076,AR(1) sensitivity slope reported in trend table
-note,trend_residual_autocorrelation,,Autism,clinical_only,1.1755760246927176,AR(1) sensitivity slope reported in trend table
-note,trend_residual_autocorrelation,,frustration,unframed_baseline,0.3996094444262698,AR(1) sensitivity slope reported in trend table
-note,trend_residual_autocorrelation,,loneliness,unframed_baseline,0.9152638009401409,AR(1) sensitivity slope reported in trend table
+note,trend_residual_autocorrelation,,ADHD,clinical_only,1.0113047195125555,AR(1) sensitivity slope reported in trend table
+note,trend_residual_autocorrelation,,ADHD,substantive_core_overall,1.0904408038025037,AR(1) sensitivity slope reported in trend table
+note,trend_residual_autocorrelation,,Autism,clinical_only,0.9832649884328802,AR(1) sensitivity slope reported in trend table
+note,trend_residual_autocorrelation,,frustration,unframed_baseline,0.389310202852106,AR(1) sensitivity slope reported in trend table
+note,trend_residual_autocorrelation,,loneliness,unframed_baseline,0.8924019030656352,AR(1) sensitivity slope reported in trend table

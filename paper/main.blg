@@ -7,43 +7,43 @@ Warning--empty year in CloudComputingServices
 Warning--missing publisher in jm3
 You've used 56 entries,
             2855 wiz_defined-function locations,
-            976 strings with 20502 characters,
-and the built_in function-call counts, 36801 in all, are:
-= -- 2876
-> -- 2009
-< -- 40
-+ -- 687
-- -- 601
-* -- 2760
-:= -- 5719
+            976 strings with 20447 characters,
+and the built_in function-call counts, 36615 in all, are:
+= -- 2861
+> -- 2001
+< -- 39
++ -- 684
+- -- 598
+* -- 2749
+:= -- 5707
 add.period$ -- 221
 call.type$ -- 56
-change.case$ -- 496
+change.case$ -- 492
 chr.to.int$ -- 56
 cite$ -- 58
-duplicate$ -- 2724
-empty$ -- 2478
-format.name$ -- 775
-if$ -- 7266
+duplicate$ -- 2707
+empty$ -- 2462
+format.name$ -- 773
+if$ -- 7214
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 557
+missing$ -- 554
 newline$ -- 279
-num.names$ -- 234
-pop$ -- 1051
+num.names$ -- 235
+pop$ -- 1043
 preamble$ -- 1
-purify$ -- 416
+purify$ -- 414
 quote$ -- 0
-skip$ -- 892
+skip$ -- 881
 stack$ -- 0
-substring$ -- 1652
-swap$ -- 1407
-text.length$ -- 13
+substring$ -- 1645
+swap$ -- 1397
+text.length$ -- 12
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 492
 warning$ -- 2
 while$ -- 255
 width$ -- 0
-write$ -- 726
+write$ -- 725
 (There were 2 warnings)

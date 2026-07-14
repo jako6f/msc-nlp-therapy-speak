@@ -1,4 +1,17 @@
 lsc_year,score,ci_low,ci_high,measure,analysis_unit,frame_stratum,frame_label,diagnostic_role,row_type,linear_fit,quadratic_fit_at_year,fit_score
+2014.0,0.079811326156665,0.0670084809865649,0.0916725704078385,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.081384252430676,0.0813825798387652,
+2015.0,0.0839817338573359,0.0698492794657017,0.1009739166410098,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0810178251377753,0.08101698884182007,
+2016.0,0.0765116573506535,0.0641444683365415,0.0887909028194399,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0806513978448746,0.08065124579106482,
+2017.0,0.0750536941580756,0.0617974955887723,0.0888522023892079,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.08028497055197391,0.08028535068649946,
+2018.0,0.0996436827659887,0.0823285223920339,0.1147457172091705,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0799185432590732,0.07991930352812397,
+2019.0,0.0659236374438355,0.0545549039129512,0.0766967593415875,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.07955211596617251,0.07955310431593837,
+2020.0,0.0814352024163994,0.0693338666849185,0.0930142546593907,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0791856886732718,0.07918675304994266,
+2021.0,0.0842596785190792,0.0681452777633484,0.1003672738040944,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0788192613803711,0.07882024973013682,
+2022.0,0.0718716899235516,0.0613206357384182,0.0819961951625824,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0784528340874704,0.07845359435652087,
+2023.0,0.0799456201168097,0.0642536433788781,0.0949638537803579,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0780864067945697,0.0780867869290948,
+2024.0,0.0727127937572087,0.0623168351502224,0.0833709641239456,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.077719979501669,0.07771982744785862,
+2025.0,0.0797649376956498,0.0638662282615797,0.0956009333880994,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.0773535522087683,0.07735271591281231,
+2026.0,0.0784982985912812,0.0573020370901242,0.0975839567716053,Breadth,ADHD,lived_only,Lived experience,flagged,annual_estimate,0.07698712491586761,0.0769854523239559,
 2014.0,0.0959553331457008,0.0922469893170692,0.0992358094529953,Breadth,Autism,substantive_core_overall,Overall,flagged,annual_estimate,0.0985487942561307,0.09443178392844005,
 2015.0,0.0952078954173131,0.0914242867255344,0.0990532420934552,Breadth,Autism,substantive_core_overall,Overall,flagged,annual_estimate,0.09866751141683949,0.09660900625299405,
 2016.0,0.0970510392062022,0.0935488236062794,0.1007262181646235,Breadth,Autism,substantive_core_overall,Overall,flagged,annual_estimate,0.09878622857754829,0.0984119549113944,
@@ -25,58 +38,300 @@ lsc_year,score,ci_low,ci_high,measure,analysis_unit,frame_stratum,frame_label,di
 2024.0,0.0974598076933661,0.0911607656353763,0.1034561677544343,Breadth,Autism,clinical_only,Clinical,flagged,annual_estimate,0.09648548330561339,0.09594661463977935,
 2025.0,0.0945028695761857,0.0878721849764131,0.1003883528227711,Breadth,Autism,clinical_only,Clinical,flagged,annual_estimate,0.09723493697698919,0.09427115931490039,
 2026.0,0.0908177470723216,0.0802801244411795,0.0996221894175416,Breadth,Autism,clinical_only,Clinical,flagged,annual_estimate,0.09798439064836499,0.09205683532418704,
-2014.0,0.0728610897739185,0.0625260198588191,0.0818729619342062,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2015.0,0.0742814406364287,0.0654752061526991,0.0841796762029018,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2016.0,0.0634886704414386,0.0527693761652489,0.0735966678376313,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2017.0,0.0650278239293103,0.0551913319670198,0.0747816738620135,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2018.0,0.0593291165524384,0.0493095824529263,0.0695607323776611,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2019.0,0.0533284876240138,0.0428700148892358,0.0632413843740615,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2020.0,0.0655636680988184,0.0548497646689036,0.0760079086811028,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2021.0,0.0597771337409491,0.0483404469607415,0.0713816160335938,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2022.0,0.0822703316857088,0.0717748588892241,0.0927548616583159,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2023.0,0.079054661065214,0.0648327792184926,0.0913564633832188,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2024.0,0.0720485295456614,0.0602779161422458,0.0833403342831379,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2025.0,0.0861894843152672,0.0718094987695574,0.1003880594599627,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2026.0,0.0783784145658263,0.0581648384147761,0.0963815909882927,Sentiment,ADHD,substantive_core_overall,Overall,context,annual_estimate,,,
-2014.0,0.0607134972045498,0.0499497628513404,0.0707655731995371,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0489822571381798,0.06378891427994983,
-2015.0,0.0665540203428008,0.0552910866193316,0.0771544279950099,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0494094002465227,0.05681272881740771,
-2016.0,0.0449392663954743,0.0334338303958255,0.0588197187480322,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0498365433548656,0.0511826030950265,
-2017.0,0.04840298332023,0.0366894620227762,0.0606734316777257,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0502636864632085,0.04689853711280621,
-2018.0,0.0480752743519885,0.035405112610321,0.0607739463960493,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0506908295715514,0.04396053087074683,
-2019.0,0.0292063585289012,0.015112624240875,0.0418831282917552,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0511179726798943,0.04236858436884837,
-2020.0,0.0441932203687599,0.0317663957807199,0.0577991949920205,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0515451157882372,0.04212269760711082,
-2021.0,0.0377150837233207,0.0233908412110632,0.0518081325830691,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0519722588965801,0.04322287058553419,
-2022.0,0.05796925427441,0.0453374018923178,0.0695982550819406,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.052399402004923,0.04566910330411847,
-2023.0,0.053056905379459,0.0377842407099824,0.0685722314558065,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0528265451132659,0.049461395762863666,
-2024.0,0.0492228467441193,0.0301342684294535,0.0645798678759409,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0532536882216088,0.05459974796176977,
-2025.0,0.0648284096302368,0.0453766161397376,0.0840932896552038,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0536808313299517,0.0610841599008368,
-2026.0,0.0652093849828332,0.0356613175848768,0.0923694192728637,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0541079744382946,0.06891463158006474,
-2014.0,0.1094815503323947,0.1037467747237514,0.1150275710723101,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2015.0,0.1057472137921469,0.1005727139794596,0.1124347287737333,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2016.0,0.110468998635588,0.1044364168720877,0.1162909064535555,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2017.0,0.1089217261073258,0.1031597757229186,0.1149102578286353,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2018.0,0.1066773123429957,0.1008061680067938,0.1129373548265156,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2019.0,0.1143576566647172,0.1074970191589485,0.1206864642005312,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2020.0,0.1029100530318532,0.0950628701668214,0.1091182679978134,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2021.0,0.1084715112687739,0.1017513320067885,0.1160194555555437,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2022.0,0.1121748463124016,0.1035093448510065,0.1189875211035954,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2023.0,0.1110209711187178,0.1030119983754864,0.1188229917840743,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2024.0,0.109638951476461,0.0997870903528521,0.1187851003059845,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2025.0,0.1088182232435934,0.0983946375661522,0.1174662621030339,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2026.0,0.1228801196900512,0.1096542520995181,0.1375109725387516,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
-2014.0,0.0803364008430481,0.0734575740051428,0.0872698546913065,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0639859965547491,0.08027834928439781,
-2015.0,0.0740267143824354,0.0655210025551294,0.0825536859586882,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.06514041088348049,0.07328658724830474,
-2016.0,0.0627522381367844,0.0545395889233182,0.0719025013319991,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0662948252122119,0.06777594818763433,
-2017.0,0.0644543920297411,0.0557456188127924,0.0734323499219622,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0674492395409433,0.06374643210238654,
-2018.0,0.0640323779620535,0.0546573367863922,0.0741529185239168,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0686036538696747,0.06119803899256139,
-2019.0,0.0692218275629028,0.0594096979141971,0.0777999020183804,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0697580681984061,0.06013076885815889,
-2020.0,0.0549079999698199,0.0444735026311817,0.0657845599173328,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0709124825271375,0.06054462169917903,
-2021.0,0.0609939361977721,0.050397234822228,0.0720552641105808,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0720668968558689,0.06243959751562181,
-2022.0,0.0635153853107344,0.0506447139284931,0.0766190932240006,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0732213111846003,0.06581569630748722,
-2023.0,0.0745857973905094,0.0634186477270315,0.0862478475113755,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0743757255133317,0.07067291807477527,
-2024.0,0.0638487056796567,0.0499374383446938,0.0767506745652587,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0755301398420631,0.07701126281748596,
-2025.0,0.0983818091104126,0.0832267668795665,0.112226735831789,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0766845541707945,0.0848307305356193,
-2026.0,0.0908046882769171,0.0725039504135816,0.1098513856397641,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0778389684995259,0.09413132122917528,
+2014.0,0.0793680529082192,0.0632608946173135,0.0941020949494532,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.061935256281901094,0.0806882941048937,
+2015.0,0.087310685050993,0.0699462084078837,0.1055924126169386,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.06426519841947809,0.07364171733097437,
+2016.0,0.066323648357068,0.0485315209457457,0.0829590936063751,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0665951405570551,0.06829996217732709,
+2017.0,0.0638512711042111,0.0445575738409412,0.0826173632892212,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0689250826946321,0.06466302864395189,
+2018.0,0.056493241860745,0.0404013512174495,0.0744382729064783,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0712550248322091,0.06273091673084875,
+2019.0,0.0436273970231914,0.0259565032568208,0.0628995945759115,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.07358496696978609,0.06250362643801767,
+2020.0,0.0619752691668473,0.04343266493716,0.0799417447171604,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0759149091073631,0.06398115776545865,
+2021.0,0.0521221167519908,0.0323871691992221,0.0708639180876017,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0782448512449401,0.0671635107131717,
+2022.0,0.097050937162891,0.0778161270510115,0.1151236764130907,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0805747933825171,0.07205068528115681,
+2023.0,0.0976069630733565,0.077845434018243,0.1180217521110998,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.08290473552009409,0.07864268146941399,
+2024.0,0.085103213562753,0.0651879967081407,0.1048469856282167,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.08523467765767109,0.08693949927794321,
+2025.0,0.1055503695606912,0.0815231760724039,0.1277773528353963,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.0875646197952481,0.09694113870674452,
+2026.0,0.0905106528127623,0.0601010132793,0.1220096280116307,Sentiment,ADHD,substantive_core_overall,Overall,flagged,annual_estimate,0.08989456193282509,0.10864759975581789,
+2014.0,0.0618555980233186,0.0434544949760346,0.0804614252270045,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.04157843238967669,0.06814023218946899,
+2015.0,0.0748196217799603,0.0558215161730907,0.093834145603015,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.04282950668896619,0.05611040658886228,
+2016.0,0.0388020523523784,0.0173602043198776,0.0599060605426619,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.044080580988255694,0.04649529006096397,
+2017.0,0.0390364635503617,0.0196862244123646,0.0588878983560838,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.045331655287545194,0.03929488260577408,
+2018.0,0.0398806554169723,0.0211017627087956,0.0585222884498137,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.046582729586834695,0.03450918422329259,
+2019.0,0.0104190695443645,-0.0116008723686911,0.0337357093747007,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.047833803886124196,0.03213819491351952,
+2020.0,0.0314398596938775,0.0075162774808117,0.0545438080640212,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0490848781854137,0.032181914676454856,
+2021.0,0.0258414909243521,0.0011887303607581,0.0468161949414779,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0503359524847032,0.034640343512098604,
+2022.0,0.0594040963980845,0.0377497619071786,0.0793904110575787,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0515870267839927,0.03951348142045076,
+2023.0,0.0581456501831501,0.0334268307444533,0.082517255607068,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0528381010832822,0.04680132840151133,
+2024.0,0.0492248215266337,0.0225658334511864,0.0735604481481158,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0540891753825717,0.056503884455280304,
+2025.0,0.0759649425287356,0.0472669021253051,0.1025146333542824,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0553402496818612,0.06862114958175769,
+2026.0,0.0732690944881889,0.026125781549676,0.1124400005744566,Sentiment,ADHD,clinical_only,Clinical,flagged,annual_estimate,0.0565913239811507,0.08315312378094349,
+2014.0,0.1002968349730833,0.088908303442884,0.112867702794104,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.07158916731043119,0.09949572862362585,
+2015.0,0.0871954047148038,0.0747997317403657,0.1016383227500093,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0738390950430153,0.08779237569961246,
+2016.0,0.0719152363332537,0.0572510220736133,0.0858934606620621,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0760890227755994,0.07862598289498046,
+2017.0,0.0738734550869355,0.0601062740360765,0.0883515495784413,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0783389505081835,0.07199655020972984,
+2018.0,0.0720474501992031,0.0573096223164256,0.0875052211273245,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0805888782407676,0.06790407764386058,
+2019.0,0.0802781968282645,0.064167512625485,0.0958565086534483,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.08283880597335169,0.0663485651973727,
+2020.0,0.0572632790165809,0.0407337654182283,0.0742864561271955,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0850887337059358,0.0673300128702662,
+2021.0,0.0679165820336114,0.0497236981718408,0.0850679629550251,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0873386614385199,0.07084842066254107,
+2022.0,0.0733057505518763,0.0516940886929719,0.092051918295478,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.08958858917110399,0.07690378857419733,
+2023.0,0.0942914892778303,0.0753601608061,0.1128787190859105,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.09183851690368809,0.08549611660523496,
+2024.0,0.0779856179666278,0.0559222178444149,0.0970815063044971,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0940884446362722,0.09662540475565395,
+2025.0,0.1271511814446025,0.1053890231337755,0.1482394118309717,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0963383723688563,0.11029165302545432,
+2026.0,0.1226330597504924,0.0910316692732483,0.1555077738304994,Sentiment,Autism,clinical_only,Clinical,flagged,annual_estimate,0.0985883001014404,0.1264948614146361,
+2014.0,0.1480301170594067,0.1391290719604868,0.1576155501287414,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2015.0,0.1402266605188737,0.1288204752078215,0.150403372143313,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2016.0,0.148613603609452,0.1377167198531877,0.1579978357840949,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2017.0,0.1485148817023659,0.1387316202863944,0.1588270152992476,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2018.0,0.1408682494471685,0.1304225712092212,0.152124140625805,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2019.0,0.1537293732863298,0.1425816555984927,0.1647469202265138,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2020.0,0.1367919607843137,0.1248151243126383,0.1500355019941546,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2021.0,0.1461408608562691,0.1321199592240488,0.1593330497336075,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2022.0,0.1520047938970213,0.1381361845184408,0.1662374277830541,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2023.0,0.1533437847788795,0.1402625907741645,0.1658727081719022,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2024.0,0.1521034842623107,0.1361624791689631,0.168115007636372,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2025.0,0.1436728155739391,0.1276901070943694,0.1586344509427935,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2026.0,0.1733251263496439,0.1500965342228836,0.1932950071493213,Sentiment,Autism,substantive_core_overall,Overall,context,annual_estimate,,,
+2014.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.081384252430676
+2014.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08134760970138596
+2014.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08131096697209585
+2014.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08127432424280581
+2014.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0812376815135157
+2014.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08120103878422566
+2014.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08116439605493561
+2014.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0811277533256455
+2014.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08109111059635546
+2014.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08105446786706534
+2015.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0810178251377753
+2015.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08098118240848527
+2015.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08094453967919514
+2015.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0809078969499051
+2015.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08087125422061499
+2015.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08083461149132495
+2015.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08079796876203492
+2015.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0807613260327448
+2015.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08072468330345477
+2015.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08068804057416464
+2016.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0806513978448746
+2016.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08061475511558457
+2016.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08057811238629445
+2016.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08054146965700441
+2016.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0805048269277143
+2016.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08046818419842425
+2016.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08043154146913421
+2016.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0803948987398441
+2016.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08035825601055406
+2016.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08032161328126394
+2017.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08028497055197391
+2017.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08024832782268387
+2017.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08021168509339374
+2017.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08017504236410371
+2017.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08013839963481359
+2017.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08010175690552356
+2017.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.08006511417623352
+2017.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0800284714469434
+2017.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07999182871765335
+2017.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07995518598836324
+2018.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0799185432590732
+2018.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07988190052978317
+2018.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07984525780049305
+2018.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07980861507120302
+2018.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07977197234191288
+2018.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07973532961262285
+2018.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07969868688333281
+2018.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0796620441540427
+2018.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07962540142475266
+2018.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07958875869546254
+2019.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07955211596617251
+2019.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07951547323688246
+2019.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07947883050759234
+2019.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07944218777830231
+2019.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07940554504901219
+2019.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07936890231972216
+2019.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07933225959043212
+2019.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07929561686114199
+2019.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07925897413185196
+2019.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07922233140256184
+2020.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0791856886732718
+2020.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07914904594398177
+2020.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07911240321469165
+2020.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07907576048540162
+2020.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07903911775611148
+2020.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07900247502682145
+2020.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07896583229753142
+2020.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0789291895682413
+2020.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07889254683895126
+2020.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07885590410966115
+2021.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0788192613803711
+2021.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07878261865108106
+2021.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07874597592179094
+2021.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07870933319250091
+2021.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07867269046321079
+2021.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07863604773392076
+2021.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07859940500463072
+2021.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07856276227534059
+2021.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07852611954605056
+2021.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07848947681676044
+2022.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0784528340874704
+2022.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07841619135818037
+2022.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07837954862889025
+2022.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0783429058996002
+2022.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07830626317031009
+2022.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07826962044102005
+2022.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07823297771173002
+2022.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0781963349824399
+2022.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07815969225314987
+2022.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07812304952385973
+2023.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0780864067945697
+2023.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07804976406527966
+2023.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07801312133598955
+2023.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07797647860669951
+2023.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0779398358774094
+2023.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07790319314811936
+2023.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07786655041882931
+2023.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0778299076895392
+2023.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07779326496024916
+2023.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07775662223095904
+2024.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.077719979501669
+2024.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07768333677237897
+2024.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07764669404308884
+2024.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0776100513137988
+2024.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07757340858450869
+2024.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07753676585521865
+2024.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07750012312592862
+2024.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0774634803966385
+2024.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07742683766734847
+2024.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07739019493805833
+2025.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0773535522087683
+2025.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07731690947947827
+2025.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07728026675018815
+2025.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07724362402089811
+2025.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.077206981291608
+2025.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07717033856231795
+2025.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07713369583302791
+2025.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.0770970531037378
+2025.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07706041037444776
+2025.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07702376764515764
+2026.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,linear_fit,,,0.07698712491586761
+2014.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0813825798387652
+2014.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08134602758149218
+2014.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08130947380368096
+2014.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08127291850533175
+2014.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08123636168644432
+2014.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0811998033470189
+2014.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08116324348705536
+2014.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08112668210655366
+2014.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08109011920551391
+2014.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.081053554783936
+2015.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08101698884182007
+2015.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08098042137916603
+2015.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0809438523959738
+2015.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08090728189224358
+2015.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08087070986797515
+2015.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0808341363231687
+2015.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08079756125782417
+2015.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08076098467194144
+2015.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0807244065655207
+2015.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08068782693856176
+2016.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08065124579106482
+2016.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08061466312302977
+2016.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08057807893445654
+2016.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08054149322534529
+2016.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08050490599569586
+2016.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0804683172455084
+2016.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08043172697478286
+2016.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08039513518351911
+2016.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08035854187171736
+2016.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08032194703937741
+2017.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08028535068649946
+2017.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0802487528130834
+2017.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08021215341912914
+2017.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0801755525046369
+2017.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08013895006960645
+2017.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08010234611403798
+2017.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08006574063793143
+2017.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.08002913364128666
+2017.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07999252512410389
+2017.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07995591508638294
+2018.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07991930352812397
+2018.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0798826904493269
+2018.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07984607584999164
+2018.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07980945973011838
+2018.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07977284208970692
+2018.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07973622292875743
+2018.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07969960224726987
+2018.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0796629800452441
+2018.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07962635632268032
+2018.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07958973107957837
+2019.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07955310431593837
+2019.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07951647603176029
+2019.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07947984622704403
+2019.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07944321490178974
+2019.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07940658205599727
+2019.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07936994768966678
+2019.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07933331180279819
+2019.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07929667439539143
+2019.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07926003546744663
+2019.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07922339501896365
+2020.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07918675304994266
+2020.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07915010956038356
+2020.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0791134645502863
+2020.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.079076818019651
+2020.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0790401699684775
+2020.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07900352039676602
+2020.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07896686930451641
+2020.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07893021669172862
+2020.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07889356255840281
+2020.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07885690690453884
+2021.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07882024973013682
+2021.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07878359103519672
+2021.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07874693081971844
+2021.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07871026908370211
+2021.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07867360582714762
+2021.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07863694105005511
+2021.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07860027475242451
+2021.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07856360693425571
+2021.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07852693759554889
+2021.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0784902667363039
+2022.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07845359435652087
+2022.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07841692045619975
+2022.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07838024503534045
+2022.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07834356809394313
+2022.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07830688963200763
+2022.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07827020964953411
+2022.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07823352814652249
+2022.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07819684512297267
+2022.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07816016057888485
+2022.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07812347451425884
+2023.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0780867869290948
+2023.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07805009782339269
+2023.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07801340719715237
+2023.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07797671505037403
+2023.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07794002138305751
+2023.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07790332619520299
+2023.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07786662948681035
+2023.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07782993125787951
+2023.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07779323150841069
+2023.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07775653023840366
+2024.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07771982744785862
+2024.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07768312313677549
+2024.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07764641730515416
+2024.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07760970995299481
+2024.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07757300108029727
+2024.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07753629068706173
+2024.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07749957877328809
+2024.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07746286533897626
+2024.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07742615038412641
+2024.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07738943390873837
+2025.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07735271591281231
+2025.1,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07731599639634817
+2025.2,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07727927535934583
+2025.3,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07724255280180548
+2025.4,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07720582872372694
+2025.5,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07716910312511038
+2025.6,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07713237600595571
+2025.7,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07709564736626287
+2025.8,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07705891720603202
+2025.9,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.07702218552526297
+2026.0,,,,Breadth,ADHD,lived_only,Lived experience,flagged,quadratic_fit,,,0.0769854523239559
 2014.0,,,,Breadth,Autism,substantive_core_overall,Overall,flagged,linear_fit,,,0.0985487942561307
 2014.1,,,,Breadth,Autism,substantive_core_overall,Overall,flagged,linear_fit,,,0.09856066597220156
 2014.2,,,,Breadth,Autism,substantive_core_overall,Overall,flagged,linear_fit,,,0.09857253768827245
@@ -561,487 +816,729 @@ lsc_year,score,ci_low,ci_high,measure,analysis_unit,frame_stratum,frame_label,di
 2025.8,,,,Breadth,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09254280961559656
 2025.9,,,,Breadth,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0923025168132207
 2026.0,,,,Breadth,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09205683532418704
-2014.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0489822571381798
-2014.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04902497144901405
-2014.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0490676857598484
-2014.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04911040007068265
-2014.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.049153114381516996
-2014.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04919582869235125
-2014.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0492385430031855
-2014.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04928125731401985
-2014.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0493239716248541
-2014.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04936668593568845
-2015.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0494094002465227
-2015.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04945211455735695
-2015.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0494948288681913
-2015.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04953754317902555
-2015.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0495802574898599
-2015.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04962297180069415
-2015.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0496656861115284
-2015.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04970840042236275
-2015.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.049751114733197
-2015.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.049793829044031346
-2016.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0498365433548656
-2016.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04987925766569985
-2016.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.049921971976534196
-2016.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04996468628736845
-2016.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0500074005982028
-2016.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05005011490903705
-2016.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0500928292198713
-2016.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05013554353070565
-2016.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0501782578415399
-2016.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05022097215237425
-2017.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0502636864632085
-2017.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.050306400774042755
-2017.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0503491150848771
-2017.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05039182939571135
-2017.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0504345437065457
-2017.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05047725801737995
-2017.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0505199723282142
-2017.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05056268663904855
-2017.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0506054009498828
-2017.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05064811526071715
-2018.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0506908295715514
-2018.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05073354388238565
-2018.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05077625819322
-2018.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.050818972504054254
-2018.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0508616868148886
-2018.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05090440112572285
-2018.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.050947115436557104
-2018.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05098982974739145
-2018.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0510325440582257
-2018.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05107525836906005
-2019.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0511179726798943
-2019.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05116068699072855
-2019.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0512034013015629
-2019.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05124611561239715
-2019.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0512888299232315
-2019.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05133154423406575
-2019.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0513742585449
-2019.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05141697285573435
-2019.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0514596871665686
-2019.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05150240147740295
-2020.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0515451157882372
-2020.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.051587830099071454
-2020.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0516305444099058
-2020.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05167325872074005
-2020.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0517159730315744
-2020.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05175868734240865
-2020.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0518014016532429
-2020.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05184411596407725
-2020.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0518868302749115
-2020.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05192954458574585
-2021.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0519722588965801
-2021.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05201497320741435
-2021.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0520576875182487
-2021.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05210040182908295
-2021.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.052143116139917296
-2021.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05218583045075155
-2021.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0522285447615858
-2021.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05227125907242015
-2021.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0523139733832544
-2021.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05235668769408875
-2022.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.052399402004923
-2022.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05244211631575725
-2022.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0524848306265916
-2022.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05252754493742585
-2022.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0525702592482602
-2022.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05261297355909445
-2022.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0526556878699287
-2022.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05269840218076305
-2022.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0527411164915973
-2022.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.052783830802431646
-2023.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0528265451132659
-2023.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05286925942410015
-2023.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0529119737349345
-2023.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05295468804576875
-2023.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0529974023566031
-2023.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053040116667437354
-2023.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0530828309782716
-2023.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05312554528910595
-2023.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053168259599940204
-2023.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05321097391077455
-2024.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0532536882216088
-2024.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053296402532443055
-2024.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0533391168432774
-2024.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05338183115411165
-2024.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053424545464946
-2024.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05346725977578025
-2024.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0535099740866145
-2024.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05355268839744885
-2024.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0535954027082831
-2024.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05363811701911745
-2025.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0536808313299517
-2025.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05372354564078595
-2025.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0537662599516203
-2025.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053808974262454554
-2025.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0538516885732889
-2025.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05389440288412315
-2025.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053937117194957404
-2025.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05397983150579175
-2025.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.054022545816626
-2025.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05406526012746035
-2026.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0541079744382946
-2014.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06378891427994983
-2014.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06303072304538906
-2014.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0622859924082282
-2014.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06155472236847063
-2014.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.060836912926113026
-2014.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.060132564081158656
-2014.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05944167583360587
-2014.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05876424818345315
-2014.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.058100281130703556
-2014.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.057449774675354094
-2015.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05681272881740771
-2015.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.056189143556862914
-2015.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05557901889371832
-2015.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05498235482797671
-2015.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05439915135963539
-2015.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.053829408488696995
-2015.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05327312621516017
-2015.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05273030453902373
-2015.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.052200943460290104
-2015.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.051685042978956916
-2016.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0511826030950265
-2016.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05069362380849767
-2016.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05021810511936936
-2016.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.049756047027643725
-2016.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04930744953331867
-2016.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04887231263639624
-2016.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.048450636336875394
-2016.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04804242063475522
-2016.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04764766553003757
-2016.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04726637102272065
-2017.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04689853711280621
-2017.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.046544163800293345
-2017.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.046203251085181314
-2017.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04587579896747164
-2017.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04556180744716287
-2017.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.045261276524256405
-2017.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04497420619875153
-2017.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04470059647064763
-2017.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04444044733994595
-2017.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.044193758806645306
-2018.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04396053087074683
-2018.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04374076353224994
-2018.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.043534456791154176
-2018.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04334161064746048
-2018.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.043162225101167975
-2018.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042996300152277483
-2018.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04284383580078858
-2018.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042704832046700954
-2018.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04257928889001524
-2018.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042467206330730874
-2019.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04236858436884837
-2019.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042283423004367444
-2019.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04221172223728796
-2019.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04215348206761023
-2019.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042108702495334
-2019.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04207738352045948
-2019.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04205952514298654
-2019.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042055127362915196
-2019.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042064190180245445
-2019.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04208671359497736
-2020.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04212269760711082
-2020.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042172142216645864
-2020.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04223504742358265
-2020.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0423114132279209
-2020.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04240123962966094
-2020.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042504526628802386
-2020.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04262127422534542
-2020.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042751482419290346
-2020.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04289515121063657
-2020.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.043052280599384755
-2021.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04322287058553419
-2021.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0434069211690852
-2021.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04360443235003827
-2021.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04381540412839247
-2021.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0440398365041488
-2021.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04427772947730621
-2021.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04452908304786521
-2021.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04479389721582641
-2021.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.045072171981188604
-2021.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04536390734395307
-2022.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04566910330411847
-2022.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04598775986168545
-2022.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04631987701665479
-2022.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.046665454769024964
-2022.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04702449311879757
-2022.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04739699206597095
-2022.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04778295161054592
-2022.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04818237175252339
-2022.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04859525249190156
-2022.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04902159382868229
-2023.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.049461395762863666
-2023.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.049914658294446614
-2023.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05038138142343223
-2023.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05086156514981838
-2023.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05135520947360725
-2023.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.051862314394796605
-2023.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05238287991338754
-2023.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.052916906029381296
-2023.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.053464392742775424
-2023.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.054025340053572436
-2024.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05459974796176977
-2024.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.055187616467368694
-2024.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.055788945570370584
-2024.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0564037352707727
-2024.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.057031985568577845
-2024.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.057673696463783175
-2024.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05832886795639008
-2024.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0589975000464001
-2024.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.059679592733810204
-2024.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.060375146018623496
-2025.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0610841599008368
-2025.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06180663438045169
-2025.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06254256945746986
-2025.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06329196513188794
-2025.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06405482140370936
-2025.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06483113827293066
-2025.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06562091573955353
-2025.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06642415380357983
-2025.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0672408524650059
-2025.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06807101172383546
-2026.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06891463158006474
-2014.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0639859965547491
-2014.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06410143798762213
-2014.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06421687942049543
-2014.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06433232085336847
-2014.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06444776228624176
-2014.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0645632037191148
-2014.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06467864515198783
-2014.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06479408658486113
-2014.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06490952801773417
-2014.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06502496945060747
-2015.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06514041088348049
-2015.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06525585231635353
-2015.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06537129374922683
-2015.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06548673518209987
-2015.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06560217661497317
-2015.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0657176180478462
-2015.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06583305948071923
-2015.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06594850091359253
-2015.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06606394234646557
-2015.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06617938377933887
-2016.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0662948252122119
-2016.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06641026664508494
-2016.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06652570807795823
-2016.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06664114951083126
-2016.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06675659094370456
-2016.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0668720323765776
-2016.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06698747380945064
-2016.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06710291524232394
-2016.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06721835667519696
-2016.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06733379810807026
-2017.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0674492395409433
-2017.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06756468097381634
-2017.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06768012240668964
-2017.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06779556383956267
-2017.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06791100527243596
-2017.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.068026446705309
-2017.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06814188813818203
-2017.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06825732957105533
-2017.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06837277100392837
-2017.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06848821243680167
-2018.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0686036538696747
-2018.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06871909530254773
-2018.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06883453673542103
-2018.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06894997816829407
-2018.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06906541960116737
-2018.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0691808610340404
-2018.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06929630246691343
-2018.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06941174389978673
-2018.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06952718533265977
-2018.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06964262676553307
-2019.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0697580681984061
-2019.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06987350963127914
-2019.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.06998895106415243
-2019.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07010439249702546
-2019.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07021983392989876
-2019.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0703352753627718
-2019.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07045071679564484
-2019.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07056615822851812
-2019.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07068159966139116
-2019.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07079704109426446
-2020.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0709124825271375
-2020.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07102792396001054
-2020.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07114336539288384
-2020.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07125880682575687
-2020.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07137424825863016
-2020.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0714896896915032
-2020.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07160513112437623
-2020.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07172057255724953
-2020.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07183601399012257
-2020.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07195145542299586
-2021.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0720668968558689
-2021.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07218233828874193
-2021.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07229777972161523
-2021.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07241322115448827
-2021.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07252866258736157
-2021.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07264410402023459
-2021.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07275954545310763
-2021.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07287498688598093
-2021.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07299042831885397
-2021.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07310586975172727
-2022.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0732213111846003
-2022.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07333675261747333
-2022.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07345219405034663
-2022.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07356763548321966
-2022.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07368307691609297
-2022.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.073798518348966
-2022.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07391395978183904
-2022.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07402940121471233
-2022.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07414484264758536
-2022.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07426028408045866
-2023.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0743757255133317
-2023.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07449116694620474
-2023.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07460660837907804
-2023.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07472204981195106
-2023.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07483749124482436
-2023.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0749529326776974
-2023.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07506837411057043
-2023.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07518381554344374
-2023.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07529925697631677
-2023.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07541469840919006
-2024.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0755301398420631
-2024.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07564558127493613
-2024.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07576102270780943
-2024.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07587646414068247
-2024.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07599190557355577
-2024.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0761073470064288
-2024.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07622278843930183
-2024.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07633822987217513
-2024.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07645367130504817
-2024.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07656911273792147
-2025.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0766845541707945
-2025.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07679999560366753
-2025.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07691543703654083
-2025.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07703087846941387
-2025.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07714631990228717
-2025.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0772617613351602
-2025.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07737720276803324
-2025.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07749264420090653
-2025.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07760808563377956
-2025.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07772352706665286
-2026.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0778389684995259
-2014.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08027834928439781
-2014.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07951252254689517
-2014.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07876150703914504
-2014.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07802530276115084
-2014.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07730390971290921
-2014.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07659732789442344
-2014.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07590555730569187
-2014.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07522859794671298
-2014.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07456644981748983
-2014.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07391911291801945
-2015.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07328658724830474
-2015.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07266887280834423
-2015.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07206596959813658
-2015.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07147787761768451
-2015.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07090459686698534
-2015.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0703461273460417
-2015.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06980246905485225
-2015.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06927362199341583
-2015.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06875958616173482
-2015.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06826036155980689
-2016.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06777594818763433
-2016.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06730634604521595
-2016.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06685155513255076
-2016.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0664115754496408
-2016.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06598640699648411
-2016.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0655760497730826
-2016.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0651805037794353
-2016.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06479976901554133
-2016.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06443384548140245
-2016.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06408273317701699
-2017.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06374643210238654
-2017.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06342494225751029
-2017.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06311826364238757
-2017.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06282639625701975
-2017.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06254934010140552
-2017.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.062287095175546134
-2017.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.062039661479440955
-2017.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.061807039013089454
-2017.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06158922777649271
-2017.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.061386227769649714
-2018.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06119803899256139
-2018.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06102466144522727
-2018.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06086609512764701
-2018.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060722340039821326
-2018.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06059339618174956
-2018.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06047926355343231
-2018.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060379942154869255
-2018.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06029543198606023
-2018.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060225733047005604
-2018.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06017084533770508
-2019.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06013076885815889
-2019.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0601055036083669
-2019.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060095049588329105
-2019.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060099406798045554
-2019.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06011857523751625
-2019.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06015255490674113
-2019.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0602013458057202
-2019.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060264947934453646
-2019.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06034336129294115
-2019.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.060436585881183086
-2020.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06054462169917903
-2020.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06066746874692917
-2020.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06080512702443384
-2020.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06095759653169241
-2020.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06112487726870558
-2020.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06130696923547258
-2020.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06150387243199379
-2020.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.061715586858269694
-2020.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06194211251429933
-2020.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06218344940008373
-2021.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06243959751562181
-2021.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06271055686091408
-2021.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06299632743596122
-2021.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06329690924076191
-2021.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06361230227531756
-2021.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06394250653962669
-2021.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06428752203369002
-2021.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06464734875750838
-2021.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06502198671108014
-2021.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06541143589440701
-2022.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06581569630748722
-2022.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06623476795032161
-2022.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06666865082291122
-2022.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06711734492525405
-2022.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06758085025735217
-2022.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06805916681920342
-2022.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06855229461080888
-2022.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0690602336321697
-2022.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06958298388328361
-2022.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07012054536415295
-2023.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07067291807477527
-2023.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0712401020151518
-2023.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07182209718528387
-2023.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07241890358516884
-2023.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07303052121480941
-2023.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07365695007420278
-2023.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07429819016335039
-2023.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07495424148225369
-2023.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07562510403090972
-2023.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07631077780932151
-2024.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07701126281748596
-2024.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07772655905540463
-2024.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07845666652307916
-2024.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07920158522050624
-2024.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07996131514768928
-2024.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08073585630462482
-2024.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08152520869131454
-2024.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0823293723077603
-2024.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08314834715395844
-2024.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08398213322991273
-2025.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0848307305356193
-2025.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08569413907108009
-2025.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08657235883629709
-2025.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08746538983126631
-2025.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08837323205599182
-2025.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08929588551046946
-2025.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09023335019470131
-2025.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09118562610868956
-2025.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09215271325242984
-2025.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09313461162592657
-2026.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09413132122917528
+2014.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.061935256281901094
+2014.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06216825049565858
+2014.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0624012447094166
+2014.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06263423892317409
+2014.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0628672331369321
+2014.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0631002273506896
+2014.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06333322156444708
+2014.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06356621577820509
+2014.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06379920999196259
+2014.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0640322042057206
+2015.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06426519841947809
+2015.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06449819263323558
+2015.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0647311868469936
+2015.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06496418106075108
+2015.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0651971752745091
+2015.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06543016948826659
+2015.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06566316370202407
+2015.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0658961579157821
+2015.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06612915212953958
+2015.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06636214634329761
+2016.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0665951405570551
+2016.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06682813477081258
+2016.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0670611289845706
+2016.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06729412319832809
+2016.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06752711741208611
+2016.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0677601116258436
+2016.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06799310583960108
+2016.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0682261000533591
+2016.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06845909426711659
+2016.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0686920884808746
+2017.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0689250826946321
+2017.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.06915807690838958
+2017.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0693910711221476
+2017.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0696240653359051
+2017.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0698570595496631
+2017.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07009005376342059
+2017.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07032304797717809
+2017.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0705560421909361
+2017.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07078903640469358
+2017.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07102203061845161
+2018.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0712550248322091
+2018.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07148801904596658
+2018.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0717210132597246
+2018.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07195400747348209
+2018.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0721870016872401
+2018.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0724199959009976
+2018.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07265299011475508
+2018.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07288598432851309
+2018.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07311897854227059
+2018.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0733519727560286
+2019.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07358496696978609
+2019.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07381796118354358
+2019.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0740509553973016
+2019.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0742839496110591
+2019.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0745169438248171
+2019.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07474993803857459
+2019.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07498293225233209
+2019.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0752159264660901
+2019.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07544892067984758
+2019.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07568191489360561
+2020.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0759149091073631
+2020.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07614790332112058
+2020.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0763808975348786
+2020.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07661389174863609
+2020.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0768468859623941
+2020.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0770798801761516
+2020.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07731287438990908
+2020.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07754586860366709
+2020.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07777886281742459
+2020.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0780118570311826
+2021.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0782448512449401
+2021.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07847784545869758
+2021.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0787108396724556
+2021.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0789438338862131
+2021.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0791768280999711
+2021.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07940982231372859
+2021.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.07964281652748609
+2021.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0798758107412441
+2021.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08010880495500158
+2021.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08034179916875961
+2022.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0805747933825171
+2022.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08080778759627458
+2022.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0810407818100326
+2022.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08127377602379009
+2022.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0815067702375481
+2022.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0817397644513056
+2022.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08197275866506308
+2022.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08220575287882109
+2022.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08243874709257859
+2022.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0826717413063366
+2023.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08290473552009409
+2023.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08313772973385158
+2023.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0833707239476096
+2023.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08360371816136708
+2023.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0838367123751251
+2023.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08406970658888259
+2023.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08430270080264007
+2023.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0845356950163981
+2023.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08476868923015558
+2023.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08500168344391361
+2024.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08523467765767109
+2024.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08546767187142858
+2024.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0857006660851866
+2024.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08593366029894409
+2024.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08616665451270211
+2024.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0863996487264596
+2024.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08663264294021708
+2024.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0868656371539751
+2024.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08709863136773259
+2024.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0873316255814906
+2025.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0875646197952481
+2025.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08779761400900558
+2025.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0880306082227636
+2025.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0882636024365211
+2025.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0884965966502791
+2025.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08872959086403659
+2025.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08896258507779409
+2025.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.0891955792915521
+2025.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08942857350530958
+2025.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08966156771906761
+2026.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,linear_fit,,,0.08989456193282509
+2014.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0806882941048937
+2014.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07990691945459022
+2014.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07914259302048772
+2014.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07839531480258967
+2014.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07766508480089265
+2014.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07695190301540003
+2014.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07625576944611008
+2014.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07557668409302129
+2014.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07491464695613677
+2014.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07426965803545348
+2015.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07364171733097437
+2015.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07303082484269793
+2015.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07243698057062288
+2015.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07186018451475187
+2015.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07130043667508232
+2015.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07075773705161673
+2015.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07023208564435382
+2015.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06972348245329248
+2015.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.069231927478435
+2015.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06875742071977915
+2016.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06829996217732709
+2016.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06785955185107773
+2016.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0674361897410301
+2016.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06702987584718614
+2016.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06664061016954402
+2016.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06626839270810549
+2016.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06591322346286964
+2016.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06557510243383574
+2016.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06525402962100531
+2016.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06495000502437691
+2017.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06466302864395189
+2017.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06439310047972957
+2017.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06414022053170938
+2017.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06390438879989248
+2017.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06368560528427779
+2017.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06348386998486631
+2017.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06329918290165752
+2017.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06313154403465106
+2017.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06298095338384768
+2017.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0628474109492467
+2018.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06273091673084875
+2018.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06263147072865348
+2018.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06254907294266072
+2018.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06248372337287088
+2018.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06243542201928363
+2018.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.062404168881899195
+2018.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06238996396071746
+2018.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06239280725573843
+2018.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06241269876696211
+2018.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.062449638494388574
+2019.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06250362643801767
+2019.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06257466259784945
+2019.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06266274697388415
+2019.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06276787956612134
+2019.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06289006037456153
+2019.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06302928939920416
+2019.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06318556664004946
+2019.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06335889209709787
+2019.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0635492657703486
+2019.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06375668765980251
+2020.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06398115776545865
+2020.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06422267608731748
+2020.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06448124262537962
+2020.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06475685737964386
+2020.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0650495203501115
+2020.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06535923153678116
+2020.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06568599093965354
+2020.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06602979855872937
+2020.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06639065439400717
+2020.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0667685584454885
+2021.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0671635107131717
+2021.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06757551119705758
+2021.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06800455989714715
+2021.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06845065681343845
+2021.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06891380194593354
+2021.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06939399529463025
+2021.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.06989123685952965
+2021.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07040552664063295
+2021.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07093686463793777
+2021.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07148525085144657
+2022.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07205068528115681
+2022.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07263316792706975
+2022.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07323269878918676
+2022.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07384927786750511
+2022.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07448290516202762
+2022.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07513358067275139
+2022.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07580130439967785
+2022.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07648607634280859
+2022.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07718789650214046
+2022.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07790676487767667
+2023.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07864268146941399
+2023.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.07939564627735397
+2023.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08016565930149842
+2023.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08095272054184383
+2023.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08175682999839377
+2023.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08257798767114459
+2023.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0834161935600981
+2023.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08427144766525627
+2023.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08514374998661521
+2023.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08603310052417887
+2024.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08693949927794321
+2024.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08786294624791026
+2024.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.08880344143408216
+2024.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.0897609848364546
+2024.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09073557645503198
+2024.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09172721628980987
+2024.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09273590434079043
+2024.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09376164060797604
+2024.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09480442509136201
+2024.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09586425779095312
+2025.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09694113870674452
+2025.1,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09803506783873861
+2025.2,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.09914604518693794
+2025.3,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10027407075133746
+2025.4,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10141914453194227
+2025.5,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10258126652874719
+2025.6,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10376043674175481
+2025.7,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10495665517096786
+2025.8,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.1061699218163809
+2025.9,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10740023667799943
+2026.0,,,,Sentiment,ADHD,substantive_core_overall,Overall,flagged,quadratic_fit,,,0.10864759975581789
+2014.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04157843238967669
+2014.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.041703539819605534
+2014.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04182864724953465
+2014.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04195375467946349
+2014.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04207886210939261
+2014.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04220396953932144
+2014.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.042329076969250284
+2014.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.042454184399179404
+2014.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04257929182910824
+2014.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04270439925903736
+2015.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04282950668896619
+2015.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.042954614118895035
+2015.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.043079721548824154
+2015.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04320482897875299
+2015.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04332993640868211
+2015.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04345504383861094
+2015.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.043580151268539785
+2015.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.043705258698468905
+2015.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04383036612839774
+2015.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04395547355832686
+2016.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.044080580988255694
+2016.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.044205688418184536
+2016.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.044330795848113655
+2016.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04445590327804249
+2016.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04458101070797161
+2016.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.044706118137900444
+2016.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.044831225567829286
+2016.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.044956332997758405
+2016.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04508144042768724
+2016.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04520654785761636
+2017.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.045331655287545194
+2017.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.045456762717474036
+2017.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.045581870147403156
+2017.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04570697757733199
+2017.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04583208500726111
+2017.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.045957192437189945
+2017.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04608229986711878
+2017.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.046207407297047906
+2017.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04633251472697674
+2017.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04645762215690586
+2018.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.046582729586834695
+2018.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04670783701676353
+2018.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.046832944446692656
+2018.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04695805187662149
+2018.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04708315930655061
+2018.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.047208266736479446
+2018.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04733337416640828
+2018.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04745848159633741
+2018.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04758358902626624
+2018.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04770869645619536
+2019.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.047833803886124196
+2019.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04795891131605303
+2019.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04808401874598215
+2019.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04820912617591099
+2019.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04833423360584011
+2019.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.048459341035768946
+2019.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04858444846569778
+2019.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0487095558956269
+2019.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04883466332555574
+2019.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04895977075548486
+2020.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0490848781854137
+2020.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04920998561534253
+2020.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04933509304527165
+2020.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04946020047520049
+2020.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04958530790512961
+2020.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04971041533505845
+2020.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.04983552276498728
+2020.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0499606301949164
+2020.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05008573762484524
+2020.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05021084505477436
+2021.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0503359524847032
+2021.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05046105991463203
+2021.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05058616734456115
+2021.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05071127477448999
+2021.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05083638220441911
+2021.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05096148963434795
+2021.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05108659706427678
+2021.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0512117044942059
+2021.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05133681192413474
+2021.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05146191935406386
+2022.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0515870267839927
+2022.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05171213421392153
+2022.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05183724164385065
+2022.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05196234907377949
+2022.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.052087456503708614
+2022.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05221256393363745
+2022.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.052337671363566284
+2022.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0524627787934954
+2022.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05258788622342424
+2022.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05271299365335336
+2023.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0528381010832822
+2023.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.052963208513211034
+2023.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05308831594314015
+2023.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05321342337306899
+2023.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05333853080299811
+2023.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05346363823292695
+2023.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053588745662855784
+2023.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.053713853092784904
+2023.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05383896052271374
+2023.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05396406795264286
+2024.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0540891753825717
+2024.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.054214282812500535
+2024.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.054339390242429654
+2024.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05446449767235849
+2024.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05458960510228761
+2024.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05471471253221645
+2024.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.054839819962145285
+2024.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.054964927392074404
+2024.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05509003482200324
+2024.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05521514225193236
+2025.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0553402496818612
+2025.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.055465357111790035
+2025.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.055590464541719155
+2025.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05571557197164799
+2025.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05584067940157711
+2025.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05596578683150595
+2025.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.056090894261434786
+2025.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.056216001691363905
+2025.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05634110912129274
+2025.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.05646621655122186
+2026.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,linear_fit,,,0.0565913239811507
+2014.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06814023218946899
+2014.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06682858772113763
+2014.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0655410903435304
+2014.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06427774005665315
+2014.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06303853686050018
+2014.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.061823480755077084
+2014.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06063257174038102
+2014.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05946580981640938
+2014.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05832319498316746
+2014.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05720472724065006
+2015.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05611040658886228
+2015.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05504023302780153
+2015.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.053994206557465466
+2015.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05297232717785886
+2015.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.051974594888977044
+2015.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05100100969082457
+2015.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05005157158339914
+2015.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04912628056669866
+2015.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04822513664072736
+2015.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04734813980548114
+2016.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04649529006096397
+2016.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.045666587407173845
+2016.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04486203184410896
+2016.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.044081623371772974
+2016.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04332536199016233
+2016.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042593247699280475
+2016.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.041885280499125654
+2016.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.041201460389696354
+2016.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04054178737099568
+2016.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03990626144302062
+2017.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03929488260577408
+2017.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03870765085925457
+2017.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03814456620346086
+2017.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03760562863839549
+2017.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03709083816405602
+2017.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03660019478044479
+2017.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03613369848756059
+2017.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03569134928540246
+2017.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0352731471739724
+2017.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.034879092153268516
+2018.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03450918422329259
+2018.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03416342338404371
+2018.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.033841809635521164
+2018.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03354434297772642
+2018.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.033271023410658115
+2018.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.033021850934317504
+2018.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03279682554870393
+2018.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.032595947253816974
+2018.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.032419216049657536
+2018.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.032266631936224824
+2019.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03213819491351952
+2019.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03203390498154126
+2019.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03195376214028988
+2019.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.031897766389765755
+2019.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03186591772996863
+2019.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.031858216160898636
+2019.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03187466168255569
+2019.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.031915254294939896
+2019.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03197999399805108
+2019.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.032068880791889534
+2020.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.032181914676454856
+2020.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03231909565174722
+2020.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.032480423717767014
+2020.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0326658988745135
+2020.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03287552112198755
+2020.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03310929046018818
+2020.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.033367206889115854
+2020.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.033649270408771234
+2020.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.033955481019153036
+2020.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03428583872026266
+2021.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.034640343512098604
+2021.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.035018995394661585
+2021.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03542179436795255
+2021.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.035848740431969665
+2021.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.036299833586714875
+2021.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03677507383218613
+2021.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.037274461168384426
+2021.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03779799559531097
+2021.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0383456771129634
+2021.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0389175057213442
+2022.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.03951348142045076
+2022.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04013360421028436
+2022.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.040777874090846496
+2022.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04144629106213424
+2022.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.042138855124150616
+2022.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04285556627689249
+2022.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0435964245203614
+2022.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.044361429854559126
+2022.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.045150582279482175
+2022.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.045963881795134144
+2023.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04680132840151133
+2023.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04766292209861555
+2023.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.04854866288644886
+2023.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.049458550765007214
+2023.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05039258573429477
+2023.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.051350767794307264
+2023.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0523330969450468
+2023.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05333957318651569
+2023.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05437019651870936
+2023.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0554249669416325
+2024.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.056503884455280304
+2024.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.057606949059655146
+2024.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05873416075475962
+2024.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.05988551954058861
+2024.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06106102541714733
+2024.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.062260678384430446
+2024.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0634844784424406
+2024.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06473242559118067
+2024.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06600451983064495
+2024.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06730076116083927
+2025.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06862114958175769
+2025.1,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.06996568509340315
+2025.2,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0713343676957788
+2025.3,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.07272719738887841
+2025.4,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.0741441741727083
+2025.5,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.07558529804726204
+2025.6,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.07705056901254281
+2025.7,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.07853998706855406
+2025.8,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.08005355221528897
+2025.9,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.08159126445275444
+2026.0,,,,Sentiment,ADHD,clinical_only,Clinical,flagged,quadratic_fit,,,0.08315312378094349
+2014.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07158916731043119
+2014.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0718141600836894
+2014.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07203915285694812
+2014.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07226414563020632
+2014.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07248913840346505
+2014.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07271413117672325
+2014.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07293912394998145
+2014.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07316411672324016
+2014.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07338910949649838
+2014.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07361410226975709
+2015.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0738390950430153
+2015.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07406408781627351
+2015.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07428908058953222
+2015.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07451407336279042
+2015.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07473906613604914
+2015.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07496405890930735
+2015.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07518905168256555
+2015.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07541404445582427
+2015.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07563903722908247
+2015.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0758640300023412
+2016.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0760890227755994
+2016.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0763140155488576
+2016.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07653900832211633
+2016.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07676400109537453
+2016.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07698899386863324
+2016.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07721398664189144
+2016.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07743897941514966
+2016.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07766397218840837
+2016.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07788896496166657
+2016.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07811395773492529
+2017.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0783389505081835
+2017.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0785639432814417
+2017.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07878893605470041
+2017.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07901392882795863
+2017.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07923892160121734
+2017.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07946391437447554
+2017.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07968890714773375
+2017.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.07991389992099247
+2017.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08013889269425067
+2017.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08036388546750939
+2018.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0805888782407676
+2018.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0808138710140258
+2018.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08103886378728452
+2018.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08126385656054272
+2018.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08148884933380145
+2018.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08171384210705965
+2018.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08193883488031785
+2018.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08216382765357656
+2018.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08238882042683478
+2018.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08261381320009349
+2019.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08283880597335169
+2019.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08306379874660991
+2019.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08328879151986862
+2019.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08351378429312682
+2019.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08373877706638554
+2019.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08396376983964375
+2019.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08418876261290195
+2019.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08441375538616067
+2019.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08463874815941887
+2019.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0848637409326776
+2020.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0850887337059358
+2020.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.085313726479194
+2020.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08553871925245272
+2020.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08576371202571093
+2020.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08598870479896964
+2020.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08621369757222784
+2020.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08643869034548606
+2020.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08666368311874477
+2020.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08688867589200297
+2020.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08711366866526168
+2021.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0873386614385199
+2021.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0875636542117781
+2021.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08778864698503681
+2021.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08801363975829503
+2021.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08823863253155374
+2021.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08846362530481194
+2021.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08868861807807014
+2021.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08891361085132887
+2021.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08913860362458707
+2021.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08936359639784579
+2022.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.08958858917110399
+2022.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0898135819443622
+2022.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09003857471762092
+2022.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09026356749087912
+2022.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09048856026413785
+2022.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09071355303739605
+2022.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09093854581065425
+2022.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09116353858391296
+2022.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09138853135717118
+2022.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09161352413042989
+2023.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09183851690368809
+2023.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0920635096769463
+2023.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09228850245020502
+2023.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09251349522346322
+2023.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09273848799672194
+2023.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09296348076998015
+2023.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09318847354323835
+2023.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09341346631649707
+2023.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09363845908975527
+2023.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.093863451863014
+2024.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0940884446362722
+2024.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0943134374095304
+2024.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09453843018278912
+2024.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09476342295604732
+2024.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09498841572930604
+2024.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09521340850256424
+2024.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09543840127582245
+2024.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09566339404908117
+2024.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09588838682233937
+2024.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09611337959559808
+2025.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0963383723688563
+2025.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0965633651421145
+2025.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09678835791537321
+2025.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09701335068863143
+2025.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09723834346189014
+2025.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09746333623514834
+2025.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09768832900840654
+2025.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09791332178166527
+2025.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09813831455492347
+2025.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.09836330732818219
+2026.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,linear_fit,,,0.0985883001014404
+2014.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09949572862362585
+2014.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0982112301258535
+2014.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0969521012292721
+2014.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09571834193388734
+2014.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09450995223969365
+2014.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09332693214669649
+2014.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0921692816548931
+2014.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09103700076428092
+2014.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08993008947486514
+2014.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08884854778664067
+2015.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08779237569961246
+2015.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08676157321377803
+2015.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0857561403291351
+2015.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08477607704568826
+2015.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08382138336343305
+2015.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0828920592823738
+2015.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08198810480250832
+2015.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08110951992383462
+2015.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08025630464635673
+2015.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07942845897007075
+2016.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07862598289498046
+2016.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07784887642108393
+2016.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07709713954837949
+2016.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07637077227687056
+2016.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07566977460655383
+2016.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07499414653743249
+2016.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0743438880695049
+2016.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0737189992027697
+2016.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07311947993722973
+2016.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07254533027288222
+2017.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07199655020972984
+2017.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07147313974777121
+2017.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07097509888700526
+2017.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07050242762743422
+2017.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07005512596905597
+2017.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06963319391187253
+2017.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06923663145588287
+2017.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06886543860108615
+2017.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06851961534748408
+2017.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06819916169507506
+2018.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06790407764386058
+2018.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06763436319383986
+2018.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06739001834501239
+2018.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06717104309737927
+2018.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06697743745093951
+2018.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06680920140569398
+2018.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06666633496164222
+2018.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06654883811878397
+2018.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0664567108771198
+2018.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06638995323664929
+2019.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0663485651973727
+2019.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0663325467592899
+2019.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0663418979224009
+2019.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06637661868670569
+2019.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0664367090522044
+2019.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06652216901889679
+2019.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06663299858678291
+2019.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06676919775586317
+2019.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06693076652613691
+2019.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06711770489760487
+2020.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0673300128702662
+2020.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0675676904441213
+2020.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0678307376191708
+2020.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06811915439541348
+2020.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06843294077285068
+2020.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06877209675148097
+2020.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.069136622331305
+2020.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06952651751232375
+2020.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.06994178229453539
+2020.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07038241667794184
+2021.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07084842066254107
+2021.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07133979424833409
+2021.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07185653743532205
+2021.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07239865022350266
+2021.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07296613261287833
+2021.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07355898460344652
+2021.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07417720619520848
+2021.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0748207973881657
+2021.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07548975818231525
+2021.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07618408857766018
+2022.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07690378857419733
+2022.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07764885817192824
+2022.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.07841929737085471
+2022.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0792151061709732
+2022.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08003628457228737
+2022.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08088283257479346
+2022.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08175475017849332
+2022.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08265203738338903
+2022.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0835746941894765
+2022.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0845227205967599
+2023.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08549611660523496
+2023.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08649488221490377
+2023.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08751901742576872
+2023.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08856852223782512
+2023.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.08964339665107778
+2023.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09074364066552178
+2023.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09186925428115955
+2023.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09302023749799374
+2023.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.0941965903160191
+2023.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09539831273524099
+2024.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09662540475565395
+2024.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09787786637726067
+2024.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.09915569760006411
+2024.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10045889842405842
+2024.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10178746884924955
+2024.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10314140887563146
+2024.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10452071850320714
+2024.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10592539773197981
+2024.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10735544656194308
+2024.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.10881086499310347
+2025.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11029165302545432
+2025.1,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11179781065899896
+2025.2,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11332933789374086
+2025.3,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11488623472967309
+2025.4,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11646850116680271
+2025.5,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11807613720512253
+2025.6,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.11970914284463612
+2025.7,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.12136751808534726
+2025.8,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.12305126292724845
+2025.9,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.12476037737034731
+2026.0,,,,Sentiment,Autism,clinical_only,Clinical,flagged,quadratic_fit,,,0.1264948614146361

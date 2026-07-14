@@ -32,6 +32,28 @@ Table~\ref{tab:lsc-quadratic-diagnostics} reports the quadratic models for annua
 \input{../reports/tables/lsc/diagnostics/lsc_quadratic_trend_diagnostics_flagged.tex}
 \FloatBarrier
 
+\Needspace{0.45\textheight}
+\section{Post-hoc Contributor Tables}
+
+Tables~\ref{tab:lsc-posthoc-sentiment-contributors}--\ref{tab:lsc-posthoc-breadth-contributors} summarise the main VAD collocate contributors and the breadth diagnostic inspected after the annual LSC analyses.
+
+\begingroup
+\renewcommand{\thetable}{\thesection.\arabic{table}}
+\setcounter{table}{0}
+
+\input{../reports/tables/lsc/posthoc/lsc_posthoc_sentiment_collocates.tex}
+\FloatBarrier
+
+\input{../reports/tables/lsc/posthoc/lsc_posthoc_arousal_collocates.tex}
+\FloatBarrier
+
+\input{../reports/tables/lsc/posthoc/lsc_posthoc_breadth_content_words.tex}
+\FloatBarrier
+
+\endgroup
+\setcounter{table}{7}
+\renewcommand{\thetable}{A.\arabic{table}}
+
 \Needspace{0.55\textheight}
 \section{ADHD Neighbour Similarity Evolution}
 

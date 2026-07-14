@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  9 JUL 2026 10:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  14 JUL 2026 13:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -535,7 +535,7 @@ e
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
 
-(./title/title.tex
+(./title/title.tex (./wordcount.txt)
 
 [1
 
@@ -593,15 +593,19 @@ been already used, duplicate ignored
                    \relax 
 l.57 \newpage
               [1{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm
--super-t1.enc}] (./sections/00_abstract.tex)
+-super-t1.enc}]
 
-[2
+[2]
+
+[3] (./sections/00_abstract.tex)
+
+[4
 
 ]
 
-[3] (./main.toc
+[5] (./main.toc
 
-[4
+[6
 
 ])
 \tf@toc=\write4
@@ -609,13 +613,13 @@ l.57 \newpage
 
 
 
-[5] (./main.lof)
+[7] (./main.lof)
 \tf@lof=\write5
 \openout5 = `main.lof'.
 
 
 
-[6
+[8
 
 ] (./main.lot)
 \tf@lot=\write6
@@ -623,7 +627,7 @@ l.57 \newpage
 
 
 
-[7
+[9
 
 ]
 Chapter 1.
@@ -647,7 +651,7 @@ Overfull \hbox (28.153pt too wide) in paragraph at lines 9--10
 
 
 [2])
-Overfull \hbox (1.84833pt too wide) in paragraph at lines 15--85
+Overfull \hbox (1.84833pt too wide) in paragraph at lines 15--95
 \T1/ppl/m/n/12 the-sises em-pir-i-cal ev-i-dence on LSC in mental-health-relate
 d terms over re-cent decades,
  []
@@ -663,11 +667,6 @@ Chapter 2.
 ]
 
 [5]
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 17.
-
-
 Overfull \hbox (5.91737pt too wide) in paragraph at lines 21--22
 \T1/ppl/m/n/12 based and embedding-based tech-niques. It dis-tin-guishes three 
 di-men-sions along which
@@ -677,17 +676,37 @@ di-men-sions along which
 
 [6]
 
-[7])
+[7]
+Overfull \hbox (0.58954pt too wide) in paragraph at lines 33--34
+\T1/ppl/m/n/12 den-tiary base that cap-tures gen-eral web dis-course, di-rect d
+i-achronic anal-y-sis of ADHD
+ []
 
-[8]
+
+Overfull \hbox (13.84967pt too wide) in paragraph at lines 37--38
+[]\T1/ppl/m/n/12 Guided by these re-quire-ments, the present study ad-dresses f
+our re-search ques-tions: 
+ []
+
+
+Overfull \hbox (31.7537pt too wide) in paragraph at lines 46--47
+\T1/ppl/m/n/12 ing mea-sures^^Vsentiment (RQ3), frame com-po-si-tion (RQ2), and
+ the-matic con-tent (RQ4)^^Vare
+ []
+
+
+
+[8])
+
+[9]
 Chapter 3.
 (./sections/03_data_and_materials.tex
 
-[9
+[10
 
 ]
 <../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pdf, i
-d=514, 661.42003pt x 189.25908pt>
+d=563, 661.42003pt x 189.25908pt>
 File: ../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.p
 df Graphic file (type pdf)
 <use ../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pd
@@ -697,7 +716,7 @@ llection_pipeline.pdf  used on input line 11.
 (pdftex.def)             Requested size: 451.82993pt x 129.28647pt.
 
 
-[10 <../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pd
+[11 <../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pd
 f>]
 Underfull \hbox (badness 3514) in paragraph at lines 21--21
 [][]\T1/ppl/m/n/10 Both \T1/cmtt/m/n/10 warcio \T1/ppl/m/n/10 and \T1/cmtt/m/n/
@@ -707,11 +726,11 @@ Underfull \hbox (badness 3514) in paragraph at lines 21--21
 
 
 
-[11]
+[12]
 
-[12])
+[13])
 
-[13]
+[14]
 Chapter 4.
 (./sections/04_methods.tex
 Underfull \hbox (badness 1466) in paragraph at lines 2--2
@@ -721,16 +740,16 @@ able at [][]$\T1/cmtt/m/n/10 https : / / github . com / jako6f /
 
 
 
-[14
+[15
 
 ]
-Overfull \hbox (38.7844pt too wide) in paragraph at lines 22--23
+Overfull \hbox (38.7844pt too wide) in paragraph at lines 24--25
 []\T1/ppl/m/n/12 The an-no-ta-tion unit is the tar-get sen-tence plus ad-ja-cen
 t sen-tence con-text. Each ADHD/autism
  []
 
 
-Overfull \hbox (26.49545pt too wide) in paragraph at lines 22--23
+Overfull \hbox (26.49545pt too wide) in paragraph at lines 24--25
 \T1/ppl/m/n/12 belled \T1/cmtt/m/n/12 mixed\T1/ppl/m/n/12 ; and sub-stan-tive p
 as-sages with nei-ther are la-belled \T1/cmtt/m/n/12 substantive-other\T1/ppl/m
 /n/12 .[][][][][] 
@@ -738,45 +757,39 @@ as-sages with nei-ther are la-belled \T1/cmtt/m/n/12 substantive-other\T1/ppl/m
 
 
 
-[15]
-Overfull \hbox (3.14359pt too wide) in paragraph at lines 26--27
+[16]
+Overfull \hbox (3.14359pt too wide) in paragraph at lines 28--29
 []\T1/ppl/m/n/12 The cor-rected la-bels were used to train a hi-er-ar-chi-cal c
 las-si-fier over \T1/cmtt/m/n/12 all-MPNET-base-v2
  []
 
 
-Overfull \hbox (11.2103pt too wide) in paragraph at lines 30--31
+Overfull \hbox (11.2103pt too wide) in paragraph at lines 32--33
 \T1/ppl/m/n/12 po-rary En-glish cov-er-age and in-cludes multi-word ex-pres-sio
 ns ([][]Mo-ham-mad[][], [][]2025[][]). 
  []
 
 
-Overfull \hbox (5.89902pt too wide) in paragraph at lines 32--33
-\T1/ppl/m/n/12 The re-main-ing con-text is to-kenised and lem-ma-tised with spa
-Cy \T1/cmtt/m/n/12 en_core_web_sm\T1/ppl/m/n/12 . Punc-
- []
-
-
-
-[16]
 
 [17]
 
-[18])
+[18]
 
 [19]
 
-[20]
+[20])
+
+[21]
 Chapter 5.
 (./sections/05_results.tex
 (../reports/tables/lsc/regression/lsc_regression_target_frames.tex)
 
-[21
+[22
 
 ]
 
-[22]
-<../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf, id=679,
+[23]
+<../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf, id=732,
  859.09016pt x 329.04909pt>
 File: ../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf Gra
 phic file (type pdf)
@@ -788,9 +801,9 @@ rajectories.pdf  used on input line 17.
 (../reports/tables/lsc/classification/lsc_classification_validation_performance
 .tex)
 
-[23 <../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf>]
+[24 <../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf>]
 <../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf, id
-=776, 878.1344pt x 380.34497pt>
+=827, 878.1344pt x 380.34497pt>
 File: ../reports/figures/lsc/classification/lsc_classification_frame_balance.pd
 f Graphic file (type pdf)
 <use ../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf
@@ -800,94 +813,160 @@ on_frame_balance.pdf  used on input line 37.
 (pdftex.def)             Requested size: 451.82993pt x 195.69704pt.
 
 
-[24 <../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf
+[25 <../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf
 >]
+
+[26]
 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_targets
-.pdf, id=873, 672.32117pt x 295.43373pt>
+.pdf, id=929, 672.33624pt x 295.43373pt>
 File: ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_ta
 rgets.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_tar
 gets.pdf>
 Package pdftex.def Info: ../reports/figures/lsc/diagnostics/lsc_quadratic_diagn
-ostics_sentiment_targets.pdf  used on input line 56.
+ostics_sentiment_targets.pdf  used on input line 58.
 (pdftex.def)             Requested size: 451.82993pt x 198.54362pt.
 
 
-[25 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_tar
+[27 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_tar
 gets.pdf>]
-<../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf, id=94
-3, 1002.85548pt x 309.8944pt>
+<../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf, id=10
+03, 1002.88312pt x 309.8944pt>
 File: ../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf G
 raphic file (type pdf)
 <use ../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf>
 Package pdftex.def Info: ../reports/figures/lsc/intensity/lsc_intensity_arousal
-_trajectories.pdf  used on input line 73.
-(pdftex.def)             Requested size: 451.82993pt x 139.6214pt.
+_trajectories.pdf  used on input line 77.
+(pdftex.def)             Requested size: 451.82993pt x 139.61667pt.
 
 
-[26 <../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf>]
-<../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf, id=1026, 1002.878
+[28 <../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf>]
+<../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf, id=1088, 1002.878
 71pt x 309.8944pt>
 File: ../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf Graphic file 
 (type pdf)
 <use ../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf>
 Package pdftex.def Info: ../reports/figures/lsc/breadth/lsc_breadth_trajectorie
-s.pdf  used on input line 88.
+s.pdf  used on input line 92.
 (pdftex.def)             Requested size: 451.82993pt x 139.61667pt.
 
 
-[27 <../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf>]
+[29 <../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf>]
 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autism.pd
-f, id=1112, 485.7628pt x 302.8414pt>
+f, id=1176, 485.7628pt x 302.8414pt>
 File: ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_auti
 sm.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autis
 m.pdf>
 Package pdftex.def Info: ../reports/figures/lsc/diagnostics/lsc_quadratic_diagn
-ostics_breadth_autism.pdf  used on input line 101.
+ostics_breadth_autism.pdf  used on input line 107.
 (pdftex.def)             Requested size: 361.46532pt x 225.35141pt.
 
 
-[28 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autis
+[30 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autis
 m.pdf>]
 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_au
-tism.pdf, id=1181, 946.50629pt x 315.59329pt>
+tism.pdf, id=1244, 946.50629pt x 315.59329pt>
 File: ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similari
 ty_autism.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
 y_autism.pdf>
 Package pdftex.def Info: ../reports/figures/lsc/thematic_evolution/lsc_thematic
-_neighbour_similarity_autism.pdf  used on input line 118.
+_neighbour_similarity_autism.pdf  used on input line 124.
 (pdftex.def)             Requested size: 451.82993pt x 150.64996pt.
 
+Overfull \hbox (2.28096pt too wide) in paragraph at lines 136--137
+[]\T1/ppl/m/n/12 Intensity was more sen-si-tive to the af-fec-tive re-source. T
+he near-zero NRC--VAD ADHD
+ []
 
-[29 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
+
+
+[31 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
 y_autism.pdf>]
 <../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth.pdf,
- id=1275, 775.03989pt x 524.21469pt>
+ id=1336, 775.03989pt x 524.21469pt>
 File: ../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth
 .pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth.
 pdf>
 Package pdftex.def Info: ../reports/figures/lsc/robustness/lsc_method_robustnes
-s_intensity_breadth.pdf  used on input line 135.
+s_intensity_breadth.pdf  used on input line 143.
 (pdftex.def)             Requested size: 451.82993pt x 305.6045pt.
 )
 
-[30 <../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth.
+[32 <../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth.
 pdf>]
 Chapter 6.
-(./sections/06_discussion.tex)
+(./sections/06_discussion.tex
 
-[31
+[33
 
 ]
+Overfull \hbox (14.2323pt too wide) in paragraph at lines 19--20
+[]\T1/ppl/m/n/12 This sta-bil-ity is in-tel-li-gi-ble in light of [][]Ia-cob an
+d Uban[][]'s [][]2026[][] find-ing that long-established,
+ []
+
+
+
+[34]
+
+[35]
+
+[36]
+Overfull \hbox (6.30025pt too wide) in paragraph at lines 32--33
+\T1/ppl/m/n/12 sen-ti-ment was pos-i-tive un-der the AR(1) model while the live
+d-experience slope pointed
+ []
+
+
+Overfull \hbox (0.30096pt too wide) in paragraph at lines 36--37
+[]\T1/ppl/m/n/12 A fur-ther pat-tern de-serves note. From 2018 on-ward, \T1/ppl
+/m/it/12 adhd \T1/ppl/m/n/12 en-tered the lead-ing negative-
+ []
+
+
+
+[37]
+
+[38]
+Overfull \hbox (1.85057pt too wide) in paragraph at lines 54--55
+\T1/ppl/m/n/12 from the SIB-ling op-er-a-tional-i-sa-tion ([][]Baes, Haslam, an
+d Vy-lo-mova[][], [][]2024[][]), and are there-
+ []
+
+)
+
+[39]
+
+[40]
 Chapter 7.
-(./sections/07_conclusion.tex)
+(./sections/07_conclusion.tex
+Overfull \hbox (12.98431pt too wide) in paragraph at lines 5--6
+[]\T1/ppl/m/n/12 The study makes four con-tri-bu-tions. Sub-stan-tively, it ex-
+tends con-cept creep and therapy-
+ []
 
-[32
 
-] (./main.bbl
+Overfull \hbox (1.36919pt too wide) in paragraph at lines 5--6
+\T1/ppl/m/n/12 cod-i-fied di-ag-nos-tic con-cepts re-sisted the se-man-tic loos
+-en-ing doc-u-mented for ordinary-
+ []
+
+
+Overfull \hbox (2.66489pt too wide) in paragraph at lines 5--6
+\T1/ppl/m/n/12 shows that con-clu-sions do not sim-ply trans-fer be-tween the t
+wo. An-a-lyt-i-cally, it demon-
+ []
+
+)
+
+[41
+
+]
+
+[42] (./main.bbl
 Underfull \hbox (badness 4048) in paragraph at lines 29--33
 \T1/ppl/m/n/12 2020-2022.  https://www.abs.gov.au/statistics/health/mental-heal
 th/national-
@@ -901,30 +980,30 @@ Underfull \hbox (badness 10000) in paragraph at lines 35--38
 
 
 
-[33
+[43
 
 
 ]
 
-[34]
+[44]
 
-[35]
-Underfull \hbox (badness 3302) in paragraph at lines 262--267
+[45]
+Underfull \hbox (badness 3302) in paragraph at lines 260--265
 []\T1/ppl/m/n/12 Lin, Lequan, Dai Shi, Andi Han, Feng Chen, Qi-uzheng Chen, Ji-
 awen Li,
  []
 
 
 
-[36]
+[46]
 
-[37])
+[47])
 
-[38] (./sections/08_appendices.tex
+[48] (./sections/08_appendices.tex
 (../reports/tables/lsc/classification/lsc_classification_frame_time_trends.tex)
 
 
-[39
+[49
 
 ] (../reports/tables/lsc/regression/lsc_regression_baseline_comparators.tex)
 Overfull \hbox (6.3375pt too wide) in paragraph at lines 22--23
@@ -934,36 +1013,79 @@ dag-gered rows in the trend ta-bles.
 
 (../reports/tables/lsc/diagnostics/lsc_ar1_sensitivity_flagged.tex)
 
-[40]
+[50]
 (../reports/tables/lsc/diagnostics/lsc_quadratic_trend_diagnostics_flagged.tex)
+(../reports/tables/lsc/posthoc/lsc_posthoc_sentiment_collocates.tex)
+(../reports/tables/lsc/posthoc/lsc_posthoc_arousal_collocates.tex)
+
+[51] (../reports/tables/lsc/posthoc/lsc_posthoc_breadth_content_words.tex
+Underfull \hbox (badness 10000) in paragraph at lines 12--12
+[]\T1/ppl/m/n/8 disorder, in-clude, child,
+ []
+
+
+Underfull \hbox (badness 2635) in paragraph at lines 13--14
+[]\T1/ppl/m/n/8 disorder, con-di-tion, autism,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 14--15
+[]\T1/ppl/m/n/8 disorder, autism, dyslexia,
+ []
+
+
+Underfull \hbox (badness 1789) in paragraph at lines 16--16
+[]\T1/ppl/m/n/8 family, in-di-vid-ual, re-search,
+ []
+
+
+Underfull \hbox (badness 1728) in paragraph at lines 16--16
+[]\T1/ppl/m/n/8 child, early, new, or-ga-ni-za-
+ []
+
+
+Underfull \hbox (badness 6316) in paragraph at lines 17--17
+[]\T1/ppl/m/n/8 far, car, ac-tu-ally, at-ti-tude,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 17--18
+[]\T1/ppl/m/n/8 experience, think, peo-ple,
+ []
+
+)
+
+[52]
 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_ad
-hd.pdf, id=1431, 946.50629pt x 315.59329pt>
+hd.pdf, id=1637, 946.50629pt x 315.59329pt>
 File: ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similari
 ty_adhd.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
 y_adhd.pdf>
 Package pdftex.def Info: ../reports/figures/lsc/thematic_evolution/lsc_thematic
-_neighbour_similarity_adhd.pdf  used on input line 42.
+_neighbour_similarity_adhd.pdf  used on input line 64.
 (pdftex.def)             Requested size: 451.82993pt x 150.64996pt.
 )
 
-[41 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
-y_adhd.pdf>] (./main.aux)
+[53
+
+ <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_a
+dhd.pdf>] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: FF5CDBA5AFB51EB6784E6978F83C5A1D;4898.
+(rerunfilecheck)             Checksum: 7EB345C9E3862A2931C63516ECB91FB5;6550.
  ) 
 Here is how much of TeX's memory you used:
- 14882 strings out of 473190
- 250322 string characters out of 5715801
- 668832 words of memory out of 5000000
- 37653 multiletter control sequences out of 15000+600000
+ 14952 strings out of 473190
+ 252431 string characters out of 5715801
+ 677536 words of memory out of 5000000
+ 37685 multiletter control sequences out of 15000+600000
  616482 words of font info for 164 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,12n,79p,2474b,681s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,12n,79p,2475b,681s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 pdfTeX warning (dest): name{Hfootnote.4} has been referenced but does not exist
 , replaced by a fixed one
@@ -994,10 +1116,10 @@ e/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/local/texlive/2025/texmf-
 dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/local/texlive/2025/texmf-dist/fo
 nts/type1/urw/palatino/uplri8a.pfb>
-Output written on main.pdf (49 pages, 590114 bytes).
+Output written on main.pdf (63 pages, 632153 bytes).
 PDF statistics:
- 1613 PDF objects out of 1728 (max. 8388607)
- 883 compressed objects within 9 object streams
- 169 named destinations out of 1000 (max. 500000)
- 331 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1823 PDF objects out of 2073 (max. 8388607)
+ 1073 compressed objects within 11 object streams
+ 194 named destinations out of 1000 (max. 500000)
+ 387 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -56,6 +56,16 @@ Signed:~\rule{5cm}{0.3pt}\hfill Date:~\rule{5cm}{0.3pt}
 
 \newpage
 
+\section*{Ethics and Data-Handling Statement}
+This study involved no human participants, no interaction or intervention, and no primary data collection; it is a secondary analysis of publicly accessible web pages archived and distributed by Common Crawl. The corpus was obtained in accordance with Common Crawl's terms of use, and the archive itself honours publishers' \texttt{robots.txt} exclusions; no attempt was made to access or reconstruct content excluded from the crawl. Although the analysed texts include first-person accounts of mental health experiences, all analyses were conducted at the level of aggregate annual corpus statistics. No individuals were identified or profiled, no author- or user-level inferences were drawn, and no personal identifiers were extracted or analysed beyond their incidental presence in archived page text. Any example passages shown are brief and non-identifying. Processing followed the data-protection principles of purpose limitation and data minimisation: collection artefacts were stored on access-controlled cloud infrastructure (AWS S3/EC2) and used solely for this research, and the released reproducibility materials comprise code, configuration, and derived aggregate outputs, with the underlying web documents referenced by their Common Crawl identifiers rather than redistributed.
+
+\newpage
+
+\section*{Statement on the Use of Artificial Intelligence}
+Generative AI tools were used in three capacities in this project. First, as coding assistants: OpenAI's ChatGPT Codex was used to help implement and debug parts of the software developed for this study, most extensively the Common Crawl text-extraction pipeline; all code was specified, reviewed, tested, and validated by the author, who takes full responsibility for its correctness. Second, as research instruments: the frame-annotation workflow described in the Methods chapter uses large language models by design (OpenAI Codex GPT-5.5 as annotator and Gemini 3 Flash Preview as critic), with human adjudication authoritative throughout; this methodological use is documented in full in Section~\ref{sec:methods-frame-classification}. Third, as a language aid: bar minor polishing of prose, grammar and wording, all text was written by the author. AI tools were not used to search, select, or review the literature, and all interpretations and conclusions are the author's own. The author accepts full responsibility for the entire content of this dissertation.
+
+\newpage
+
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 \input{sections/00_abstract.tex}
