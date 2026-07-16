@@ -3,6 +3,8 @@ YEAR ?=
 TRACK ?= corpus
 BATCH ?= 1
 
+.PHONY: paper
+
 env:
 	@echo "Activate env: conda activate msc-nlp"
 
@@ -17,7 +19,7 @@ format:
 	ruff format .
 
 paper:
-	cd paper && latexmk -pdf main.tex || true
+	cd paper && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 
 collection_select_crawls:
 	python -m src.cli cc-collection-select-crawls --config $(CONFIG)
