@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  14 JUL 2026 13:07
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  16 JUL 2026 10:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -637,18 +637,6 @@ Chapter 1.
 
 
 ]
-Overfull \hbox (2.24539pt too wide) in paragraph at lines 9--10
-\T1/ppl/m/n/12 these con-di-tions, di-ag-nos-tic and quasi-diagnostic la-bels m
-ay ac-quire so-cial value, mak-
- []
-
-
-Overfull \hbox (28.153pt too wide) in paragraph at lines 9--10
-\T1/ppl/m/n/12 ing self-labelling at-trac-tive rather than merely ex-plana-tory
- ([][]Ndour and Foulkes[][], [][]2025[][]). 
- []
-
-
 
 [2])
 Overfull \hbox (1.84833pt too wide) in paragraph at lines 15--95
@@ -706,7 +694,7 @@ Chapter 3.
 
 ]
 <../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pdf, i
-d=563, 661.42003pt x 189.25908pt>
+d=568, 661.42003pt x 189.25908pt>
 File: ../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.p
 df Graphic file (type pdf)
 <use ../reports/figures/commoncrawl_pipeline/commoncrawl_collection_pipeline.pd
@@ -789,7 +777,7 @@ Chapter 5.
 ]
 
 [23]
-<../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf, id=732,
+<../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf, id=737,
  859.09016pt x 329.04909pt>
 File: ../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf Gra
 phic file (type pdf)
@@ -803,7 +791,7 @@ rajectories.pdf  used on input line 17.
 
 [24 <../reports/figures/lsc/salience/lsc_salience_primary_trajectories.pdf>]
 <../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf, id
-=827, 878.1344pt x 380.34497pt>
+=832, 878.1344pt x 380.34497pt>
 File: ../reports/figures/lsc/classification/lsc_classification_frame_balance.pd
 f Graphic file (type pdf)
 <use ../reports/figures/lsc/classification/lsc_classification_frame_balance.pdf
@@ -818,7 +806,7 @@ on_frame_balance.pdf  used on input line 37.
 
 [26]
 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_targets
-.pdf, id=929, 672.33624pt x 295.43373pt>
+.pdf, id=934, 672.33624pt x 295.43373pt>
 File: ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_ta
 rgets.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_tar
@@ -831,7 +819,7 @@ ostics_sentiment_targets.pdf  used on input line 58.
 [27 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_sentiment_tar
 gets.pdf>]
 <../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf, id=10
-03, 1002.88312pt x 309.8944pt>
+08, 1002.88312pt x 309.8944pt>
 File: ../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf G
 raphic file (type pdf)
 <use ../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf>
@@ -841,7 +829,7 @@ _trajectories.pdf  used on input line 77.
 
 
 [28 <../reports/figures/lsc/intensity/lsc_intensity_arousal_trajectories.pdf>]
-<../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf, id=1088, 1002.878
+<../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf, id=1094, 1002.878
 71pt x 309.8944pt>
 File: ../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf Graphic file 
 (type pdf)
@@ -853,7 +841,7 @@ s.pdf  used on input line 92.
 
 [29 <../reports/figures/lsc/breadth/lsc_breadth_trajectories.pdf>]
 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autism.pd
-f, id=1176, 485.7628pt x 302.8414pt>
+f, id=1181, 485.7628pt x 302.8414pt>
 File: ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_auti
 sm.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autis
@@ -866,7 +854,7 @@ ostics_breadth_autism.pdf  used on input line 107.
 [30 <../reports/figures/lsc/diagnostics/lsc_quadratic_diagnostics_breadth_autis
 m.pdf>]
 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_au
-tism.pdf, id=1244, 946.50629pt x 315.59329pt>
+tism.pdf, id=1249, 946.50629pt x 315.59329pt>
 File: ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similari
 ty_autism.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
@@ -885,7 +873,7 @@ he near-zero NRC--VAD ADHD
 [31 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
 y_autism.pdf>]
 <../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth.pdf,
- id=1336, 775.03989pt x 524.21469pt>
+ id=1341, 775.03989pt x 524.21469pt>
 File: ../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth
 .pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/robustness/lsc_method_robustness_intensity_breadth.
@@ -1057,7 +1045,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 17--18
 
 [52]
 <../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarity_ad
-hd.pdf, id=1637, 946.50629pt x 315.59329pt>
+hd.pdf, id=1642, 946.50629pt x 315.59329pt>
 File: ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similari
 ty_adhd.pdf Graphic file (type pdf)
 <use ../reports/figures/lsc/thematic_evolution/lsc_thematic_neighbour_similarit
@@ -1116,10 +1104,10 @@ e/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/local/texlive/2025/texmf-
 dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/local/texlive/2025/texmf-dist/fo
 nts/type1/urw/palatino/uplri8a.pfb>
-Output written on main.pdf (63 pages, 632153 bytes).
+Output written on main.pdf (63 pages, 632056 bytes).
 PDF statistics:
- 1823 PDF objects out of 2073 (max. 8388607)
- 1073 compressed objects within 11 object streams
+ 1828 PDF objects out of 2073 (max. 8388607)
+ 1078 compressed objects within 11 object streams
  194 named destinations out of 1000 (max. 500000)
  387 words of extra memory for PDF output out of 10000 (max. 10000000)
 
