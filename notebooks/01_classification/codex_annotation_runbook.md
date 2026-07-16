@@ -184,8 +184,8 @@ After all 3,000 Codex labels pass validation:
 
 1. Rerun `03_llm_annotation_batches.ipynb` to inspect complete-batch coverage,
    frame/confidence distributions, and token usage.
-2. Follow `claude_criticism_runbook.md` to calibrate and run the codebook-v4,
-   critic-v5 Claude Code workflow.
+2. Follow `gemini_criticism_runbook.md` to calibrate and run the codebook-v4,
+   critic-v5 Gemini criticism workflow.
 3. Human-correct critic-ranked cases and complete the random residual audit.
 4. Train the hierarchical classifier from the human pilot plus corrected
    LLM-assisted labels.
