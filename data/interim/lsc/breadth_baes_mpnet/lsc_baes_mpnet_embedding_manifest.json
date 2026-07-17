@@ -1,0 +1,10 @@
+{
+  "backend": "sentence-transformers",
+  "cache_schema_version": 1,
+  "context_fingerprint": "eed55b1f4d69a6f021a71e7e247294dc2cb46426e8b61bd037f3c35f0a85b2de",
+  "embedding_dimensions": 768,
+  "local_files_only": true,
+  "model_name": "sentence-transformers/all-mpnet-base-v2",
+  "model_source": "/Users/jakoblutkemeier/Documents/msc-nlp-therapy-speak/data/external/models/all-mpnet-base-v2",
+  "unique_embedding_rows": 46791
+}

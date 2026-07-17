@@ -1,0 +1,32 @@
+{
+  "analysis_unit": "Autism",
+  "context_fingerprint": "ff7728ed35119ef0803d03f84da3ff7148b8919351d4b42905325aac6cd665b0",
+  "contexts": 20290,
+  "expected_years": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "frame_stratum": "clinical_only",
+  "schema_version": 1,
+  "word2vec_params": {
+    "global_epochs": 10,
+    "min_count": 5,
+    "seed": 13,
+    "sg": 1,
+    "vector_size": 200,
+    "window": 10,
+    "workers": 1,
+    "year_epochs": 10
+  }
+}

@@ -8,6 +8,48 @@ data/interim/*
 !data/interim/collection/
 data/interim/collection/*
 !data/interim/collection/.gitkeep
+
+# LSC interim: track the small evidentiary artifacts that document how the analysis
+# labels were produced. Heavy regenerable material (embeddings, models, context pools,
+# raw LLM transcripts) stays local.
+!data/interim/lsc/
+data/interim/lsc/*
+
+# mention-context audit summaries
+!data/interim/lsc/contexts/
+data/interim/lsc/contexts/*
+!data/interim/lsc/contexts/*.csv
+
+# framing annotation: human workbooks, ingested labels, and the corrected LLM labels
+!data/interim/lsc/classification/
+data/interim/lsc/classification/*
+!data/interim/lsc/classification/human_annotation/
+!data/interim/lsc/classification/human_labels/
+!data/interim/lsc/classification/human_correction/
+
+# LLM annotation: manifests, pilot gate metrics, labels, and critic scores only.
+# The runs/inputs/outputs trees hold raw prompts and transcripts (~23M, no CSVs).
+!data/interim/lsc/classification/llm_annotation/
+data/interim/lsc/classification/llm_annotation/**
+!data/interim/lsc/classification/llm_annotation/**/
+!data/interim/lsc/classification/llm_annotation/**/*.csv
+data/interim/lsc/classification/llm_annotation/**/training_pool*.csv
+
+# embedding / model provenance manifests (the arrays and models themselves stay local)
+!data/interim/lsc/breadth/
+data/interim/lsc/breadth/*
+!data/interim/lsc/breadth/*_manifest.json
+!data/interim/lsc/breadth_baes_mpnet/
+data/interim/lsc/breadth_baes_mpnet/*
+!data/interim/lsc/breadth_baes_mpnet/*_manifest.json
+!data/interim/lsc/thematic_evolution/
+data/interim/lsc/thematic_evolution/*
+!data/interim/lsc/thematic_evolution/*_manifest.json
+!data/interim/lsc/thematic_evolution/word2vec_models/
+data/interim/lsc/thematic_evolution/word2vec_models/**
+!data/interim/lsc/thematic_evolution/word2vec_models/**/
+!data/interim/lsc/thematic_evolution/word2vec_models/**/model_manifest.json
+
 data/interim/**/*.parquet
 data/processed/
 !data/processed/

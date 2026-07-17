@@ -1,0 +1,32 @@
+{
+  "analysis_unit": "ADHD",
+  "context_fingerprint": "151d52c5bff7a7d86f8d4fe3abd4976123047d89f9e87959dc0173c1d09e4f2b",
+  "contexts": 11841,
+  "expected_years": [
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "frame_stratum": "clinical_only",
+  "schema_version": 1,
+  "word2vec_params": {
+    "global_epochs": 10,
+    "min_count": 5,
+    "seed": 13,
+    "sg": 1,
+    "vector_size": 200,
+    "window": 10,
+    "workers": 1,
+    "year_epochs": 10
+  }
+}

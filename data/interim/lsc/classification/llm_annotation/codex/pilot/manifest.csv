@@ -1,0 +1,4 @@
+batch_name,rows,start_row,end_row,sha256
+pilot_batch_001.jsonl,75,0,74,bab23d3f844fea5b935d0433982a9d793a36009b4c72510866a7ae0c67bf7693
+pilot_batch_002.jsonl,75,75,149,f0b6defacd50e48e01521fcc08d737da098cb7b7493e8cb18c041ff209cb3514
+pilot_batch_003.jsonl,50,150,199,bfefc386e592968b842b38e852eee10bd6398d6c1d53fa16482efe43ad288e62

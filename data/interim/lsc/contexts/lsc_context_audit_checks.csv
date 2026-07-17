@@ -1,0 +1,21 @@
+check,value,passes,severity
+context_rows_positive,293670,True,fail
+expected_analysis_units_present,"ADHD, Autism, frustration, loneliness, sadness",True,fail
+no_unexpected_analysis_units,,True,warn
+expected_years_present,"2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026",True,fail
+no_unexpected_years,,True,warn
+mention_cap_respected,3,True,fail
+duplicate_mention_rows,0,True,fail
+target_sentence_non_empty,0,True,fail
+token_window_non_empty,0,True,fail
+valid_mention_offsets,0,True,fail
+lsc_year_non_empty,0,True,fail
+published_year_non_empty,0,True,fail
+lsc_year_equals_published_year,0,True,fail
+published_year_in_lsc_window,0,True,fail
+publication_exclusions_written,"kept_for_lsc_year, missing_or_unparseable_published_ts, published_before_lsc_window",True,fail
+collapsed_raw_forms_recorded,0,True,fail
+collapsed_match_count_recorded,0,True,fail
+collapse_summary_arithmetic,633026,True,fail
+unit_counts_match_context_rows,293670,True,fail
+raw_counts_match_context_rows,293670,True,fail

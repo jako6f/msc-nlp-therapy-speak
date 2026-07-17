@@ -1,0 +1,10 @@
+{
+  "cache_schema_version": 1,
+  "context_fingerprint": "41038076ea42904aa194482a275d83c377c05cddf26f7a68df48b290df27bb7d",
+  "embedding_dimensions": 1024,
+  "max_sequence_length": 128,
+  "model_path": "data/external/models/xl-lexeme",
+  "target_end_marker": "</t>",
+  "target_start_marker": "<t>",
+  "unique_embedding_rows": 86930
+}

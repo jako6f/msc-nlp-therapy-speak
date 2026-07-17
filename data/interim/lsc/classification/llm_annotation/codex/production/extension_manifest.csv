@@ -1,0 +1,2 @@
+extension_name,prepared_at_utc,rows,seed,batch_size,annotation_id_start,annotation_id_end,batch_start,batch_end,production_rows_after,prompt_version,codebook_version,reasoning_effort
+additional_1000_v1,2026-06-11T07:24:36.975703+00:00,1000,20260611,75,llm_train_02001,llm_train_03000,annotator_batch_028.jsonl,annotator_batch_041.jsonl,3000,annotator_v4,v0.4,high

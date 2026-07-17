@@ -1,0 +1,16 @@
+publication_date_status,analysis_unit,rows,documents,domains,publication_year_start,publication_year_end
+kept_for_lsc_year,ADHD,28611,18438,13537,2014,2026
+kept_for_lsc_year,Autism,68253,41165,27484,2014,2026
+kept_for_lsc_year,frustration,105482,93663,67238,2014,2026
+kept_for_lsc_year,loneliness,38052,30431,23417,2014,2026
+kept_for_lsc_year,sadness,53272,45283,33785,2014,2026
+missing_or_unparseable_published_ts,ADHD,1521,911,499,2014,2026
+missing_or_unparseable_published_ts,Autism,2257,1325,760,2014,2026
+missing_or_unparseable_published_ts,frustration,3081,2593,1756,2014,2026
+missing_or_unparseable_published_ts,loneliness,1616,1342,867,2014,2026
+missing_or_unparseable_published_ts,sadness,2133,1719,1092,2014,2026
+published_before_lsc_window,ADHD,13886,8336,4802,2014,2026
+published_before_lsc_window,Autism,37228,21290,10218,2014,2026
+published_before_lsc_window,frustration,63707,56170,25037,2014,2026
+published_before_lsc_window,loneliness,14930,12393,7506,2014,2026
+published_before_lsc_window,sadness,31371,26605,14178,2014,2026
