@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\caption{Period-stratified held-out validation performance for the hierarchical frame classifier. Brackets give 95\% Clopper--Pearson intervals; F1 intervals are stratified bootstrap percentiles.}
+\label{tab:lsc-classification-temporal-stability}
+\small
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+Validation target & Period & Support & Precision & Recall & FPR & F1 \\
+\midrule
+Substantive target discourse & 2014--2017 & 45/67 & .884 [.75, .96] & .844 [.71, .94] & .227 [.08, .45] & .864 [.78, .93] \\
+ & 2018--2022 & 46/67 & .816 [.68, .91] & .870 [.74, .95] & .429 [.22, .66] & .842 [.76, .91] \\
+ & 2023--2026 & 50/66 & .976 [.87, 1.00] & .800 [.66, .90] & .062 [.00, .30] & .879 [.80, .94] \\
+\addlinespace
+Clinical framing & 2014--2017 & 36/45 & .897 [.76, .97] & .972 [.85, 1.00] & .444 [.14, .79] & .933 [.87, .99] \\
+ & 2018--2022 & 37/46 & .971 [.85, 1.00] & .892 [.75, .97] & .111 [.00, .48] & .930 [.86, .99] \\
+ & 2023--2026 & 32/50 & .833 [.65, .94] & .781 [.60, .91] & .278 [.10, .53] & .806 [.68, .90] \\
+\addlinespace
+Lived-experience framing & 2014--2017 & 11/45 & .667 [.35, .90] & .727 [.39, .94] & .118 [.03, .27] & .696 [.43, .88] \\
+ & 2018--2022 & 12/46 & .611 [.36, .83] & .917 [.62, 1.00] & .206 [.09, .38] & .733 [.53, .89] \\
+ & 2023--2026 & 23/50 & .792 [.58, .93] & .826 [.61, .95] & .185 [.06, .38] & .809 [.67, .92] \\
+\bottomrule
+\end{tabular}
+\parbox{\linewidth}{\footnotesize Note. Support gives positive cases over the per-period evaluation denominator. Substantive target discourse is evaluated on all held-out passages in the period; clinical and lived-experience framing are evaluated among human-substantive passages, following the aggregate validation convention. FPR = false-positive rate.}
+\end{table}

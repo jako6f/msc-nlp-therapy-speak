@@ -1,0 +1,4 @@
+band,"adjudicated (n=3,000, in training)","pilot (n=200, in training)","validation (n=200, held out)",passages,human_substantive,clinical_positives,lived_positives
+early_2014_2017,1001,67,67,67,45,36,11
+mid_2018_2022,1000,67,67,67,46,37,12
+late_2023_2026,999,66,66,66,50,32,23
