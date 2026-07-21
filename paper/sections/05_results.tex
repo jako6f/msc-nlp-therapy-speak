@@ -1,15 +1,15 @@
-This chapter reports diachronic results for salience, frame composition, sentiment, intensity, breadth, and thematic neighbour similarity for ADHD and autism. Salience is indexed by Common Crawl source year, while the semantic measures use document publication year. Annual estimates and their bootstrap intervals show the observed trajectories; ordinary least-squares (OLS) models summarise net linear movement over the 13 annual observations. In these models, $B$ is the unstandardised change per year and adjusted $R^2$ summarises model fit. The reported $p$-values are descriptive and uncorrected. When linear-model residuals were flagged for autocorrelation, an AR(1)-transformed sensitivity model assessed whether the estimated slope persisted after accounting for first-order serial dependence.
+This chapter reports diachronic results for salience, frame composition, sentiment, intensity, breadth, and thematic neighbour similarity for ADHD and autism. Salience is indexed by Common Crawl source year, while the semantic measures use document publication year. Annual estimates and their bootstrap intervals show the observed trajectories; ordinary least-squares (OLS) models summarise net linear movement over the 13 annual observations. In these models, $B$ is the unstandardised change per year and adjusted $R^2$ summarises model fit. The reported $p$-values are descriptive and uncorrected.
 
-The semantic results foreground the overall aggregate and the two clear, mutually exclusive frames: clinical-only and lived-experience-only. The overall aggregate combines clinical-only, lived-experience-only, and mixed contexts. Mixed contexts are not plotted separately because this smaller stratum generally occupied an intermediate position between the overall and clinical trajectories and added visual overlap. Substantive-other contexts were sparse and outside the main frame contrast, while non-substantive or insufficient contexts were treated as a quality and composition category rather than as a semantic frame.
+The semantic results foreground the overall aggregate---which combines clinical-only, lived-experience-only, and mixed contexts---and the two clear, mutually exclusive frames: clinical-only and lived-experience-only. Mixed contexts are not plotted separately: this smaller stratum generally occupied an intermediate position between the overall and clinical trajectories and added visual overlap. Substantive-other contexts were sparse and outside the main frame contrast; non-substantive or insufficient contexts were treated as a quality and composition category rather than a semantic frame.
 
-Table~\ref{tab:lsc-regression-target-frames} reports the target trend models. At the uncorrected $p<.05$ level, autism salience declined; frame composition shifted toward lived-experience; no target sentiment OLS slope differed from zero; intensity increased only in autism clinical contexts; and breadth decreased for ADHD overall, ADHD clinical contexts, and autism lived-experience contexts. The autism clinical breadth OLS slope was nominally positive but was not retained by the AR(1) sensitivity model.
+Table~\ref{tab:lsc-regression-target-frames} reports the target trend models. At the uncorrected $p<.05$ level, autism salience declined; frame composition shifted toward lived experience; no target sentiment OLS slope differed from zero; intensity increased only in autism clinical contexts; and breadth decreased for ADHD overall, ADHD clinical contexts, and autism lived-experience contexts. The autism clinical breadth OLS slope was nominally positive but was not retained by the AR(1) sensitivity model.
 
 \input{../reports/tables/lsc/regression/lsc_regression_target_frames.tex}
 \FloatBarrier
 
 \section{Salience}
 
-Figure~\ref{fig:lsc-salience} presents WARC-validated source-year salience. Autism remained more frequent than ADHD throughout 2014--2026, but the fitted salience trajectory declined by 28.9\% from 2014 to 2026 ($B=-0.0228$, $p=.024$, adjusted $R^2=.33$). ADHD moved in the opposite direction, with a fitted 27.0\% increase over the same period, although the annual slope did not differ from zero ($B=0.0073$, $p=.118$, adjusted $R^2=.14$). The indexed panel shows the target trajectories relative to the comparators; comparator trend models are reported in Appendix Table~\ref{tab:lsc-regression-baseline-comparators}.
+Figure~\ref{fig:lsc-salience} presents WARC-validated source-year salience. Autism remained more frequent than ADHD throughout 2014--2026, but its fitted trajectory declined by 28.9\% from 2014 to 2026 ($B=-0.0228$, $p=.024$, adjusted $R^2=.33$). ADHD moved in the opposite direction, with a fitted 27.0\% increase over the same period, although the annual slope did not differ from zero ($B=0.0073$, $p=.118$, adjusted $R^2=.14$). The indexed panel shows the target trajectories relative to the comparators; comparator trend models are reported in Appendix Table~\ref{tab:lsc-regression-baseline-comparators}.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -22,14 +22,37 @@ Figure~\ref{fig:lsc-salience} presents WARC-validated source-year salience. Auti
 
 \section{Frame Classification}
 
-Table~\ref{tab:lsc-classification-validation} shows that the hierarchical classifier performed well on held-out passages, with strongest performance for substantive-context detection and clinical framing, and weaker but still usable performance for lived-experience framing. The substantive head was evaluated on all 200 passages and reached $F_1=.861$ and balanced accuracy $=.791$. The clinical and lived-experience heads were evaluated conditionally on the 141 passages labelled as substantive by the human coder. Their $F_1$ scores were .894 and .760, with balanced accuracies of .804 and .829, respectively.
-
+The hierarchical classifier assigned frame labels to all 96,864 target contexts:
+28,611 for ADHD and 68,253 for autism.
+Table~\ref{tab:lsc-classification-validation} shows that it performed well on
+held-out passages, with the strongest performance for substantive-context
+detection and clinical framing and weaker, though still usable, performance for
+lived-experience framing. The substantive head, evaluated on all 200 passages,
+reached $F_1=.861$; the clinical and lived-experience heads, evaluated
+conditionally on the 141 passages labelled as substantive by the human coder,
+reached $F_1=.894$ and $.760$.
 \input{../reports/tables/lsc/classification/lsc_classification_validation_performance.tex}
 \FloatBarrier
-
-The classifier labelled 96,864 target contexts: 28,611 for ADHD and 68,253 for autism. Clinical-only contexts comprised 42.1\% of ADHD and 29.8\% of autism contexts; lived-experience-only contexts comprised 12.6\% and 18.8\%, respectively. The remaining assignments were mixed (7.0\% and 9.3\%), non-substantive or insufficient (35.8\% and 38.8\%), and substantive-other (2.5\% and 3.3\%).
-
-Figure~\ref{fig:lsc-classification-frame-balance} shows a shift toward lived-experience framing, especially in ADHD discourse. In the full predicted frame composition (Panel A), lived-experience-only assignments increased from 10.7\% to 15.7\% of ADHD contexts between 2014--2017 and 2022--2026, while clinical-only assignments fell from 44.4\% to 39.1\%. Autism showed the same direction more weakly: lived-experience-only assignments increased from 17.6\% to 19.6\%, while clinical-only assignments fell from 31.3\% to 27.7\%. The annual trend model then restricts the denominator to the clear clinical-only and lived-experience-only assignments, estimating the lived-experience share among those two frames (Panel B). On this contrast, ADHD increased by 1.07 percentage points per year ($p<.001$), a fitted 12.8-point rise from 2014 to 2026. Autism increased by 0.59 points per year ($p=.013$), a fitted 7.0-point rise, although this series was flagged for residual autocorrelation and the AR(1) sensitivity slope did not differ from zero ($p=.370$). The trend model table is reported in Appendix Table~\ref{tab:lsc-classification-frame-time-trends}.
+Of the labelled contexts, clinical-only comprised 42.1\% of ADHD and 29.8\% of
+autism contexts; lived-experience-only comprised 12.6\% and 18.8\%,
+respectively. The remaining assignments were mixed (7.0\% and 9.3\%),
+non-substantive or insufficient (35.8\% and 38.8\%), and substantive-other
+(2.5\% and 3.3\%).
+Figure~\ref{fig:lsc-classification-frame-balance} shows a shift toward
+lived-experience framing, especially in ADHD discourse. In the full predicted
+composition (Panel A), lived-experience-only assignments rose from 10.7\% to
+15.7\% of ADHD contexts between 2014--2017 and 2022--2026, while clinical-only
+assignments fell from 44.4\% to 39.1\%; autism moved in the same direction more
+weakly (lived-experience-only 17.6\% to 19.6\%; clinical-only 31.3\% to
+27.7\%). The annual trend model then restricts the denominator to the clear
+clinical-only and lived-experience-only assignments, estimating the
+lived-experience share among those two frames (Panel B). On this contrast,
+ADHD increased by 1.07 percentage points per year ($p<.001$), a fitted
+12.8-point rise from 2014 to 2026; autism increased by 0.59 points per year
+($p=.013$), a fitted 7.0-point rise, although this series was flagged for
+residual autocorrelation and the AR(1) sensitivity slope did not differ from
+zero ($p=.370$). The trend models are reported in Appendix
+Table~\ref{tab:lsc-classification-frame-time-trends}.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -44,11 +67,11 @@ Figure~\ref{fig:lsc-classification-frame-balance} shows a shift toward lived-exp
 
 Sentiment estimates were based on 17,649 ADHD and 39,463 autism contexts in the overall aggregate. At least one NRC--VAD match occurred in 17,255 ADHD contexts (97.8\%) and 39,200 autism contexts (99.3\%), yielding 58,666 and 144,668 matched collocate occurrences, respectively. Within individual years, at least 96.2\% of ADHD contexts and 98.9\% of autism contexts contributed a match, while matched-token coverage was at least 88.7\% and 87.6\%, respectively. The resulting annual valence index ranges from $-1$ to $1$, with higher values indicating more positive local wording.
 
-\paragraph*{ADHD.} Annual overall valence ranged from .044 to .106 ($M=.076$, $SD=.020$). Its positive linear slope did not differ from zero ($B=0.0023$, $p=.113$, adjusted $R^2=.14$); neither did the clinical or lived-experience slope. The overall and clinical residuals were flagged for autocorrelation, and the AR(1) sensitivity slopes also did not differ from zero. Quadratic diagnostics fitted U-shaped overall and clinical trajectories, with minima in August 2018 and June 2019 and adjusted-$R^2$ gains of .29 and .60 over the corresponding linear models.
+\paragraph*{ADHD.} Annual overall valence ranged from .044 to .106 ($M=.076$, $SD=.020$). Its positive linear slope did not differ from zero ($B=0.0023$, $p=.113$, adjusted $R^2=.14$); neither did the clinical or lived-experience slopes. The overall and clinical residuals were flagged for autocorrelation, and the AR(1) sensitivity slopes also did not differ from zero. Quadratic diagnostics fitted U-shaped overall and clinical trajectories, with minima in August 2018 and June 2019 and adjusted-$R^2$ gains of .29 and .60 over the corresponding linear models.
 
-\paragraph*{Autism.} Annual overall valence ranged from .137 to .173 ($M=.149$, $SD=.009$). The overall slope ($B=0.0012$, $p=.081$, adjusted $R^2=.18$) and the clinical and lived-experience OLS slopes did not differ from zero. The clinical residuals were flagged for autocorrelation; the AR(1) sensitivity slope was positive ($B=0.0052$, $p=.040$). The quadratic model fitted a U-shaped clinical trajectory with a minimum in February 2019 and an adjusted-$R^2$ gain of .65.
+\paragraph*{Autism.} Annual overall valence ranged from .137 to .173 ($M=.149$, $SD=.009$). Neither the overall slope ($B=0.0012$, $p=.081$, adjusted $R^2=.18$) nor the clinical and lived-experience OLS slopes differed from zero. The clinical residuals were flagged for autocorrelation; the AR(1) sensitivity slope was positive ($B=0.0052$, $p=.040$). The quadratic model fitted a U-shaped clinical trajectory with a minimum in February 2019 and an adjusted-$R^2$ gain of .65.
 
-Post-hoc contributor patterns indicate that positive valence contributions were concentrated around child- and family-related vocabulary, while lower-valence contributions came mainly from diagnostic, disability, and co-occurring-condition terms, including \emph{autism} in ADHD contexts and \emph{ADHD} in autism contexts (Appendix Table~\ref{tab:lsc-posthoc-sentiment-contributors}).
+Post-hoc contributor patterns indicate that positive valence contributions were concentrated around child- and family-related vocabulary, while lower-valence contributions came mainly from diagnostic, disability, and co-occurring-condition terms, including \emph{autism} in ADHD contexts and \emph{adhd} in autism contexts (Appendix Table~\ref{tab:lsc-posthoc-sentiment-contributors}).
 
 Figure~\ref{fig:lsc-sentiment-diagnostics} presents the flagged sentiment trajectories with linear and quadratic fits. Coefficients for the quadratic models are reported in Appendix Table~\ref{tab:lsc-quadratic-diagnostics}.
 
@@ -65,11 +88,11 @@ Figure~\ref{fig:lsc-sentiment-diagnostics} presents the flagged sentiment trajec
 
 Intensity uses the same NRC--VAD matches as sentiment and is therefore based on the same 17,649 ADHD and 39,463 autism contexts and 58,666 and 144,668 matched collocate occurrences. The context- and token-coverage rates reported above also apply to the annual arousal estimates. The arousal index ranges from $-1$ to $1$, with higher values indicating greater emotional activation.
 
-\paragraph*{ADHD.} Annual overall arousal ranged from .011 to .032 ($M=.023$, $SD=.007$). Contrary to hypothesis the fitted slope did not differ from zero overall ($B=0.0001$, $p=.900$, adjusted $R^2=-.09$), in clinical contexts ($B=0.0002$, $p=.738$, adjusted $R^2=-.08$), or in lived-experience contexts ($B=0.0015$, $p=.123$, adjusted $R^2=.13$).
+\paragraph*{ADHD.} Annual overall arousal ranged from .011 to .032 ($M=.023$, $SD=.007$). Contrary to hypothesis, the fitted slope did not differ from zero overall ($B=0.0001$, $p=.900$, adjusted $R^2=-.09$), in clinical contexts ($B=0.0002$, $p=.738$, adjusted $R^2=-.08$), or in lived-experience contexts ($B=0.0015$, $p=.123$, adjusted $R^2=.13$).
 
-\paragraph*{Autism.} Annual overall arousal ranged from approximately .000 to .047 ($M=.010$, $SD=.012$). The overall slope was positive but did not differ from zero ($B=0.0011$, $p=.223$, adjusted $R^2=.05$), contrary to expectation. Clinical arousal increased nominally ($B=0.0010$, $p=.048$, adjusted $R^2=.25$), while the lived-experience slope did not differ from zero ($B=0.0025$, $p=.252$, adjusted $R^2=.04$).
+\paragraph*{Autism.} Annual overall arousal ranged from approximately .000 to .047 ($M=.010$, $SD=.012$). Contrary to expectation, the overall slope was positive, though it did not differ from zero ($B=0.0011$, $p=.223$, adjusted $R^2=.05$). Clinical arousal increased nominally ($B=0.0010$, $p=.048$, adjusted $R^2=.25$), while the lived-experience slope did not differ from zero ($B=0.0025$, $p=.252$, adjusted $R^2=.04$).
 
-Post-hoc arousal contributor patterns were concentrated in diagnostic and difficulty-related vocabulary. ADHD arousal was raised most consistently by terms such as \emph{disorder}, \emph{anxiety}, \emph{hyperactivity}, \emph{challenge}, and \emph{struggle}; autism arousal was raised by \emph{disorder}, \emph{developmental}, \emph{spectrum}, and, in later lived-experience contexts, terms such as \emph{dangerous} and \emph{obsession}. Lower-arousal contributors included treatment-, individual-, people-, and family-related vocabulary (Appendix Table~\ref{tab:lsc-posthoc-arousal-contributors}). Figure~\ref{fig:lsc-intensity} presents the target and comparator trajectories. Among the comparators, sadness increased; the OLS slopes for frustration and loneliness did not differ from zero.
+Post-hoc arousal contributor patterns were concentrated in diagnostic and difficulty-related vocabulary. ADHD arousal was raised most consistently by terms such as \emph{disorder}, \emph{anxiety}, \emph{hyperactivity}, \emph{challenge}, and \emph{struggle}; autism arousal was raised by \emph{disorder}, \emph{developmental}, \emph{spectrum}, and, in later lived-experience contexts, terms such as \emph{dangerous} and \emph{obsession}. Lower-arousal contributors included treatment-, individual-, people-, and family-related vocabulary (Appendix Table~\ref{tab:lsc-posthoc-arousal-contributors}). Figure~\ref{fig:lsc-intensity} presents the target and comparator trajectories. Among the comparators, \emph{sadness} increased; the OLS slopes for \emph{frustration} and \emph{loneliness} did not differ from zero.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -84,7 +107,7 @@ Post-hoc arousal contributor patterns were concentrated in diagnostic and diffic
 
 Breadth estimates were available for 57,112 target contexts in the three substantive frames. After within-cell exact-duplicate removal, 53,544 contexts contributed to the frame-specific estimates; the same material was also aggregated into the overall target series, yielding 107,081 target analysis rows. The comparator sample contributed 38,349 rows. The annual index is the mean pairwise cosine distance, with higher values indicating greater contextual dispersion.
 
-\paragraph*{ADHD.} Breadth was .138 in 2014 and .117 in 2026 overall ($M=.127$, $SD=.009$). Contrary to hypothesis, it decreased overall ($B=-0.0020$, $p<.001$, adjusted $R^2=.77$) and in clinical contexts ($B=-0.0018$, $p<.001$, adjusted $R^2=.69$). The lived-experience slope did not differ from zero ($B=-0.0004$, $p=.560$, adjusted $R^2=-.06$) and its residuals were flagged for autocorrelation. Figure~\ref{fig:lsc-breadth} presents these trajectories alongside the autism and comparator series.
+\paragraph*{ADHD.} Breadth was .138 in 2014 and .117 in 2026 overall ($M=.127$, $SD=.009$). Contrary to hypothesis, it decreased overall ($B=-0.0020$, $p<.001$, adjusted $R^2=.77$) and in clinical contexts ($B=-0.0018$, $p<.001$, adjusted $R^2=.69$). The lived-experience slope did not differ from zero ($B=-0.0004$, $p=.560$, adjusted $R^2=-.06$), and its residuals were flagged for autocorrelation. Figure~\ref{fig:lsc-breadth} presents these trajectories alongside the autism and comparator series.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -95,11 +118,11 @@ Breadth estimates were available for 57,112 target contexts in the three substan
 \end{figure}
 \FloatBarrier
 
-\paragraph*{Autism.} Breadth was .096 in 2014 and .098 in 2026 overall ($M=.099$, $SD=.003$). Inconsistent with expectation, its linear slope did not differ from zero ($B=0.0001$, $p=.637$, adjusted $R^2=-.07$), and the flagged AR(1) sensitivity slope also did not differ from zero ($p=.753$). Lived-experience breadth decreased ($B=-0.0010$, $p=.030$, adjusted $R^2=.30$). The clinical OLS slope was nominally positive ($B=0.0007$, $p=.036$, adjusted $R^2=.28$), but its residuals were flagged for autocorrelation and the AR(1) sensitivity slope did not differ from zero ($p=.755$).
+\paragraph*{Autism.} Breadth was .096 in 2014 and .098 in 2026 overall ($M=.099$, $SD=.003$). Contrary to expectation, its linear slope did not differ from zero ($B=0.0001$, $p=.637$, adjusted $R^2=-.07$), and the flagged AR(1) sensitivity slope also did not differ from zero ($p=.753$). Lived-experience breadth decreased ($B=-0.0010$, $p=.030$, adjusted $R^2=.30$). The clinical OLS slope was nominally positive ($B=0.0007$, $p=.036$, adjusted $R^2=.28$), but its residuals were flagged for autocorrelation and the AR(1) sensitivity slope did not differ from zero ($p=.755$).
 
-The breadth diagnostic suggests different lexical profiles among the highest-distance sampled contexts. ADHD high-distance contexts repeatedly surfaced diagnostic, educational, and co-occurring-condition vocabulary, including \emph{disorder}, \emph{impulsivity}, \emph{inattention}, \emph{learning}, \emph{dyslexia}, and \emph{autism}. Autism high-distance contexts were more varied: clinical contexts included terms such as \emph{research}, \emph{organization}, \emph{developmental}, and \emph{treatment}, while overall and lived-experience contexts included broader contextual words such as \emph{world}, \emph{feel}, \emph{people}, and \emph{experience} (Appendix Table~\ref{tab:lsc-posthoc-breadth-contributors}). 
+The breadth diagnostic suggests different lexical profiles among the highest-distance sampled contexts. ADHD high-distance contexts repeatedly surfaced diagnostic, educational, and co-occurring-condition vocabulary, including \emph{disorder}, \emph{impulsivity}, \emph{inattention}, \emph{learning}, \emph{dyslexia}, and \emph{autism}. Autism high-distance contexts were more varied: clinical contexts included terms such as \emph{research}, \emph{organization}, \emph{developmental}, and \emph{treatment}, while overall and lived-experience contexts included broader contextual words such as \emph{world}, \emph{feel}, \emph{people}, and \emph{experience} (Appendix Table~\ref{tab:lsc-posthoc-breadth-contributors}).
 
-Figure~\ref{fig:lsc-breadth-autism-diagnostics} presents quadratic fit diagnostics for the two flagged autism series. The overall trajectory had an inverted-U fit with a vertex in April 2020, while the clinical fit had a vertex in May 2021. The adjusted-$R^2$ gains over the corresponding linear models were .58 and .51. Appendix Table~\ref{tab:lsc-quadratic-diagnostics} reports the model coefficients.
+Figure~\ref{fig:lsc-breadth-autism-diagnostics} presents quadratic fit diagnostics for the two flagged autism series. The overall trajectory had an inverted-U fit with a vertex in April 2020, while the clinical fit had a vertex in May 2021; the adjusted-$R^2$ gains over the corresponding linear models were .58 and .51. Appendix Table~\ref{tab:lsc-quadratic-diagnostics} reports the model coefficients.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -116,7 +139,7 @@ The thematic analysis began with 57,112 tokenised target contexts, of which 56,8
 
 For ADHD, the stable overall neighbours were \textit{child}, \textit{disorder}, \textit{symptom}, \textit{diagnose}, and \textit{condition}. The clinical set contained the same diagnostic and child-related vocabulary, while the lived-experience set retained \textit{help}, \textit{child}, and \textit{diagnose}. These patterns are consistent with the corresponding frame definitions. The ADHD trajectories are reported in Appendix Figure~\ref{fig:lsc-thematic-adhd-appendix}.
 
-Figure~\ref{fig:lsc-thematic-autism} presents the autism trajectories. \textit{Child} remained the highest-similarity stable neighbour overall and in clinical contexts. The remaining clinical neighbours were \textit{disorder}, \textit{research}, \textit{study}, and \textit{developmental}, while the lived-experience set comprised \textit{people}, \textit{child}, \textit{support}, \textit{life}, and \textit{family}. Both sets are consistent with the respective frame definitions.
+Figure~\ref{fig:lsc-thematic-autism} presents the autism trajectories. \textit{Child} remained the highest-similarity stable neighbour overall and in clinical contexts. The remaining clinical neighbours were \textit{disorder}, \textit{research}, \textit{study}, and \textit{developmental}, while the lived-experience set comprised \textit{people}, \textit{child}, \textit{support}, \textit{life}, and \textit{family}---again consistent with the respective frame definitions.
 
 \Needspace{0.55\textheight}
 \begin{figure}[!htbp]
@@ -129,7 +152,7 @@ Figure~\ref{fig:lsc-thematic-autism} presents the autism trajectories. \textit{C
 
 \section{Robustness Checks}
 
-The robustness checks compared the main affective and breadth measures with the original SIBling operationalisations: Warriner affect norms for sentiment and intensity and MPNet sentence embeddings for breadth \citep{baesMultidimensionalFrameworkEvaluating2024}. The annual strata and trend-model convention were held constant.
+The robustness checks compared the main affective and breadth measures with the original SIBling operationalisations: Warriner affect norms for sentiment and intensity, and MPNet sentence embeddings for breadth \citep{baesMultidimensionalFrameworkEvaluating2024}. The annual strata and trend-model convention were held constant.
 
 Under Warriner norms, the ADHD sentiment estimate remained positive but did not differ from zero ($B=0.0003$, $p=.366$, adjusted $R^2=-.01$). The autism sentiment estimate was positive ($B=0.0005$, $p=.018$, adjusted $R^2=.36$), and its residuals were flagged for autocorrelation; the AR(1) sensitivity estimate also differed from zero ($B=0.0005$, $p<.001$).
 
