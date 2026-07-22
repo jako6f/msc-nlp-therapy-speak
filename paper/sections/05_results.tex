@@ -1,6 +1,6 @@
 This chapter reports diachronic results for salience, frame composition, sentiment, intensity, breadth, and thematic neighbour similarity for ADHD and autism. Salience is indexed by Common Crawl source year, while the semantic measures use document publication year. Annual estimates and their bootstrap intervals show the observed trajectories; ordinary least-squares (OLS) models summarise net linear movement over the 13 annual observations. In these models, $B$ is the unstandardised change per year and adjusted $R^2$ summarises model fit. The reported $p$-values are descriptive and uncorrected.
 
-The semantic results foreground the overall aggregate---which combines clinical-only, lived-experience-only, and mixed contexts---and the two clear, mutually exclusive frames: clinical-only and lived-experience-only. Mixed contexts are not plotted separately: this smaller stratum generally occupied an intermediate position between the overall and clinical trajectories and added visual overlap. Substantive-other contexts were sparse and outside the main frame contrast; non-substantive or insufficient contexts were treated as a quality and composition category rather than a semantic frame.
+The semantic results foreground the overall aggregate---which combines clinical-only, lived-experience-only, and mixed contexts---and the two clear, mutually exclusive frames: clinical-only and lived-experience-only. Mixed contexts are not plotted separately: this smaller stratum generally tracked between the overall and clinical trajectories and added visual overlap. Substantive-other contexts were sparse and outside the main frame contrast; non-substantive or insufficient contexts were treated as a quality and composition category rather than a semantic frame.
 
 Table~\ref{tab:lsc-regression-target-frames} reports the target trend models. At the uncorrected $p<.05$ level, autism salience declined; frame composition shifted toward lived experience; no target sentiment OLS slope differed from zero; intensity increased only in autism clinical contexts; and breadth decreased for ADHD overall, ADHD clinical contexts, and autism lived-experience contexts. The autism clinical breadth OLS slope was nominally positive but was not retained by the AR(1) sensitivity model.
 
@@ -27,10 +27,7 @@ The hierarchical classifier assigned frame labels to all 96,864 target contexts:
 Table~\ref{tab:lsc-classification-validation} shows that it performed well on
 held-out passages, with the strongest performance for substantive-context
 detection and clinical framing and weaker, though still usable, performance for
-lived-experience framing. The substantive head, evaluated on all 200 passages,
-reached $F_1=.861$; the clinical and lived-experience heads, evaluated
-conditionally on the 141 passages labelled as substantive by the human coder,
-reached $F_1=.894$ and $.760$.
+lived-experience framing. 
 \input{../reports/tables/lsc/classification/lsc_classification_validation_performance.tex}
 \FloatBarrier
 Of the labelled contexts, clinical-only comprised 42.1\% of ADHD and 29.8\% of
@@ -56,7 +53,7 @@ temporal-stability audit (Appendix
 Table~\ref{tab:lsc-classification-temporal-stability}) found no evidence that
 this rise reflects drifting classifier error: although clinical recall was
 nominally lower in the late period, lived-experience error rates were
-homogeneous across periods with precision highest in the late period, and the
+homogeneous, with precision highest in the late period, and the
 human-adjudicated labels reproduced the trend independently of the classifier
 (+1.11 percentage points per year, bootstrap 95\% CI [0.40, 1.88]).
 
