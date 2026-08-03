@@ -1,0 +1,37 @@
+\begin{table}[t!]
+\caption{Annual trend models for the three semantic measures, by target and frame.
+Sentiment and intensity are NRC--VAD valence and arousal over local collocates; breadth is
+the mean pairwise cosine distance among XL-LEXEME target-use embeddings.}
+\label{tab:trends}
+\small
+\begin{tabular}{@{}lllccc@{}}
+\toprule
+Measure & Target & Frame & $B$ (SE) & $\beta$ & Adj. $R^2$ \\
+\midrule
+Sentiment & ADHD & Overall & $.0023^{\dagger}$ (.0014) & $+.46$ & $.14$ \\
+ & ADHD & Clinical & $.0013^{\dagger}$ (.0015) & $+.24$ & $-.03$ \\
+ & ADHD & Lived experience & $.0002$ (.0017) & $+.03$ & $-.09$ \\
+ & Autism & Overall & $.0012$ (.0006) & $+.50$ & $.18$ \\
+ & Autism & Clinical & $.0022^{\dagger}$ (.0015) & $+.42$ & $.10$ \\
+ & Autism & Lived experience & $-.0038$ (.0022) & $-.46$ & $.14$ \\
+Intensity & ADHD & Overall & $.0001$ (.0005) & $+.04$ & $-.09$ \\
+ & ADHD & Clinical & $.0002$ (.0006) & $+.10$ & $-.08$ \\
+ & ADHD & Lived experience & $.0015$ (.0009) & $+.45$ & $.13$ \\
+ & Autism & Overall & $.0011$ (.0008) & $+.36$ & $.05$ \\
+ & Autism & Clinical & $.0010^{*}$ (.0004) & $+.56$ & $.25$ \\
+ & Autism & Lived experience & $.0025$ (.0021) & $+.34$ & $.04$ \\
+Breadth & ADHD & Overall & $-.0020^{***}$ (.0003) & $-.89$ & $.77$ \\
+ & ADHD & Clinical & $-.0018^{***}$ (.0003) & $-.85$ & $.69$ \\
+ & ADHD & Lived experience & $-.0004^{\dagger}$ (.0006) & $-.18$ & $-.06$ \\
+ & Autism & Overall & $.0001^{\dagger}$ (.0002) & $+.14$ & $-.07$ \\
+ & Autism & Clinical & $.0007^{*\dagger}$ (.0003) & $+.58$ & $.28$ \\
+ & Autism & Lived experience & $-.0010^{*}$ (.0004) & $-.60$ & $.30$ \\
+\bottomrule
+\end{tabular}
+\par\vspace{3pt}
+\parbox{\linewidth}{\footnotesize Note. $B$ is the unstandardised annual OLS slope over 13
+publication years; $\beta$ is the standardised year coefficient. $^{\dagger}$ marks a
+residual-autocorrelation flag; AR(1) sensitivity estimates for flagged series are reported
+in Appendix~\ref{app:ar1}. $^{*}p<.05$, $^{**}p<.01$, $^{***}p<.001$; $p$-values are
+descriptive and uncorrected across 34 trend tests.}
+\end{table}

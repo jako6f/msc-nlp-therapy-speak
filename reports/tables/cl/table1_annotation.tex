@@ -1,0 +1,24 @@
+\begin{table}[t!]
+\caption{Annotation reliability and held-out classifier validation for the three
+hierarchical frame decisions. LLM--human agreement compares the locked Codex annotator
+against the human coder on the 200-passage pilot; classifier performance is measured on
+the disjoint 200-passage validation set, which was withheld from codebook development,
+LLM annotation, criticism, correction, and training.}
+\label{tab:annotation}
+\small
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+& \multicolumn{3}{c}{LLM--human agreement} & \multicolumn{4}{c}{Held-out classifier} \\
+\cmidrule(r){2-4}\cmidrule(l){5-8}
+Decision & $n$ & Agr. & $\kappa$ & Support & P & R & F1 \\
+\midrule
+Substantive target discourse & 200 & .960 & .914 & 141/200 & .887 & .837 & .861 \\
+Clinical framing & 122 & .943 & .867 & 105/141 & .903 & .886 & .894 \\
+Lived-experience framing & 122 & .975 & .949 & 46/141 & .704 & .826 & .760 \\
+\bottomrule
+\end{tabular}
+\par\vspace{3pt}
+\parbox{\linewidth}{\footnotesize Note. The clinical and lived-experience rows are
+evaluated among passages the human coder judged substantive. All human labels come from a
+single coder, so no inter-annotator agreement is reportable.}
+\end{table}

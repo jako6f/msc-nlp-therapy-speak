@@ -1,0 +1,25 @@
+\begin{table}[t!]
+\centering
+\caption{AR(1) sensitivity models for autocorrelation-flagged annual series.}
+\label{tab:ar1}
+\scriptsize
+\begin{tabular}{@{}llllccc@{}}
+\toprule
+Source & Measure & Series & Frame & OLS $B$ & AR(1) $B$ & AR(1) $p$ \\
+\midrule
+Table~\ref{tab:trends} & Sentiment & ADHD & Overall & $0.0023$ & $0.0037$ & $.147$ \\
+Table~\ref{tab:trends} & Sentiment & ADHD & Clinical & $0.0013$ & $0.0036$ & $.218$ \\
+Table~\ref{tab:trends} & Sentiment & Autism & Clinical & $0.0022$ & $0.0052$ & $.040$ \\
+Table~\ref{tab:trends} & Breadth & ADHD & Lived experience & $-0.0004$ & $-0.0004$ & $.247$ \\
+Table~\ref{tab:trends} & Breadth & Autism & Overall & $0.0001$ & $-0.0001$ & $.753$ \\
+Table~\ref{tab:trends} & Breadth & Autism & Clinical & $0.0007$ & $0.0002$ & $.755$ \\
+Table~\ref{tab:composition} & Frame classification & Autism & Lived vs clinical & $0.59$ & $0.23$ & $.370$ \\
+Table~\ref{tab:comparators} & Salience & frustration & Baseline & $-0.0175$ & $0.0160$ & $.538$ \\
+Table~\ref{tab:comparators} & Sentiment & frustration & Baseline & $0.0037$ & $0.0116$ & $.003$ \\
+Table~\ref{tab:comparators} & Sentiment & loneliness & Baseline & $0.0044$ & $0.0070$ & $.009$ \\
+Table~\ref{tab:comparators} & Intensity & frustration & Baseline & $-0.0004$ & $-0.0022$ & $.078$ \\
+Table~\ref{tab:comparators} & Breadth & sadness & Baseline & $-0.0010$ & $-0.0008$ & $.131$ \\
+\bottomrule
+\end{tabular}
+\parbox{\linewidth}{\footnotesize Note. Rows are the series marked with $^{\dagger}$ in the compact regression tables. OLS $B$ repeats the primary annual slope; AR(1) $B$ reports the first-order autoregressive sensitivity slope for the same series. The frame-classification row is reported in percentage points per year; all other rows use the original index units per year. P values are descriptive and uncorrected.}
+\end{table}

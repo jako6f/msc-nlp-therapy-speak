@@ -14,7 +14,7 @@ From the repository root:
 ```bash
 conda activate msc-nlp
 codex login status
-python notebooks/01_classification/run_codex_annotation.py self-test
+python scripts/annotation/run_codex_annotation.py self-test
 ```
 
 The runner fixes the model to `gpt-5.5`, disables web search, uses a read-only
@@ -31,8 +31,8 @@ The active annotation contract is:
 ## 1. Prepare and Inspect Pilot Batches
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py prepare-pilot
-python notebooks/01_classification/run_codex_annotation.py dry-run \
+python scripts/annotation/run_codex_annotation.py prepare-pilot
+python scripts/annotation/run_codex_annotation.py dry-run \
   --dataset pilot --reasoning high
 ```
 
@@ -44,11 +44,11 @@ alter the completed human pilot workbook.
 Run the pilot with `high` reasoning:
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset pilot --reasoning high
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset pilot --reasoning high
-python notebooks/01_classification/run_codex_annotation.py evaluate-pilot \
+python scripts/annotation/run_codex_annotation.py evaluate-pilot \
   --reasoning high
 ```
 
@@ -85,13 +85,13 @@ for all further production extensions and validation.
 First run and inspect two batches:
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset production --reasoning high --batch annotator_batch_001
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset production --reasoning high --batch annotator_batch_002
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset production --reasoning high --batch annotator_batch_001
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset production --reasoning high --batch annotator_batch_002
 ```
 
@@ -99,11 +99,11 @@ If both outputs are valid and their label distributions are plausible, resume
 the complete sequential run:
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset production --reasoning high
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset production --reasoning high
-python notebooks/01_classification/run_codex_annotation.py combine \
+python scripts/annotation/run_codex_annotation.py combine \
   --dataset production --reasoning high
 ```
 
@@ -126,7 +126,7 @@ To add a named, disjoint 1,000-row tranche after the completed initial 2,000
 rows:
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py \
+python scripts/annotation/run_codex_annotation.py \
   prepare-production-extension \
   --extension-name additional_1000_v1 \
   --additional-rows 1000 \
@@ -152,13 +152,13 @@ For the first extension from 2,000 to 3,000 rows, this creates
 batches:
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset production --reasoning high --batch annotator_batch_028
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset production --reasoning high --batch annotator_batch_029
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset production --reasoning high --batch annotator_batch_028
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset production --reasoning high --batch annotator_batch_029
 ```
 
@@ -166,11 +166,11 @@ Then run the complete production command. The runner skips the already valid
 initial and inspection batches and annotates only unfinished appended batches:
 
 ```bash
-python notebooks/01_classification/run_codex_annotation.py run \
+python scripts/annotation/run_codex_annotation.py run \
   --dataset production --reasoning high
-python notebooks/01_classification/run_codex_annotation.py validate \
+python scripts/annotation/run_codex_annotation.py validate \
   --dataset production --reasoning high
-python notebooks/01_classification/run_codex_annotation.py combine \
+python scripts/annotation/run_codex_annotation.py combine \
   --dataset production --reasoning high
 ```
 

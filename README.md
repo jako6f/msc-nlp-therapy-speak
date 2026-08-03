@@ -26,7 +26,8 @@ terms (`frustration`, `sadness`, `loneliness`) used as a comparison track.
 ```text
 configs/        Collection config (commoncrawl_collection.yaml) + untracked local overrides
 src/            Common Crawl acquisition/scan/resolve/WARC/quality code + CLI
-notebooks/      Staged analysis notebooks (00 data prep → 07 synthesis)
+notebooks/      Staged analysis notebooks (00 data prep → 08 measurement invariance)
+scripts/        Runnable tooling: annotation runners, CL short-paper figure/table build
 data/           raw / interim / processed corpus and analysis outputs (mostly git-ignored)
 reports/        Figures, tables, runbooks, provenance docs, interim presentation
 paper/          Dissertation LaTeX source, sections, bibliography, and compiled PDF
@@ -100,9 +101,9 @@ stages `02`–`06` estimate the five SIBling dimensions (overall and within fram
 
 Framing labels separate *clinical/disorder* from *lived-experience* discourse so that
 semantic-change measures can be read within-frame. Labels were produced by LLM-assisted
-annotation under human adjudication: a locked **Codex annotator** (`run_codex_annotation.py`,
+annotation under human adjudication: a locked **Codex annotator** (`scripts/annotation/run_codex_annotation.py`,
 prompts `annotator_v1`–`v4`, codebooks `v1`–`v4`), an independent **Gemini critic**
-(`run_gemini_criticism.py`, `critic_v5`) that ranks likely errors, and a human coder who
+(`scripts/annotation/run_gemini_criticism.py`, `critic_v5`) that ranks likely errors, and a human coder who
 holds final say — no LLM suggestion changes a training label without human review. A
 held-out 200-case human validation set is never touched by the LLM workflow. The runbooks
 `codex_annotation_runbook.md` and `gemini_criticism_runbook.md` document these external steps.

@@ -14,7 +14,7 @@ From the repository root:
 ```bash
 conda activate msc-nlp
 gemini --version
-python notebooks/01_classification/run_gemini_criticism.py self-test
+python scripts/annotation/run_gemini_criticism.py self-test
 ```
 
 The active criticism contract is:
@@ -39,7 +39,7 @@ Before any real run, inspect what the Gemini CLI actually emits with
 `--output-format json` and confirm that the restrictive policy is active.
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py probe \
+python scripts/annotation/run_gemini_criticism.py probe \
   --model gemini-3-flash-preview
 ```
 
@@ -55,14 +55,14 @@ independently into chunks of at most 10 rows. The smaller Gemini-only chunks
 avoid the field omissions and agent/tool fallback observed with 25-row outputs.
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py sync --dataset pilot
-python notebooks/01_classification/run_gemini_criticism.py sync --dataset production
+python scripts/annotation/run_gemini_criticism.py sync --dataset pilot
+python scripts/annotation/run_gemini_criticism.py sync --dataset production
 ```
 
 Inspect commands without calling Gemini:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py dry-run \
+python scripts/annotation/run_gemini_criticism.py dry-run \
   --dataset pilot --model gemini-3-flash-preview --batch critic_batch_001_01
 ```
 
@@ -71,13 +71,13 @@ python notebooks/01_classification/run_gemini_criticism.py dry-run \
 Run Gemini 3 Flash on the complete pilot:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py run \
+python scripts/annotation/run_gemini_criticism.py run \
   --dataset pilot --model gemini-3-flash-preview
 
-python notebooks/01_classification/run_gemini_criticism.py validate \
+python scripts/annotation/run_gemini_criticism.py validate \
   --dataset pilot --model gemini-3-flash-preview
 
-python notebooks/01_classification/run_gemini_criticism.py evaluate-pilot \
+python scripts/annotation/run_gemini_criticism.py evaluate-pilot \
   --model gemini-3-flash-preview
 ```
 
@@ -118,24 +118,24 @@ PINNED_MODEL="gemini-3-flash-preview"
 First inspect two batches:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py run \
+python scripts/annotation/run_gemini_criticism.py run \
   --dataset production --model "$PINNED_MODEL" --batch 001
-python notebooks/01_classification/run_gemini_criticism.py run \
+python scripts/annotation/run_gemini_criticism.py run \
   --dataset production --model "$PINNED_MODEL" --batch 002
-python notebooks/01_classification/run_gemini_criticism.py validate \
+python scripts/annotation/run_gemini_criticism.py validate \
   --dataset production --model "$PINNED_MODEL" --batch 001
-python notebooks/01_classification/run_gemini_criticism.py validate \
+python scripts/annotation/run_gemini_criticism.py validate \
   --dataset production --model "$PINNED_MODEL" --batch 002
 ```
 
 Then resume the complete run:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py run \
+python scripts/annotation/run_gemini_criticism.py run \
   --dataset production --model "$PINNED_MODEL"
-python notebooks/01_classification/run_gemini_criticism.py validate \
+python scripts/annotation/run_gemini_criticism.py validate \
   --dataset production --model "$PINNED_MODEL"
-python notebooks/01_classification/run_gemini_criticism.py combine \
+python scripts/annotation/run_gemini_criticism.py combine \
   --dataset production --model "$PINNED_MODEL"
 ```
 
@@ -152,7 +152,7 @@ After Codex creates and annotates a new batch, the next `run` command
 automatically synchronizes it. For example, after `annotator_batch_042`:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py run \
+python scripts/annotation/run_gemini_criticism.py run \
   --dataset production --model "$PINNED_MODEL" --batch 042
 ```
 
@@ -168,7 +168,7 @@ Select one exact critic chunk with, for example, `--batch critic_batch_042_01`.
 If a synchronized Codex batch was intentionally changed:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py rebuild-batch \
+python scripts/annotation/run_gemini_criticism.py rebuild-batch \
   --dataset production --batch annotator_batch_042
 ```
 
@@ -177,7 +177,7 @@ python notebooks/01_classification/run_gemini_criticism.py rebuild-batch \
 Create the protected ranked-review workbook:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py prepare-ranked-review \
+python scripts/annotation/run_gemini_criticism.py prepare-ranked-review \
   --model "$PINNED_MODEL"
 ```
 
@@ -192,7 +192,7 @@ After the ranked stopping point is final, generate and complete the 50-case
 random audit:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py prepare-audit \
+python scripts/annotation/run_gemini_criticism.py prepare-audit \
   --model "$PINNED_MODEL"
 ```
 
@@ -201,7 +201,7 @@ python notebooks/01_classification/run_gemini_criticism.py prepare-audit \
 After completing the ranked review and residual audit:
 
 ```bash
-python notebooks/01_classification/run_gemini_criticism.py finalize-corrections
+python scripts/annotation/run_gemini_criticism.py finalize-corrections
 ```
 
 This writes:

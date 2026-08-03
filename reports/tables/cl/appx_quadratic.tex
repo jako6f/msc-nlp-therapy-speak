@@ -1,0 +1,20 @@
+\begin{table}[t!]
+\centering
+\caption{Supplementary quadratic models for autocorrelation-flagged LSC trajectories.}
+\label{tab:quadratic}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lllcccc@{}}
+\toprule
+Measure & Target & Frame & Linear $B(SE)$ & Quadratic $B_2(SE)$ & $\Delta$ Adj. $R^2$ & Vertex \\
+\midrule
+Breadth & ADHD & Lived experience & $-0.0004$ (0.0006) & $-0.0000$ (0.0002) & -0.11 & outside window \\
+Breadth & Autism & Overall & $0.0001$ (0.0002) & $-0.0002^{**}$ (0.0000) & 0.58 & Q2 2020 (inverted U) \\
+Breadth & Autism & Clinical & $0.0007^{*}$ (0.0003) & $-0.0003^{***}$ (0.0001) & 0.51 & Q2 2021 (inverted U) \\
+Sentiment & ADHD & Overall & $0.0023$ (0.0014) & $0.0009^{*}$ (0.0003) & 0.29 & Q3 2018 (U) \\
+Sentiment & ADHD & Clinical & $0.0013$ (0.0015) & $0.0012^{**}$ (0.0003) & 0.60 & Q2 2019 (U) \\
+Sentiment & Autism & Clinical & $0.0022$ (0.0015) & $0.0013^{***}$ (0.0002) & 0.65 & Q1 2019 (U) \\
+\bottomrule
+\end{tabular}
+\parbox{\linewidth}{\footnotesize Note. Rows are restricted to annual series whose linear-model residuals were flagged for autocorrelation. Linear $B$ is the annual OLS slope from the primary trend model. Quadratic $B_2$ is the centred-year-squared coefficient; $\Delta$ Adj. $R^2$ is the adjusted-$R^2$ gain over the linear model. Vertex labels give the calendar quarter containing the fitted decimal-year vertex when it falls inside the observed annual window; otherwise the vertex is marked as outside the window. Significance markers are descriptive and uncorrected: $^{*}p<.05$, $^{**}p<.01$, $^{***}p<.001$.}
+\end{table}

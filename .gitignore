@@ -109,3 +109,7 @@ AGENTS.md
 .env
 configs/local/*.yaml
 !configs/local/*.example.yaml
+
+# local agent context
+CLAUDE.md
+.claude/

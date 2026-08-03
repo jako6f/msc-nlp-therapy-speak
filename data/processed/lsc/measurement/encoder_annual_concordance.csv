@@ -1,0 +1,12 @@
+analysis_unit,frame_stratum,n_years,pearson_r
+ADHD,clinical_only,13,-0.15101594657832165
+ADHD,lived_only,13,0.1797331907402838
+ADHD,mixed,13,0.5775694055412173
+ADHD,substantive_core_overall,13,0.1089610484531958
+Autism,clinical_only,13,0.4019696991780045
+Autism,lived_only,13,0.7476485716056845
+Autism,mixed,13,-0.09369973788803258
+Autism,substantive_core_overall,13,0.16988103420714976
+frustration,unframed_baseline,13,-0.17846462807227256
+loneliness,unframed_baseline,13,0.5812313219423633
+sadness,unframed_baseline,13,-0.1860161740578576

@@ -1,0 +1,21 @@
+\begin{table}[t!]
+\caption{What each breadth encoder responds to. Mean cosine distance between a context and
+a minimally edited variant of it, over 3,000 target contexts.}
+\label{tab:probe}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Encoder & Target swapped & Control word swapped & Ratio \\
+\midrule
+XL-LEXEME & $.1197$ & $.0009$ & $135$$\times$ \\
+MPNet & $.1313$ & $.0106$ & $12$$\times$ \\
+\bottomrule
+\end{tabular}
+\par\vspace{3pt}
+\parbox{\linewidth}{\footnotesize Note. The target swap replaces the target term with the
+other concept's term; the control swap replaces an unrelated content word in the same
+context. Both conditions use the same contexts. A higher ratio means the representation is
+more specific to the target and less contaminated by the rest of the sentence. Across the
+11 annual series the two encoders' breadth estimates correlate at
+mean $r = .20$.}
+\end{table}
